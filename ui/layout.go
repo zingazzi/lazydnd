@@ -34,6 +34,11 @@ func InitialModel() Model {
 		InitiativeEditMode:  false,
 		InitiativeEditType:  "",
 		InitiativeListMode:  false,
+		MonsterSearchInput:    "",
+		MonsterSearchMode:     false,
+		SelectedMonster:       nil,
+		MonsterSuggestions:    []string{},
+		MonsterSuggestionIndex: -1,
 	}
 }
 
@@ -208,8 +213,8 @@ func (m Model) getPanelContent(panelType PanelType) string {
 		content = panels.GetInitiativeTrackerContent(m.InitiativeList, m.InitiativeInput, m.InitiativeInputMode, m.InitiativeInputType, m.SelectedEntry, m.ActivePanel == InitiativeTracker, m.InitiativeListMode, m.InitiativeEditMode, m.InitiativeEditType)
 	case Spells:
 		content = panels.GetSpellsContent(m.SpellSearchInput, m.SelectedSpell, m.SpellSuggestions, m.SuggestionIndex, m.SpellSearchMode, m.ActivePanel == Spells)
-	case CampaignNotes:
-		content = panels.GetCampaignNotesContent()
+	case Monsters:
+		content = panels.GetMonstersContent(m.MonsterSearchInput, m.SelectedMonster, m.MonsterSuggestions, m.MonsterSuggestionIndex, m.MonsterSearchMode, m.ActivePanel == Monsters)
 	}
 
 	// Add help text for active panel
@@ -247,6 +252,12 @@ func (m Model) getHelpText(panelType PanelType) string {
 			return "\n" + HelpStyle.Render("Enter: select spell • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
 		} else {
 			return "\n" + HelpStyle.Render("Enter: search spells • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
+		}
+	} else if panelType == Monsters {
+		if m.MonsterSearchMode {
+			return "\n" + HelpStyle.Render("Enter: select monster • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
+		} else {
+			return "\n" + HelpStyle.Render("Enter: search monsters • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
 		}
 	} else {
 		return "\n" + HelpStyle.Render("↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")

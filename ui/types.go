@@ -8,7 +8,7 @@ const (
 	DiceRoller PanelType = iota
 	InitiativeTracker
 	Spells
-	CampaignNotes
+	Monsters
 )
 
 // Model represents the main application state
@@ -39,6 +39,12 @@ type Model struct {
 	InitiativeEditMode  bool
 	InitiativeEditType  string // "initiative", "hp", "delete"
 	InitiativeListMode  bool   // When true, navigating the list instead of adding entries
+	// Monster search state
+	MonsterSearchInput    string
+	MonsterSearchMode     bool
+	SelectedMonster       *Monster
+	MonsterSuggestions    []string
+	MonsterSuggestionIndex int
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
@@ -68,10 +74,40 @@ type Spell struct {
 	CantripUpgrade  string   `json:"cantripUpgrade,omitempty"`
 }
 
+// Monster represents a D&D monster
+type Monster struct {
+	Name             string `json:"name"`
+	Meta             string `json:"meta"`
+	ArmorClass       string `json:"Armor Class"`
+	HitPoints        string `json:"Hit Points"`
+	Speed            string `json:"Speed"`
+	STR              string `json:"STR"`
+	STRMod           string `json:"STR_mod"`
+	DEX              string `json:"DEX"`
+	DEXMod           string `json:"DEX_mod"`
+	CON              string `json:"CON"`
+	CONMod           string `json:"CON_mod"`
+	INT              string `json:"INT"`
+	INTMod           string `json:"INT_mod"`
+	WIS              string `json:"WIS"`
+	WISMod           string `json:"WIS_mod"`
+	CHA              string `json:"CHA"`
+	CHAMod           string `json:"CHA_mod"`
+	SavingThrows     string `json:"Saving Throws,omitempty"`
+	Skills           string `json:"Skills,omitempty"`
+	Senses           string `json:"Senses,omitempty"`
+	Languages        string `json:"Languages,omitempty"`
+	Challenge        string `json:"Challenge"`
+	Traits           string `json:"Traits,omitempty"`
+	Actions          string `json:"Actions,omitempty"`
+	LegendaryActions string `json:"Legendary Actions,omitempty"`
+	ImgURL           string `json:"img_url,omitempty"`
+}
+
 // Panel configuration
 var PanelNames = []string{
 	"Dice Roller",
 	"Initiative Tracker",
 	"Spells",
-	"Campaign Notes",
+	"Monsters",
 }

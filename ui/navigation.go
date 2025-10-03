@@ -45,7 +45,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		} else if m.InitiativeInputMode || m.InitiativeEditMode {
 			m.InitiativeInput += "4"
 		} else {
-			m.ActivePanel = CampaignNotes
+			m.ActivePanel = Monsters
 		}
 
 	case "tab":
@@ -63,7 +63,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.ActivePanel = Spells
 		m.InputMode = false
 	case "f4":
-		m.ActivePanel = CampaignNotes
+		m.ActivePanel = Monsters
 		m.InputMode = false
 
 	case "up":
@@ -71,6 +71,11 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
 			if m.SuggestionIndex > 0 {
 				m.SuggestionIndex--
+			}
+		} else if m.ActivePanel == Monsters && m.MonsterSearchMode && len(m.MonsterSuggestions) > 0 {
+			// Navigate monster suggestions
+			if m.MonsterSuggestionIndex > 0 {
+				m.MonsterSuggestionIndex--
 			}
 		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
 			// Navigate initiative list
@@ -89,6 +94,11 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
 			if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
 				m.SuggestionIndex++
+			}
+		} else if m.ActivePanel == Monsters && m.MonsterSearchMode && len(m.MonsterSuggestions) > 0 {
+			// Navigate monster suggestions
+			if m.MonsterSuggestionIndex < len(m.MonsterSuggestions)-1 {
+				m.MonsterSuggestionIndex++
 			}
 		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
 			// Navigate initiative list
@@ -159,6 +169,54 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				m.SpellSuggestions = []string{}
 				m.SuggestionIndex = -1
 			}
+		} else if m.ActivePanel == Monsters {
+			if m.MonsterSearchMode {
+				// Select monster from suggestions
+				if len(m.MonsterSuggestions) > 0 && m.MonsterSuggestionIndex >= 0 && m.MonsterSuggestionIndex < len(m.MonsterSuggestions) {
+					selectedMonsterName := m.MonsterSuggestions[m.MonsterSuggestionIndex]
+					foundMonster := panels.FindMonster(selectedMonsterName)
+					if foundMonster != nil {
+						// Convert panels.Monster to ui.Monster
+						m.SelectedMonster = &Monster{
+							Name:             foundMonster.Name,
+							Meta:             foundMonster.Meta,
+							ArmorClass:       foundMonster.ArmorClass,
+							HitPoints:        foundMonster.HitPoints,
+							Speed:            foundMonster.Speed,
+							STR:              foundMonster.STR,
+							STRMod:           foundMonster.STRMod,
+							DEX:              foundMonster.DEX,
+							DEXMod:           foundMonster.DEXMod,
+							CON:              foundMonster.CON,
+							CONMod:           foundMonster.CONMod,
+							INT:              foundMonster.INT,
+							INTMod:           foundMonster.INTMod,
+							WIS:              foundMonster.WIS,
+							WISMod:           foundMonster.WISMod,
+							CHA:              foundMonster.CHA,
+							CHAMod:           foundMonster.CHAMod,
+							SavingThrows:     foundMonster.SavingThrows,
+							Skills:           foundMonster.Skills,
+							Senses:           foundMonster.Senses,
+							Languages:        foundMonster.Languages,
+							Challenge:        foundMonster.Challenge,
+							Traits:           foundMonster.Traits,
+							Actions:          foundMonster.Actions,
+							LegendaryActions: foundMonster.LegendaryActions,
+							ImgURL:           foundMonster.ImgURL,
+						}
+					}
+					m.MonsterSearchInput = selectedMonsterName
+					m.MonsterSearchMode = false
+					m.MonsterSuggestions = []string{}
+					m.MonsterSuggestionIndex = -1
+				}
+			} else {
+				// Start monster search mode
+				m.MonsterSearchMode = true
+				m.MonsterSuggestions = []string{}
+				m.MonsterSuggestionIndex = -1
+			}
 		}
 
 	case "r":
@@ -200,6 +258,11 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.SpellSearchMode = false
 			m.SpellSuggestions = []string{}
 			m.SuggestionIndex = -1
+		} else if m.ActivePanel == Monsters {
+			m.MonsterSearchInput = ""
+			m.MonsterSearchMode = false
+			m.MonsterSuggestions = []string{}
+			m.MonsterSuggestionIndex = -1
 		}
 
 	case "backspace", "ctrl+h":
@@ -215,6 +278,15 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				m.SuggestionIndex = 0
 			} else {
 				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && len(m.MonsterSearchInput) > 0 {
+			m.MonsterSearchInput = m.MonsterSearchInput[:len(m.MonsterSearchInput)-1]
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
 			}
 		}
 
@@ -339,6 +411,22 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 					m.SuggestionIndex = 0
 				} else {
 					m.SuggestionIndex = -1
+				}
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Handle text input for monster search
+			key := msg.String()
+			if len(key) == 1 && (
+				(key >= "a" && key <= "z") ||
+				(key >= "A" && key <= "Z") ||
+				key == "'" || key == "-" || key == " ") {
+				m.MonsterSearchInput += key
+				// Update suggestions
+				m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+				if len(m.MonsterSuggestions) > 0 {
+					m.MonsterSuggestionIndex = 0
+				} else {
+					m.MonsterSuggestionIndex = -1
 				}
 			}
 		}
