@@ -73,6 +73,8 @@ func GetMonstersContent(searchInput string, selectedMonster interface{}, suggest
 		if monsterDetails != "" {
 			contentLines = append(contentLines, "Monster Details:")
 			contentLines = append(contentLines, "")
+			contentLines = append(contentLines, "Press 'a' to Add to Initiative")
+			contentLines = append(contentLines, "")
 			// Split the details into lines and add them
 			detailLines := strings.Split(monsterDetails, "\n")
 			for _, line := range detailLines {

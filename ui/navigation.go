@@ -3,6 +3,7 @@ package ui
 
 import (
 	"lazydnd/panels"
+	"reflect"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -492,6 +493,56 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.InitiativeInput += "h"
 		}
 
+	case "a":
+		if m.ActivePanel == Monsters && m.SelectedMonster != nil && !m.MonsterSearchMode {
+			// Add selected monster to initiative tracker
+			monsterName := getMonsterFieldString(reflect.ValueOf(m.SelectedMonster).Elem(), "Name")
+			if monsterName != "" {
+				// Extract monster stats
+				hp, ac, err := panels.ExtractMonsterStats(monsterName)
+				if err == nil && hp > 0 && ac > 0 {
+					// Roll initiative for the monster
+					initiative := panels.RollInitiative()
+
+					// Create initiative entry
+					newEntry := InitiativeEntry{
+						Name:       monsterName,
+						Type:       "monster",
+						Initiative: initiative,
+						HP:         hp,
+						MaxHP:      hp,
+						AC:         ac,
+					}
+
+					// Add to initiative list
+					m.InitiativeList = append(m.InitiativeList, newEntry)
+				}
+			}
+		} else if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'a' to spell search input
+			m.SpellSearchInput += "a"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'a' to monster search input
+			m.MonsterSearchInput += "a"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
+			// Add 'a' to input when in input/edit mode
+			m.InitiativeInput += "a"
+		}
+
 	case "d":
 		if m.InputMode && m.ActivePanel == DiceRoller {
 			// Add 'd' to dice input (for dice notation like "2d6")
@@ -757,4 +808,16 @@ func (m Model) findOriginalIndex(sortedIndex int) int {
 	}
 
 	return -1
+}
+
+// getMonsterFieldString gets a string field value using reflection (helper for monster operations)
+func getMonsterFieldString(v reflect.Value, fieldName string) string {
+	field := v.FieldByName(fieldName)
+	if !field.IsValid() {
+		return ""
+	}
+	if field.Kind() == reflect.String {
+		return field.String()
+	}
+	return ""
 }

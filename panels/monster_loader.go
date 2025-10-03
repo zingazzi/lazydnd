@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -233,4 +234,56 @@ func wrapText(text string, maxWidth int) []string {
 	}
 
 	return lines
+}
+
+// ExtractMonsterStats extracts HP and AC from a monster for initiative tracker
+func ExtractMonsterStats(monsterName string) (hp int, ac int, err error) {
+	monster := FindMonster(monsterName)
+	if monster == nil {
+		return 0, 0, fmt.Errorf("monster not found: %s", monsterName)
+	}
+
+	// Parse HP from string like "58 (9d10 + 9)" - extract the first number
+	hpStr := strings.TrimSpace(monster.HitPoints)
+	if hpStr != "" {
+		// Find the first number in the HP string
+		var hpPart strings.Builder
+		for _, char := range hpStr {
+			if char >= '0' && char <= '9' {
+				hpPart.WriteRune(char)
+			} else if hpPart.Len() > 0 {
+				break // Stop at first non-digit after we've started collecting digits
+			}
+		}
+		if hpPart.Len() > 0 {
+			if parsedHP, parseErr := strconv.Atoi(hpPart.String()); parseErr == nil {
+				hp = parsedHP
+			}
+		}
+	}
+
+	// Parse AC from string like "16 (Natural Armor)" - extract the first number
+	acStr := strings.TrimSpace(monster.ArmorClass)
+	if acStr != "" {
+		// Find the first number in the AC string
+		var acPart strings.Builder
+		for _, char := range acStr {
+			if char >= '0' && char <= '9' {
+				acPart.WriteRune(char)
+			} else if acPart.Len() > 0 {
+				break // Stop at first non-digit after we've started collecting digits
+			}
+		}
+		if acPart.Len() > 0 {
+			if parsedAC, parseErr := strconv.Atoi(acPart.String()); parseErr == nil {
+				ac = parsedAC
+			}
+		}
+	}
+
+	if hp == 0 && ac == 0 {
+		return 0, 0, fmt.Errorf("could not parse HP or AC for monster: %s", monsterName)
+	}
+
+	return hp, ac, nil
 }
