@@ -245,9 +245,30 @@ func extractField(entry, fieldName string) string {
 	start += len(fieldName)
 	end := start
 
-	// Find the end of the field value (next space or end of string)
-	for end < len(entry) && entry[end] != ' ' && entry[end] != '}' {
-		end++
+	// For Name field, we need to handle spaces differently
+	if fieldName == "Name:" {
+		// Find the next field or end of struct
+		nextFieldStart := -1
+		fields := []string{" Type:", " Initiative:", " HP:", " MaxHP:", " AC:", "}"}
+
+		for _, field := range fields {
+			if idx := strings.Index(entry[start:], field); idx != -1 {
+				if nextFieldStart == -1 || idx < nextFieldStart {
+					nextFieldStart = idx
+				}
+			}
+		}
+
+		if nextFieldStart != -1 {
+			end = start + nextFieldStart
+		} else {
+			end = len(entry)
+		}
+	} else {
+		// For other fields, stop at space or closing brace
+		for end < len(entry) && entry[end] != ' ' && entry[end] != '}' {
+			end++
+		}
 	}
 
 	return strings.TrimSpace(entry[start:end])
