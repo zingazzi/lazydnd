@@ -28,7 +28,7 @@ var (
 
 // GetDiceRollerContent returns the content for the dice roller panel
 func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, lastCommand string, inputMode, isActive bool) string {
-	content := "🎲 DICE ROLLER 🎲\nPress Enter to roll, Esc to clear input"
+	content := "🎲 DICE ROLLER 🎲\nPress Enter to roll, Esc to clear input\nExamples: 1d20, 2d6+3, 1d20 adv, 3d8 dis"
 
 	content += "\n\n" + strings.Repeat("─", 30)
 
@@ -67,6 +67,23 @@ func RollDice(command string) string {
 	rand.Seed(time.Now().UnixNano())
 	command = strings.TrimSpace(strings.ToLower(command))
 
+	// Check for advantage/disadvantage
+	var advantage, disadvantage bool
+	if strings.HasSuffix(command, " adv") || strings.HasSuffix(command, " advantage") || strings.HasSuffix(command, "adv") {
+		advantage = true
+		command = strings.TrimSuffix(command, " adv")
+		command = strings.TrimSuffix(command, " advantage")
+		command = strings.TrimSuffix(command, "adv")
+	} else if strings.HasSuffix(command, " dis") || strings.HasSuffix(command, " disadvantage") || strings.HasSuffix(command, "dis") {
+		disadvantage = true
+		command = strings.TrimSuffix(command, " dis")
+		command = strings.TrimSuffix(command, " disadvantage")
+		command = strings.TrimSuffix(command, "dis")
+	}
+
+	// Clean up the command after removing adv/dis
+	command = strings.TrimSpace(command)
+
 	// Handle simple dice notation
 	if command == "d4" || command == "1d4" {
 		result := rand.Intn(4) + 1
@@ -89,8 +106,33 @@ func RollDice(command string) string {
 		return fmt.Sprintf("d12: %d", result)
 	}
 	if command == "d20" || command == "1d20" {
-		result := rand.Intn(20) + 1
-		return fmt.Sprintf("d20: %d", result)
+		if advantage || disadvantage {
+			roll1 := rand.Intn(20) + 1
+			roll2 := rand.Intn(20) + 1
+			var result int
+			var resultType string
+
+			if advantage {
+				if roll1 >= roll2 {
+					result = roll1
+				} else {
+					result = roll2
+				}
+				resultType = "ADV"
+			} else {
+				if roll1 <= roll2 {
+					result = roll1
+				} else {
+					result = roll2
+				}
+				resultType = "DIS"
+			}
+
+			return fmt.Sprintf("d20 %s: %d (%d, %d)", resultType, result, roll1, roll2)
+		} else {
+			result := rand.Intn(20) + 1
+			return fmt.Sprintf("d20: %d", result)
+		}
 	}
 	if command == "d100" || command == "1d100" {
 		result := rand.Intn(100) + 1
@@ -99,14 +141,14 @@ func RollDice(command string) string {
 
 	// Handle complex dice notation like "2d6", "3d8+2"
 	if strings.Contains(command, "d") {
-		return parseComplexDice(command)
+		return parseComplexDice(command, advantage, disadvantage)
 	}
 
 	return "Invalid dice command"
 }
 
 // parseComplexDice handles complex dice notation
-func parseComplexDice(command string) string {
+func parseComplexDice(command string, advantage, disadvantage bool) string {
 	// Remove spaces
 	command = strings.ReplaceAll(command, " ", "")
 
@@ -170,7 +212,80 @@ func parseComplexDice(command string) string {
 		return fmt.Sprintf("Invalid dice type: d%d (allowed: d4, d6, d8, d10, d12, d20, d100)", sides)
 	}
 
-	// Roll the dice
+	// Handle advantage/disadvantage
+	if advantage || disadvantage {
+		// Roll twice and take higher/lower
+		total1, rolls1 := rollDiceSet(numDice, sides)
+		total2, rolls2 := rollDiceSet(numDice, sides)
+
+		var finalTotal int
+		var resultType string
+
+		if advantage {
+			if total1 >= total2 {
+				finalTotal = total1
+			} else {
+				finalTotal = total2
+			}
+			resultType = "ADV"
+		} else {
+			if total1 <= total2 {
+				finalTotal = total1
+			} else {
+				finalTotal = total2
+			}
+			resultType = "DIS"
+		}
+
+		// Add modifier
+		finalResult := finalTotal + modifier
+
+		// Format result
+		rollsStr1 := make([]string, len(rolls1))
+		rollsStr2 := make([]string, len(rolls2))
+		for i := range rolls1 {
+			rollsStr1[i] = strconv.Itoa(rolls1[i])
+			rollsStr2[i] = strconv.Itoa(rolls2[i])
+		}
+
+		result := fmt.Sprintf("%s %s: [%s] vs [%s]", command, resultType,
+			strings.Join(rollsStr1, ", "), strings.Join(rollsStr2, ", "))
+		if modifier != 0 {
+			result += fmt.Sprintf(" %+d", modifier)
+		}
+		result += fmt.Sprintf(" = %d", finalResult)
+
+		return result
+	} else {
+		// Normal roll
+		total := 0
+		rolls := make([]int, numDice)
+		for i := 0; i < numDice; i++ {
+			roll := rand.Intn(sides) + 1
+			rolls[i] = roll
+			total += roll
+		}
+
+		total += modifier
+
+		// Format result
+		rollsStr := make([]string, len(rolls))
+		for i, roll := range rolls {
+			rollsStr[i] = strconv.Itoa(roll)
+		}
+
+		result := fmt.Sprintf("%s: [%s]", command, strings.Join(rollsStr, ", "))
+		if modifier != 0 {
+			result += fmt.Sprintf(" %+d", modifier)
+		}
+		result += fmt.Sprintf(" = %d", total)
+
+		return result
+	}
+}
+
+// rollDiceSet rolls a set of dice and returns total and individual rolls
+func rollDiceSet(numDice, sides int) (int, []int) {
 	total := 0
 	rolls := make([]int, numDice)
 	for i := 0; i < numDice; i++ {
@@ -178,20 +293,5 @@ func parseComplexDice(command string) string {
 		rolls[i] = roll
 		total += roll
 	}
-
-	total += modifier
-
-	// Format result
-	rollsStr := make([]string, len(rolls))
-	for i, roll := range rolls {
-		rollsStr[i] = strconv.Itoa(roll)
-	}
-
-	result := fmt.Sprintf("%s: [%s]", command, strings.Join(rollsStr, ", "))
-	if modifier != 0 {
-		result += fmt.Sprintf(" %+d", modifier)
-	}
-	result += fmt.Sprintf(" = %d", total)
-
-	return result
+	return total, rolls
 }

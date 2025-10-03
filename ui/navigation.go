@@ -425,7 +425,10 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "i":
-		if m.SpellSearchMode && m.ActivePanel == Spells {
+		if m.InputMode && m.ActivePanel == DiceRoller {
+			// Add 'i' to dice input (for "dis" disadvantage command)
+			m.DiceInput += "i"
+		} else if m.SpellSearchMode && m.ActivePanel == Spells {
 			// Add 'i' to spell search input
 			m.SpellSearchInput += "i"
 			// Update suggestions
@@ -547,7 +550,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				(key >= "a" && key <= "z") ||
 				(key >= "A" && key <= "Z") ||
 				(key >= "0" && key <= "9") ||
-				key == "+" || key == "-" || key == "d") {
+				key == "+" || key == "-" || key == "d" || key == " ") {
 				m.DiceInput += key
 			}
 		} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
