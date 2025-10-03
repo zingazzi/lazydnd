@@ -154,14 +154,26 @@ func (m Model) View() string {
 
 			scrolledContent = strings.Join(finalLines, "\n")
 		} else {
-			// For inactive panels, just use visible lines with padding
-			finalLines := visibleLines
-			for len(finalLines) < availableHeight {
-				finalLines = append(finalLines, "")
-			}
+			// For inactive panels, maintain same structure as active panels for consistent positioning
+			var finalLines []string
+
+			// Always add top indicator space (empty for inactive panels)
+			finalLines = append(finalLines, "") // Empty line to maintain spacing
+
+			// Add visible content
+			finalLines = append(finalLines, visibleLines...)
+
+			// Always add bottom indicator space (empty for inactive panels)
+			finalLines = append(finalLines, "") // Empty line to maintain spacing
+
+			// Ensure total matches available height exactly
 			if len(finalLines) > availableHeight {
 				finalLines = finalLines[:availableHeight]
 			}
+			for len(finalLines) < availableHeight {
+				finalLines = append(finalLines, "")
+			}
+
 			scrolledContent = strings.Join(finalLines, "\n")
 		}
 
