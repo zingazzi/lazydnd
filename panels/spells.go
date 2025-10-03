@@ -35,9 +35,16 @@ var (
 
 // GetSpellsContent returns the content for the spells panel
 func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool) string {
-	content := "✨ SPELL SEARCH ✨\n\nSearch for D&D spells by name\nPress Enter to start searching"
+	var contentLines []string
 
-	content += "\n\n" + strings.Repeat("─", 30)
+	// Fixed header section
+	contentLines = append(contentLines, "✨ SPELL SEARCH ✨")
+	contentLines = append(contentLines, "")
+	contentLines = append(contentLines, "Search for D&D spells by name")
+	contentLines = append(contentLines, "Press Enter to start searching")
+	contentLines = append(contentLines, "")
+	contentLines = append(contentLines, strings.Repeat("─", 30))
+	contentLines = append(contentLines, "")
 
 	// Search input field
 	searchPrompt := "Search: "
@@ -46,27 +53,36 @@ func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions
 	} else {
 		searchPrompt += searchInput
 	}
-	content += "\n\n" + spellInputStyle.Render(searchPrompt)
+	contentLines = append(contentLines, searchPrompt)
+	contentLines = append(contentLines, "")
 
-	// Show suggestions
+	// Suggestions section (always reserve space)
 	if len(suggestions) > 0 && searchMode {
-		content += "\n\nSuggestions:"
+		contentLines = append(contentLines, "Suggestions:")
 		for i, suggestion := range suggestions {
 			if i == suggestionIndex {
-				content += "\n" + selectedSuggestionStyle.Render("▶ "+suggestion)
+				contentLines = append(contentLines, "▶ "+suggestion)
 			} else {
-				content += "\n" + suggestionStyle.Render("  "+suggestion)
+				contentLines = append(contentLines, "  "+suggestion)
 			}
 		}
+	} else {
+		// Add empty space to maintain consistent structure
+		contentLines = append(contentLines, "")
 	}
 
-	// Show selected spell details
+	// Separator before spell details
+	contentLines = append(contentLines, "")
 	if selectedSpell != nil {
-		content += "\n\n" + strings.Repeat("═", 40)
-		content += "\n" + spellDetailStyle.Render(FormatSelectedSpell(selectedSpell))
+		contentLines = append(contentLines, strings.Repeat("═", 40))
+
+		// Format spell details and split into lines
+		spellDetails := FormatSelectedSpell(selectedSpell)
+		detailLines := strings.Split(spellDetails, "\n")
+		contentLines = append(contentLines, detailLines...)
 	}
 
-	return content
+	return strings.Join(contentLines, "\n")
 }
 
 // FormatSelectedSpell formats a spell from interface{} for display

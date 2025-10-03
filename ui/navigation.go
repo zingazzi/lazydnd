@@ -59,26 +59,26 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.InputMode = false
 
 	case "up":
+		// Handle spell suggestion navigation first (highest priority)
 		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
-			// Navigate spell suggestions
 			if m.SuggestionIndex > 0 {
 				m.SuggestionIndex--
 			}
 		} else if !m.InputMode {
-			// Allow scrolling in all panels when not in input mode
+			// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
 			if m.ScrollOffset[m.ActivePanel] > 0 {
 				m.ScrollOffset[m.ActivePanel]--
 			}
 		}
 
 	case "down":
+		// Handle spell suggestion navigation first (highest priority)
 		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
-			// Navigate spell suggestions
 			if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
 				m.SuggestionIndex++
 			}
 		} else if !m.InputMode {
-			// Allow scrolling in all panels when not in input mode
+			// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
 			m.ScrollOffset[m.ActivePanel]++
 		}
 

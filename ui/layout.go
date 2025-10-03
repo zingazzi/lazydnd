@@ -56,10 +56,19 @@ func (m Model) View() string {
 			availableHeight = 1 // Minimum 1 line of content
 		}
 
-		// Reserve space for scroll indicators if needed
+		// Always reserve space for scroll indicators to maintain consistent sizing
 		contentHeight := availableHeight
-		if len(contentLines) > availableHeight && panelType == m.ActivePanel {
-			contentHeight = availableHeight - 2 // Reserve 2 lines for scroll indicators
+		if panelType == m.ActivePanel {
+			// Always reserve 2 lines for potential scroll indicators on active panels
+			contentHeight = availableHeight - 2
+			if contentHeight < 1 {
+				contentHeight = 1
+			}
+		}
+
+		// For spell panel, use even more conservative height to prevent resizing
+		if panelType == Spells {
+			contentHeight = contentHeight - 2 // Extra buffer for dynamic content
 			if contentHeight < 1 {
 				contentHeight = 1
 			}
@@ -100,31 +109,46 @@ func (m Model) View() string {
 			visibleLines = visibleLines[:contentHeight]
 		}
 
-		// Add scroll indicators if active panel and content is scrollable
-		if len(contentLines) > availableHeight && panelType == m.ActivePanel {
+		// Add scroll indicators for active panels to maintain consistent sizing
+		if panelType == m.ActivePanel {
 			var finalLines []string
 
-			// Add top scroll indicator
-			if scrollOffset > 0 {
+			// Always add top indicator space (empty or with indicator)
+			if scrollOffset > 0 && len(contentLines) > availableHeight {
 				finalLines = append(finalLines, "▲ (more above)")
+			} else {
+				finalLines = append(finalLines, "") // Empty line to maintain spacing
 			}
 
 			// Add visible content
 			finalLines = append(finalLines, visibleLines...)
 
-			// Add bottom scroll indicator
-			if scrollOffset+len(visibleLines) < len(contentLines) {
+			// Always add bottom indicator space (empty or with indicator)
+			if scrollOffset+len(visibleLines) < len(contentLines) && len(contentLines) > availableHeight {
 				finalLines = append(finalLines, "▼ (more below)")
+			} else {
+				finalLines = append(finalLines, "") // Empty line to maintain spacing
 			}
 
-			// Ensure total doesn't exceed available height
+			// Ensure total matches available height exactly
 			if len(finalLines) > availableHeight {
 				finalLines = finalLines[:availableHeight]
+			}
+			for len(finalLines) < availableHeight {
+				finalLines = append(finalLines, "")
 			}
 
 			scrolledContent = strings.Join(finalLines, "\n")
 		} else {
-			scrolledContent = strings.Join(visibleLines, "\n")
+			// For inactive panels, just use visible lines with padding
+			finalLines := visibleLines
+			for len(finalLines) < availableHeight {
+				finalLines = append(finalLines, "")
+			}
+			if len(finalLines) > availableHeight {
+				finalLines = finalLines[:availableHeight]
+			}
+			scrolledContent = strings.Join(finalLines, "\n")
 		}
 
 		// Ensure content doesn't exceed available height
