@@ -8,461 +8,781 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// KeyHandler defines a function type for handling key presses
+type KeyHandler func(Model, tea.KeyMsg) (Model, tea.Cmd)
+
+// keyHandlers maps key strings to their handler functions
+var keyHandlers = map[string]KeyHandler{
+	// Quit handlers
+	"ctrl+c": handleQuit,
+	"q":      handleQuit,
+
+	// Navigation handlers
+	"tab":  handleTab,
+	"up":   handleUp,
+	"down": handleDown,
+
+	// Function key handlers
+	"f1": handleF1,
+	"f2": handleF2,
+	"f3": handleF3,
+	"f4": handleF4,
+
+	// Number key handlers
+	"1": handleNumber1,
+	"2": handleNumber2,
+	"3": handleNumber3,
+	"4": handleNumber4,
+
+	// Action handlers
+	"enter":     handleEnter,
+	"esc":       handleEscape,
+	"backspace": handleBackspace,
+	"ctrl+h":    handleBackspace,
+	"space":     handleSpace,
+
+	// Letter handlers
+	"r": handleR,
+	"p": handleP,
+	"m": handleM,
+	"e": handleE,
+	"i": handleI,
+	"h": handleH,
+	"a": handleA,
+	"d": handleD,
+}
+
 // HandleNavigation processes navigation-related key presses
 func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
-	case "ctrl+c", "q":
-		if !m.InputMode && !m.InitiativeInputMode && !m.SpellSearchMode && !m.MonsterSearchMode {
-			return m, tea.Quit
-		} else if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'q' to spell search input
-			m.SpellSearchInput += "q"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'q' to monster search input
-			m.MonsterSearchInput += "q"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		}
+	key := msg.String()
 
-	case "1":
-		if m.InputMode {
-			m.DiceInput += "1"
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			m.InitiativeInput += "1"
-		} else {
-			m.ActivePanel = DiceRoller
-		}
-	case "2":
-		if m.InputMode {
-			m.DiceInput += "2"
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			m.InitiativeInput += "2"
-		} else {
-			m.ActivePanel = InitiativeTracker
-		}
-	case "3":
-		if m.InputMode {
-			m.DiceInput += "3"
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			m.InitiativeInput += "3"
-		} else {
-			m.ActivePanel = Spells
-		}
-	case "4":
-		if m.InputMode {
-			m.DiceInput += "4"
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			m.InitiativeInput += "4"
-		} else {
-			m.ActivePanel = Monsters
-		}
+	// Check if we have a specific handler for this key
+	if handler, exists := keyHandlers[key]; exists {
+		return handler(m, msg)
+	}
 
-	case "tab":
-		if !m.InputMode {
-			m.ActivePanel = (m.ActivePanel + 1) % 4
-		}
+	// Handle default text input
+	return handleDefaultInput(m, msg)
+}
 
-	case "f1":
+// ========== QUIT HANDLERS ==========
+
+// handleQuit handles quit commands (ctrl+c, q)
+func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	key := msg.String()
+
+	if !m.InputMode && !m.InitiativeInputMode && !m.SpellSearchMode && !m.MonsterSearchMode {
+		return m, tea.Quit
+	} else if m.SpellSearchMode && m.ActivePanel == Spells && key == "q" {
+		// Add 'q' to spell search input
+		m.SpellSearchInput += "q"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters && key == "q" {
+		// Add 'q' to monster search input
+		m.MonsterSearchInput += "q"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	}
+
+	return m, nil
+}
+
+// handleEscape handles escape key presses
+func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.ActivePanel == DiceRoller {
+		m.DiceInput = ""
+		m.InputMode = false
+	} else if m.ActivePanel == InitiativeTracker {
+		if m.InitiativeEditMode {
+			// Exit edit mode
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		} else if m.InitiativeListMode {
+			// Exit list mode
+			m.InitiativeListMode = false
+			m.SelectedEntry = -1
+		} else {
+			// Exit input mode
+			m.InitiativeInput = ""
+			m.InitiativeInputMode = false
+			m.InitiativeInputType = ""
+		}
+	} else if m.ActivePanel == Spells {
+		m.SpellSearchInput = ""
+		m.SpellSearchMode = false
+		m.SpellSuggestions = []string{}
+		m.SuggestionIndex = -1
+	} else if m.ActivePanel == Monsters {
+		m.MonsterSearchInput = ""
+		m.MonsterSearchMode = false
+		m.MonsterSuggestions = []string{}
+		m.MonsterSuggestionIndex = -1
+	}
+
+	return m, nil
+}
+
+// ========== NAVIGATION HANDLERS ==========
+
+// handleTab handles tab key navigation
+func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if !m.InputMode {
+		m.ActivePanel = (m.ActivePanel + 1) % 4
+	}
+	return m, nil
+}
+
+// handleUp handles up arrow key
+func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle spell suggestion navigation first (highest priority)
+	if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
+		if m.SuggestionIndex > 0 {
+			m.SuggestionIndex--
+		}
+	} else if m.ActivePanel == Monsters && m.MonsterSearchMode && len(m.MonsterSuggestions) > 0 {
+		// Navigate monster suggestions
+		if m.MonsterSuggestionIndex > 0 {
+			m.MonsterSuggestionIndex--
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
+		// Navigate initiative list
+		if m.SelectedEntry > 0 {
+			m.SelectedEntry--
+		}
+	} else if !m.InputMode && !m.InitiativeInputMode {
+		// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
+		if m.ScrollOffset[m.ActivePanel] > 0 {
+			m.ScrollOffset[m.ActivePanel]--
+		}
+	}
+	return m, nil
+}
+
+// handleDown handles down arrow key
+func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle spell suggestion navigation first (highest priority)
+	if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
+		if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
+			m.SuggestionIndex++
+		}
+	} else if m.ActivePanel == Monsters && m.MonsterSearchMode && len(m.MonsterSuggestions) > 0 {
+		// Navigate monster suggestions
+		if m.MonsterSuggestionIndex < len(m.MonsterSuggestions)-1 {
+			m.MonsterSuggestionIndex++
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
+		// Navigate initiative list
+		if m.SelectedEntry < len(m.InitiativeList)-1 {
+			m.SelectedEntry++
+		}
+	} else if !m.InputMode && !m.InitiativeInputMode {
+		// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
+		m.ScrollOffset[m.ActivePanel]++
+	}
+	return m, nil
+}
+
+// ========== FUNCTION KEY HANDLERS ==========
+
+// handleF1 switches to dice roller panel
+func handleF1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	m.ActivePanel = DiceRoller
+	m.InputMode = false
+	return m, nil
+}
+
+// handleF2 switches to initiative tracker panel
+func handleF2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	m.ActivePanel = InitiativeTracker
+	m.InputMode = false
+	return m, nil
+}
+
+// handleF3 switches to spells panel
+func handleF3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	m.ActivePanel = Spells
+	m.InputMode = false
+	return m, nil
+}
+
+// handleF4 switches to monsters panel
+func handleF4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	m.ActivePanel = Monsters
+	m.InputMode = false
+	return m, nil
+}
+
+// ========== NUMBER KEY HANDLERS ==========
+
+// handleNumber1 handles the '1' key
+func handleNumber1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode {
+		m.DiceInput += "1"
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		m.InitiativeInput += "1"
+	} else {
 		m.ActivePanel = DiceRoller
-		m.InputMode = false
-	case "f2":
+	}
+	return m, nil
+}
+
+// handleNumber2 handles the '2' key
+func handleNumber2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode {
+		m.DiceInput += "2"
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		m.InitiativeInput += "2"
+	} else {
 		m.ActivePanel = InitiativeTracker
-		m.InputMode = false
-	case "f3":
+	}
+	return m, nil
+}
+
+// handleNumber3 handles the '3' key
+func handleNumber3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode {
+		m.DiceInput += "3"
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		m.InitiativeInput += "3"
+	} else {
 		m.ActivePanel = Spells
-		m.InputMode = false
-	case "f4":
+	}
+	return m, nil
+}
+
+// handleNumber4 handles the '4' key
+func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode {
+		m.DiceInput += "4"
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		m.InitiativeInput += "4"
+	} else {
 		m.ActivePanel = Monsters
-		m.InputMode = false
+	}
+	return m, nil
+}
 
-	case "up":
-		// Handle spell suggestion navigation first (highest priority)
-		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
-			if m.SuggestionIndex > 0 {
-				m.SuggestionIndex--
-			}
-		} else if m.ActivePanel == Monsters && m.MonsterSearchMode && len(m.MonsterSuggestions) > 0 {
-			// Navigate monster suggestions
-			if m.MonsterSuggestionIndex > 0 {
-				m.MonsterSuggestionIndex--
-			}
-		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
-			// Navigate initiative list
-			if m.SelectedEntry > 0 {
-				m.SelectedEntry--
-			}
-		} else if !m.InputMode && !m.InitiativeInputMode {
-			// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
-			if m.ScrollOffset[m.ActivePanel] > 0 {
-				m.ScrollOffset[m.ActivePanel]--
-			}
-		}
+// ========== ACTION HANDLERS ==========
 
-	case "down":
-		// Handle spell suggestion navigation first (highest priority)
-		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
-			if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
-				m.SuggestionIndex++
-			}
-		} else if m.ActivePanel == Monsters && m.MonsterSearchMode && len(m.MonsterSuggestions) > 0 {
-			// Navigate monster suggestions
-			if m.MonsterSuggestionIndex < len(m.MonsterSuggestions)-1 {
-				m.MonsterSuggestionIndex++
-			}
-		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
-			// Navigate initiative list
-			if m.SelectedEntry < len(m.InitiativeList)-1 {
-				m.SelectedEntry++
-			}
-		} else if !m.InputMode && !m.InitiativeInputMode {
-			// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
-			m.ScrollOffset[m.ActivePanel]++
-		}
-
-	case "enter":
-		if m.ActivePanel == DiceRoller {
-			if m.InputMode && m.DiceInput != "" {
-				// Roll the dice
-				result := panels.RollDice(m.DiceInput)
-				m.DiceResult = result
-				m.DiceHistory = append(m.DiceHistory, result)
-				m.LastDiceCommand = m.DiceInput
-				if len(m.DiceHistory) > 15 {
-					m.DiceHistory = m.DiceHistory[1:]
-				}
-				m.DiceInput = ""
-				m.InputMode = false
-			} else {
-				m.InputMode = true
-			}
-		} else if m.ActivePanel == InitiativeTracker {
-			if m.InitiativeEditMode {
-				// Process edit action
-				m = m.processInitiativeEdit()
-			} else if m.InitiativeInputMode {
-				// Process initiative tracker input
-				m = m.processInitiativeInput()
-			}
-		} else if m.ActivePanel == Spells {
-			if m.SpellSearchMode {
-				// Select spell from suggestions
-				if len(m.SpellSuggestions) > 0 && m.SuggestionIndex >= 0 && m.SuggestionIndex < len(m.SpellSuggestions) {
-					selectedSpellName := m.SpellSuggestions[m.SuggestionIndex]
-					foundSpell := panels.FindSpell(selectedSpellName)
-					if foundSpell != nil {
-						// Convert panels.Spell to ui.Spell
-						m.SelectedSpell = &Spell{
-							Name:            foundSpell.Name,
-							Level:           foundSpell.Level,
-							School:          foundSpell.School,
-							Classes:         foundSpell.Classes,
-							ActionType:      foundSpell.ActionType,
-							Concentration:   foundSpell.Concentration,
-							Ritual:          foundSpell.Ritual,
-							Range:           foundSpell.Range,
-							Components:      foundSpell.Components,
-							Material:        foundSpell.Material,
-							Duration:        foundSpell.Duration,
-							Description:     foundSpell.Description,
-							CantripUpgrade:  foundSpell.CantripUpgrade,
-						}
-					}
-					m.SpellSearchInput = selectedSpellName
-					m.SpellSearchMode = false
-					m.SpellSuggestions = []string{}
-					m.SuggestionIndex = -1
-				}
-			} else {
-				// Start spell search mode
-				m.SpellSearchMode = true
-				m.SpellSuggestions = []string{}
-				m.SuggestionIndex = -1
-			}
-		} else if m.ActivePanel == Monsters {
-			if m.MonsterSearchMode {
-				// Select monster from suggestions
-				if len(m.MonsterSuggestions) > 0 && m.MonsterSuggestionIndex >= 0 && m.MonsterSuggestionIndex < len(m.MonsterSuggestions) {
-					selectedMonsterName := m.MonsterSuggestions[m.MonsterSuggestionIndex]
-					foundMonster := panels.FindMonster(selectedMonsterName)
-					if foundMonster != nil {
-						// Convert panels.Monster to ui.Monster
-						m.SelectedMonster = &Monster{
-							Name:             foundMonster.Name,
-							Meta:             foundMonster.Meta,
-							ArmorClass:       foundMonster.ArmorClass,
-							HitPoints:        foundMonster.HitPoints,
-							Speed:            foundMonster.Speed,
-							STR:              foundMonster.STR,
-							STRMod:           foundMonster.STRMod,
-							DEX:              foundMonster.DEX,
-							DEXMod:           foundMonster.DEXMod,
-							CON:              foundMonster.CON,
-							CONMod:           foundMonster.CONMod,
-							INT:              foundMonster.INT,
-							INTMod:           foundMonster.INTMod,
-							WIS:              foundMonster.WIS,
-							WISMod:           foundMonster.WISMod,
-							CHA:              foundMonster.CHA,
-							CHAMod:           foundMonster.CHAMod,
-							SavingThrows:     foundMonster.SavingThrows,
-							Skills:           foundMonster.Skills,
-							Senses:           foundMonster.Senses,
-							Languages:        foundMonster.Languages,
-							Challenge:        foundMonster.Challenge,
-							Traits:           foundMonster.Traits,
-							Actions:          foundMonster.Actions,
-							LegendaryActions: foundMonster.LegendaryActions,
-							ImgURL:           foundMonster.ImgURL,
-						}
-					}
-					m.MonsterSearchInput = selectedMonsterName
-					m.MonsterSearchMode = false
-					m.MonsterSuggestions = []string{}
-					m.MonsterSuggestionIndex = -1
-				}
-			} else {
-				// Start monster search mode
-				m.MonsterSearchMode = true
-				m.MonsterSuggestions = []string{}
-				m.MonsterSuggestionIndex = -1
-			}
-		}
-
-	case "r":
-		if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'r' to spell search input
-			m.SpellSearchInput += "r"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'r' to monster search input
-			m.MonsterSearchInput += "r"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == DiceRoller && !m.InputMode && !m.InitiativeInputMode && m.LastDiceCommand != "" {
-			// Reroll the last dice command
-			result := panels.RollDice(m.LastDiceCommand)
+// handleEnter handles enter key presses
+func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.ActivePanel == DiceRoller {
+		if m.InputMode && m.DiceInput != "" {
+			// Roll the dice
+			result := panels.RollDice(m.DiceInput)
 			m.DiceResult = result
 			m.DiceHistory = append(m.DiceHistory, result)
+			m.LastDiceCommand = m.DiceInput
 			if len(m.DiceHistory) > 15 {
 				m.DiceHistory = m.DiceHistory[1:]
 			}
-		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
-			// Add 'r' to input when in input mode
-			m.InitiativeInput += "r"
-		}
-
-	case "esc":
-		if m.ActivePanel == DiceRoller {
 			m.DiceInput = ""
 			m.InputMode = false
-		} else if m.ActivePanel == InitiativeTracker {
-			if m.InitiativeEditMode {
-				// Exit edit mode
-				m.InitiativeEditMode = false
-				m.InitiativeEditType = ""
-				m.InitiativeInput = ""
-			} else if m.InitiativeListMode {
-				// Exit list mode
-				m.InitiativeListMode = false
-				m.SelectedEntry = -1
-			} else {
-				// Exit input mode
-				m.InitiativeInput = ""
-				m.InitiativeInputMode = false
-				m.InitiativeInputType = ""
+		} else {
+			m.InputMode = true
+		}
+	} else if m.ActivePanel == InitiativeTracker {
+		if m.InitiativeEditMode {
+			// Process edit action
+			m = m.processInitiativeEdit()
+		} else if m.InitiativeInputMode {
+			// Process initiative tracker input
+			m = m.processInitiativeInput()
+		}
+	} else if m.ActivePanel == Spells {
+		if m.SpellSearchMode {
+			// Select spell from suggestions
+			if len(m.SpellSuggestions) > 0 && m.SuggestionIndex >= 0 && m.SuggestionIndex < len(m.SpellSuggestions) {
+				selectedSpellName := m.SpellSuggestions[m.SuggestionIndex]
+				foundSpell := panels.FindSpell(selectedSpellName)
+				if foundSpell != nil {
+					// Convert panels.Spell to ui.Spell
+					m.SelectedSpell = &Spell{
+						Name:            foundSpell.Name,
+						Level:           foundSpell.Level,
+						School:          foundSpell.School,
+						Classes:         foundSpell.Classes,
+						ActionType:      foundSpell.ActionType,
+						Concentration:   foundSpell.Concentration,
+						Ritual:          foundSpell.Ritual,
+						Range:           foundSpell.Range,
+						Components:      foundSpell.Components,
+						Material:        foundSpell.Material,
+						Duration:        foundSpell.Duration,
+						Description:     foundSpell.Description,
+						CantripUpgrade:  foundSpell.CantripUpgrade,
+					}
+				}
+				m.SpellSearchInput = selectedSpellName
+				m.SpellSearchMode = false
+				m.SpellSuggestions = []string{}
+				m.SuggestionIndex = -1
 			}
-		} else if m.ActivePanel == Spells {
-			m.SpellSearchInput = ""
-			m.SpellSearchMode = false
+		} else {
+			// Start spell search mode
+			m.SpellSearchMode = true
 			m.SpellSuggestions = []string{}
 			m.SuggestionIndex = -1
-		} else if m.ActivePanel == Monsters {
-			m.MonsterSearchInput = ""
-			m.MonsterSearchMode = false
+		}
+	} else if m.ActivePanel == Monsters {
+		if m.MonsterSearchMode {
+			// Select monster from suggestions
+			if len(m.MonsterSuggestions) > 0 && m.MonsterSuggestionIndex >= 0 && m.MonsterSuggestionIndex < len(m.MonsterSuggestions) {
+				selectedMonsterName := m.MonsterSuggestions[m.MonsterSuggestionIndex]
+				foundMonster := panels.FindMonster(selectedMonsterName)
+				if foundMonster != nil {
+					// Convert panels.Monster to ui.Monster
+					m.SelectedMonster = &Monster{
+						Name:             foundMonster.Name,
+						Meta:             foundMonster.Meta,
+						ArmorClass:       foundMonster.ArmorClass,
+						HitPoints:        foundMonster.HitPoints,
+						Speed:            foundMonster.Speed,
+						STR:              foundMonster.STR,
+						STRMod:           foundMonster.STRMod,
+						DEX:              foundMonster.DEX,
+						DEXMod:           foundMonster.DEXMod,
+						CON:              foundMonster.CON,
+						CONMod:           foundMonster.CONMod,
+						INT:              foundMonster.INT,
+						INTMod:           foundMonster.INTMod,
+						WIS:              foundMonster.WIS,
+						WISMod:           foundMonster.WISMod,
+						CHA:              foundMonster.CHA,
+						CHAMod:           foundMonster.CHAMod,
+						SavingThrows:     foundMonster.SavingThrows,
+						Skills:           foundMonster.Skills,
+						Senses:           foundMonster.Senses,
+						Languages:        foundMonster.Languages,
+						Challenge:        foundMonster.Challenge,
+						Traits:           foundMonster.Traits,
+						Actions:          foundMonster.Actions,
+						LegendaryActions: foundMonster.LegendaryActions,
+						ImgURL:           foundMonster.ImgURL,
+					}
+				}
+				m.MonsterSearchInput = selectedMonsterName
+				m.MonsterSearchMode = false
+				m.MonsterSuggestions = []string{}
+				m.MonsterSuggestionIndex = -1
+			}
+		} else {
+			// Start monster search mode
+			m.MonsterSearchMode = true
 			m.MonsterSuggestions = []string{}
 			m.MonsterSuggestionIndex = -1
 		}
+	}
 
-	case "backspace", "ctrl+h":
-		if m.InputMode && len(m.DiceInput) > 0 {
-			m.DiceInput = m.DiceInput[:len(m.DiceInput)-1]
-		} else if m.InitiativeInputMode && len(m.InitiativeInput) > 0 {
-			m.InitiativeInput = m.InitiativeInput[:len(m.InitiativeInput)-1]
-		} else if m.SpellSearchMode && len(m.SpellSearchInput) > 0 {
-			m.SpellSearchInput = m.SpellSearchInput[:len(m.SpellSearchInput)-1]
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && len(m.MonsterSearchInput) > 0 {
-			m.MonsterSearchInput = m.MonsterSearchInput[:len(m.MonsterSearchInput)-1]
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
+	return m, nil
+}
+
+// handleBackspace handles backspace and ctrl+h key presses
+func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode && len(m.DiceInput) > 0 {
+		m.DiceInput = m.DiceInput[:len(m.DiceInput)-1]
+	} else if m.InitiativeInputMode && len(m.InitiativeInput) > 0 {
+		m.InitiativeInput = m.InitiativeInput[:len(m.InitiativeInput)-1]
+	} else if m.SpellSearchMode && len(m.SpellSearchInput) > 0 {
+		m.SpellSearchInput = m.SpellSearchInput[:len(m.SpellSearchInput)-1]
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
 		}
-
-	case "p":
-		if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'p' to spell search input
-			m.SpellSearchInput += "p"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'p' to monster search input
-			m.MonsterSearchInput += "p"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
-			// Start adding a player
-			m.InitiativeInputMode = true
-			m.InitiativeInputType = "player_name"
-			m.InitiativeInput = ""
-		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
-			// Add 'p' to input when in input mode
-			m.InitiativeInput += "p"
+	} else if m.MonsterSearchMode && len(m.MonsterSearchInput) > 0 {
+		m.MonsterSearchInput = m.MonsterSearchInput[:len(m.MonsterSearchInput)-1]
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
 		}
+	}
 
-	case "m":
-		if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'm' to spell search input
-			m.SpellSearchInput += "m"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'm' to monster search input
-			m.MonsterSearchInput += "m"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
-			// Start adding a monster
-			m.InitiativeInputMode = true
-			m.InitiativeInputType = "monster_name"
-			m.InitiativeInput = ""
-		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
-			// Add 'm' to input when in input mode
-			m.InitiativeInput += "m"
+	return m, nil
+}
+
+// handleSpace handles space key presses
+func handleSpace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		m.DiceInput += " "
+	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
+		m.InitiativeInput += " "
+	} else if m.SpellSearchMode && m.ActivePanel == Spells {
+		m.SpellSearchInput += " "
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
 		}
+	}
 
-	case "e":
-		if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'e' to spell search input
-			m.SpellSearchInput += "e"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'e' to monster search input
-			m.MonsterSearchInput += "e"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode && !m.InitiativeEditMode && len(m.InitiativeList) > 0 {
-			// Enter list edit mode
-			m.InitiativeListMode = true
-			if m.SelectedEntry == -1 {
-				m.SelectedEntry = 0
-			}
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			// Add 'e' to input when in input/edit mode
-			m.InitiativeInput += "e"
+	return m, nil
+}
+
+// ========== LETTER HANDLERS ==========
+
+// handleR handles the 'r' key
+func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'r' to spell search input
+		m.SpellSearchInput += "r"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
 		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'r' to monster search input
+		m.MonsterSearchInput += "r"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == DiceRoller && !m.InputMode && !m.InitiativeInputMode && m.LastDiceCommand != "" {
+		// Reroll the last dice command
+		result := panels.RollDice(m.LastDiceCommand)
+		m.DiceResult = result
+		m.DiceHistory = append(m.DiceHistory, result)
+		if len(m.DiceHistory) > 15 {
+			m.DiceHistory = m.DiceHistory[1:]
+		}
+	} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+		// Add 'r' to input when in input mode
+		m.InitiativeInput += "r"
+	}
 
-	case "i":
-		if m.InputMode && m.ActivePanel == DiceRoller {
-			// Add 'i' to dice input (for "dis" disadvantage command)
-			m.DiceInput += "i"
-		} else if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'i' to spell search input
-			m.SpellSearchInput += "i"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'i' to monster search input
-			m.MonsterSearchInput += "i"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-			// Edit initiative
+	return m, nil
+}
+
+// handleP handles the 'p' key
+func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'p' to spell search input
+		m.SpellSearchInput += "p"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'p' to monster search input
+		m.MonsterSearchInput += "p"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
+		// Start adding a player
+		m.InitiativeInputMode = true
+		m.InitiativeInputType = "player_name"
+		m.InitiativeInput = ""
+	} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+		// Add 'p' to input when in input mode
+		m.InitiativeInput += "p"
+	}
+
+	return m, nil
+}
+
+// handleM handles the 'm' key
+func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'm' to spell search input
+		m.SpellSearchInput += "m"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'm' to monster search input
+		m.MonsterSearchInput += "m"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
+		// Start adding a monster
+		m.InitiativeInputMode = true
+		m.InitiativeInputType = "monster_name"
+		m.InitiativeInput = ""
+	} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+		// Add 'm' to input when in input mode
+		m.InitiativeInput += "m"
+	}
+
+	return m, nil
+}
+
+// handleE handles the 'e' key
+func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'e' to spell search input
+		m.SpellSearchInput += "e"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'e' to monster search input
+		m.MonsterSearchInput += "e"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode && !m.InitiativeEditMode && len(m.InitiativeList) > 0 {
+		// Enter list edit mode
+		m.InitiativeListMode = true
+		if m.SelectedEntry == -1 {
+			m.SelectedEntry = 0
+		}
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'e' to input when in input/edit mode
+		m.InitiativeInput += "e"
+	}
+
+	return m, nil
+}
+
+// handleI handles the 'i' key
+func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		// Add 'i' to dice input (for "dis" disadvantage command)
+		m.DiceInput += "i"
+	} else if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'i' to spell search input
+		m.SpellSearchInput += "i"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'i' to monster search input
+		m.MonsterSearchInput += "i"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Edit initiative
+		m.InitiativeEditMode = true
+		m.InitiativeEditType = "initiative"
+		m.InitiativeInput = ""
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'i' to input when in input/edit mode
+		m.InitiativeInput += "i"
+	}
+
+	return m, nil
+}
+
+// handleH handles the 'h' key
+func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'h' to spell search input
+		m.SpellSearchInput += "h"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'h' to monster search input
+		m.MonsterSearchInput += "h"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Edit HP (only for monsters)
+		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
 			m.InitiativeEditMode = true
-			m.InitiativeEditType = "initiative"
+			m.InitiativeEditType = "hp"
 			m.InitiativeInput = ""
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			// Add 'i' to input when in input/edit mode
-			m.InitiativeInput += "i"
 		}
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'h' to input when in input/edit mode
+		m.InitiativeInput += "h"
+	}
 
-	case "h":
-		if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'h' to spell search input
-			m.SpellSearchInput += "h"
+	return m, nil
+}
+
+// handleA handles the 'a' key
+func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.ActivePanel == Monsters && m.SelectedMonster != nil && !m.MonsterSearchMode {
+		// Add selected monster to initiative tracker
+		monsterName := getMonsterFieldString(reflect.ValueOf(m.SelectedMonster).Elem(), "Name")
+		if monsterName != "" {
+			// Extract monster stats
+			hp, ac, err := panels.ExtractMonsterStats(monsterName)
+			if err == nil && hp > 0 && ac > 0 {
+				// Roll initiative for the monster
+				initiative := panels.RollInitiative()
+
+				// Create initiative entry
+				newEntry := InitiativeEntry{
+					Name:       monsterName,
+					Type:       "monster",
+					Initiative: initiative,
+					HP:         hp,
+					MaxHP:      hp,
+					AC:         ac,
+				}
+
+				// Add to initiative list
+				m.InitiativeList = append(m.InitiativeList, newEntry)
+			}
+		}
+	} else if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'a' to spell search input
+		m.SpellSearchInput += "a"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'a' to monster search input
+		m.MonsterSearchInput += "a"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'a' to input when in input/edit mode
+		m.InitiativeInput += "a"
+	}
+
+	return m, nil
+}
+
+// handleD handles the 'd' key
+func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		// Add 'd' to dice input (for dice notation like "2d6")
+		m.DiceInput += "d"
+	} else if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'd' to spell search input
+		m.SpellSearchInput += "d"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'd' to monster search input
+		m.MonsterSearchInput += "d"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Delete entry
+		m.InitiativeEditMode = true
+		m.InitiativeEditType = "delete"
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'd' to input when in input/edit mode
+		m.InitiativeInput += "d"
+	}
+
+	return m, nil
+}
+
+// ========== DEFAULT INPUT HANDLER ==========
+
+// handleDefaultInput handles default text input for various modes
+func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	key := msg.String()
+
+	// Handle text input for dice commands
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		// Allow alphanumeric characters and common symbols for dice notation
+		if len(key) == 1 && (
+			(key >= "a" && key <= "z") ||
+			(key >= "A" && key <= "Z") ||
+			(key >= "0" && key <= "9") ||
+			key == "+" || key == "-" || key == "d" || key == " ") {
+			m.DiceInput += key
+		}
+	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
+		// Handle text input for initiative tracker (both input and edit modes)
+		if len(key) == 1 && (
+			(key >= "a" && key <= "z") ||
+			(key >= "A" && key <= "Z") ||
+			(key >= "0" && key <= "9") ||
+			key == " " || key == "'" || key == "-" || key == "." || key == "_" || key == "+") {
+			m.InitiativeInput += key
+		}
+	} else if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Handle text input for spell search
+		if len(key) == 1 && (
+			(key >= "a" && key <= "z") ||
+			(key >= "A" && key <= "Z") ||
+			key == "'" || key == "-" || key == " ") {
+			m.SpellSearchInput += key
 			// Update suggestions
 			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
 			if len(m.SpellSuggestions) > 0 {
@@ -470,187 +790,28 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			} else {
 				m.SuggestionIndex = -1
 			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'h' to monster search input
-			m.MonsterSearchInput += "h"
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Handle text input for monster search
+		if len(key) == 1 && (
+			(key >= "a" && key <= "z") ||
+			(key >= "A" && key <= "Z") ||
+			key == "'" || key == "-" || key == " ") {
+			m.MonsterSearchInput += key
 			// Update suggestions
 			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
 			if len(m.MonsterSuggestions) > 0 {
 				m.MonsterSuggestionIndex = 0
 			} else {
 				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-			// Edit HP (only for monsters)
-			originalIndex := m.findOriginalIndex(m.SelectedEntry)
-			if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
-				m.InitiativeEditMode = true
-				m.InitiativeEditType = "hp"
-				m.InitiativeInput = ""
-			}
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			// Add 'h' to input when in input/edit mode
-			m.InitiativeInput += "h"
-		}
-
-	case "a":
-		if m.ActivePanel == Monsters && m.SelectedMonster != nil && !m.MonsterSearchMode {
-			// Add selected monster to initiative tracker
-			monsterName := getMonsterFieldString(reflect.ValueOf(m.SelectedMonster).Elem(), "Name")
-			if monsterName != "" {
-				// Extract monster stats
-				hp, ac, err := panels.ExtractMonsterStats(monsterName)
-				if err == nil && hp > 0 && ac > 0 {
-					// Roll initiative for the monster
-					initiative := panels.RollInitiative()
-
-					// Create initiative entry
-					newEntry := InitiativeEntry{
-						Name:       monsterName,
-						Type:       "monster",
-						Initiative: initiative,
-						HP:         hp,
-						MaxHP:      hp,
-						AC:         ac,
-					}
-
-					// Add to initiative list
-					m.InitiativeList = append(m.InitiativeList, newEntry)
-				}
-			}
-		} else if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'a' to spell search input
-			m.SpellSearchInput += "a"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'a' to monster search input
-			m.MonsterSearchInput += "a"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			// Add 'a' to input when in input/edit mode
-			m.InitiativeInput += "a"
-		}
-
-	case "d":
-		if m.InputMode && m.ActivePanel == DiceRoller {
-			// Add 'd' to dice input (for dice notation like "2d6")
-			m.DiceInput += "d"
-		} else if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Add 'd' to spell search input
-			m.SpellSearchInput += "d"
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Add 'd' to monster search input
-			m.MonsterSearchInput += "d"
-			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-			if len(m.MonsterSuggestions) > 0 {
-				m.MonsterSuggestionIndex = 0
-			} else {
-				m.MonsterSuggestionIndex = -1
-			}
-		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-			// Delete entry
-			m.InitiativeEditMode = true
-			m.InitiativeEditType = "delete"
-		} else if m.InitiativeInputMode || m.InitiativeEditMode {
-			// Add 'd' to input when in input/edit mode
-			m.InitiativeInput += "d"
-		}
-
-	case "space":
-		if m.InputMode && m.ActivePanel == DiceRoller {
-			m.DiceInput += " "
-		} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
-			m.InitiativeInput += " "
-		} else if m.SpellSearchMode && m.ActivePanel == Spells {
-			m.SpellSearchInput += " "
-			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-			if len(m.SpellSuggestions) > 0 {
-				m.SuggestionIndex = 0
-			} else {
-				m.SuggestionIndex = -1
-			}
-		}
-
-	default:
-		// Handle text input for dice commands
-		if m.InputMode && m.ActivePanel == DiceRoller {
-			key := msg.String()
-			// Allow alphanumeric characters and common symbols for dice notation
-			if len(key) == 1 && (
-				(key >= "a" && key <= "z") ||
-				(key >= "A" && key <= "Z") ||
-				(key >= "0" && key <= "9") ||
-				key == "+" || key == "-" || key == "d" || key == " ") {
-				m.DiceInput += key
-			}
-		} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
-			// Handle text input for initiative tracker (both input and edit modes)
-			key := msg.String()
-			if len(key) == 1 && (
-				(key >= "a" && key <= "z") ||
-				(key >= "A" && key <= "Z") ||
-				(key >= "0" && key <= "9") ||
-				key == " " || key == "'" || key == "-" || key == "." || key == "_" || key == "+") {
-				m.InitiativeInput += key
-			}
-		} else if m.SpellSearchMode && m.ActivePanel == Spells {
-			// Handle text input for spell search
-			key := msg.String()
-			if len(key) == 1 && (
-				(key >= "a" && key <= "z") ||
-				(key >= "A" && key <= "Z") ||
-				key == "'" || key == "-" || key == " ") {
-				m.SpellSearchInput += key
-				// Update suggestions
-				m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
-				if len(m.SpellSuggestions) > 0 {
-					m.SuggestionIndex = 0
-				} else {
-					m.SuggestionIndex = -1
-				}
-			}
-		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-			// Handle text input for monster search
-			key := msg.String()
-			if len(key) == 1 && (
-				(key >= "a" && key <= "z") ||
-				(key >= "A" && key <= "Z") ||
-				key == "'" || key == "-" || key == " ") {
-				m.MonsterSearchInput += key
-				// Update suggestions
-				m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
-				if len(m.MonsterSuggestions) > 0 {
-					m.MonsterSuggestionIndex = 0
-				} else {
-					m.MonsterSuggestionIndex = -1
-				}
 			}
 		}
 	}
 
 	return m, nil
 }
+
+// ========== LEGACY FUNCTIONS ==========
 
 // processInitiativeInput handles the multi-step process of adding players/monsters
 func (m Model) processInitiativeInput() Model {

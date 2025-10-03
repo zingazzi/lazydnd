@@ -48,195 +48,243 @@ func (m Model) View() string {
 		return "Loading..."
 	}
 
-	// Calculate panel dimensions to fill the screen
-	panelWidth := (m.Width - 6) / 2
-	panelHeight := (m.Height - 4) / 2
+	dimensions := m.calculatePanelDimensions()
+	panelViews := m.renderAllPanels(dimensions)
 
-	// Create panels
+	return m.arrangeInGrid(panelViews)
+}
+
+// PanelDimensions holds calculated panel dimensions
+type PanelDimensions struct {
+	Width  int
+	Height int
+}
+
+// calculatePanelDimensions calculates panel dimensions to fill the screen
+func (m Model) calculatePanelDimensions() PanelDimensions {
+	return PanelDimensions{
+		Width:  (m.Width - 6) / 2,
+		Height: (m.Height - 4) / 2,
+	}
+}
+
+// renderAllPanels renders all four panels
+func (m Model) renderAllPanels(dimensions PanelDimensions) []string {
 	panelViews := make([]string, 4)
 
 	for i := 0; i < 4; i++ {
 		panelType := PanelType(i)
-		content := m.getPanelContent(panelType)
-
-		// Apply scrolling with strict height enforcement
-		contentLines := strings.Split(content, "\n")
-		scrollOffset := m.ScrollOffset[panelType]
-
-		// Calculate available content height - match original approach
-		// Account for: title (1) + borders (2) + padding (2) = 5 lines
-		availableHeight := panelHeight - 5
-		if availableHeight < 1 {
-			availableHeight = 1 // Minimum 1 line of content
-		}
-
-		// Always reserve space for scroll indicators to maintain consistent sizing
-		contentHeight := availableHeight
-		if panelType == m.ActivePanel {
-			// Always reserve 2 lines for potential scroll indicators on active panels
-			contentHeight = availableHeight - 2
-			if contentHeight < 1 {
-				contentHeight = 1
-			}
-		}
-
-		// For spell panel, use even more conservative height to prevent resizing
-		if panelType == Spells {
-			contentHeight = contentHeight - 2 // Extra buffer for dynamic content
-			if contentHeight < 1 {
-				contentHeight = 1
-			}
-		}
-
-		// Ensure scroll offset is within bounds
-		maxScroll := len(contentLines) - contentHeight
-		if maxScroll < 0 {
-			maxScroll = 0
-		}
-		if scrollOffset > maxScroll {
-			m.ScrollOffset[panelType] = maxScroll
-			scrollOffset = maxScroll
-		}
-		if scrollOffset < 0 {
-			m.ScrollOffset[panelType] = 0
-			scrollOffset = 0
-		}
-
-		// Apply scroll offset and strictly limit content
-		var scrolledContent string
-		var visibleLines []string
-
-		if len(contentLines) <= contentHeight {
-			// Content fits, no scrolling needed
-			visibleLines = contentLines
-		} else {
-			// Content needs scrolling - strictly limit to contentHeight
-			endIndex := scrollOffset + contentHeight
-			if endIndex > len(contentLines) {
-				endIndex = len(contentLines)
-			}
-			visibleLines = contentLines[scrollOffset:endIndex]
-		}
-
-		// Ensure we don't exceed the available height
-		if len(visibleLines) > contentHeight {
-			visibleLines = visibleLines[:contentHeight]
-		}
-
-		// Add scroll indicators for active panels to maintain consistent sizing
-		if panelType == m.ActivePanel {
-			var finalLines []string
-
-			// Always add top indicator space (empty or with indicator)
-			if scrollOffset > 0 && len(contentLines) > availableHeight {
-				finalLines = append(finalLines, "▲ (more above)")
-			} else {
-				finalLines = append(finalLines, "") // Empty line to maintain spacing
-			}
-
-			// Add visible content
-			finalLines = append(finalLines, visibleLines...)
-
-			// Always add bottom indicator space (empty or with indicator)
-			if scrollOffset+len(visibleLines) < len(contentLines) && len(contentLines) > availableHeight {
-				finalLines = append(finalLines, "▼ (more below)")
-			} else {
-				finalLines = append(finalLines, "") // Empty line to maintain spacing
-			}
-
-			// Ensure total matches available height exactly
-			if len(finalLines) > availableHeight {
-				finalLines = finalLines[:availableHeight]
-			}
-			for len(finalLines) < availableHeight {
-				finalLines = append(finalLines, "")
-			}
-
-			scrolledContent = strings.Join(finalLines, "\n")
-		} else {
-			// For inactive panels, maintain same structure as active panels for consistent positioning
-			var finalLines []string
-
-			// Always add top indicator space (empty for inactive panels)
-			finalLines = append(finalLines, "") // Empty line to maintain spacing
-
-			// Add visible content
-			finalLines = append(finalLines, visibleLines...)
-
-			// Always add bottom indicator space (empty for inactive panels)
-			finalLines = append(finalLines, "") // Empty line to maintain spacing
-
-			// Ensure total matches available height exactly
-			if len(finalLines) > availableHeight {
-				finalLines = finalLines[:availableHeight]
-			}
-			for len(finalLines) < availableHeight {
-				finalLines = append(finalLines, "")
-			}
-
-			scrolledContent = strings.Join(finalLines, "\n")
-		}
-
-		// Ensure content doesn't exceed available height and width
-		finalLines := strings.Split(scrolledContent, "\n")
-		if len(finalLines) > availableHeight {
-			finalLines = finalLines[:availableHeight]
-		}
-
-		// Truncate long lines to prevent wrapping and height changes
-		maxLineWidth := panelWidth - 6 // Account for padding and borders
-		for i, line := range finalLines {
-			if len(line) > maxLineWidth {
-				finalLines[i] = line[:maxLineWidth-3] + "..."
-			}
-		}
-
-		scrolledContent = strings.Join(finalLines, "\n")
-
-		// Style the panel - use consistent styling approach
-		title := fmt.Sprintf(" %d. %s ", i+1, PanelNames[i])
-		titleBar := PanelTitleStyle.Render(title)
-
-		// Always use the same base style, just change border color
-		var borderColor string
-		if panelType == m.ActivePanel {
-			borderColor = "#7D56F4"
-		} else {
-			borderColor = "#444444"
-		}
-
-		panelStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color(borderColor)).
-			Padding(1, 2).
-			Width(panelWidth).
-			Height(panelHeight)
-
-		panelContent := titleBar + "\n" + scrolledContent
-		panelViews[i] = panelStyle.Render(panelContent)
+		panelViews[i] = m.renderSinglePanel(panelType, dimensions, i+1)
 	}
 
-	// Arrange panels in 2x2 grid
+	return panelViews
+}
+
+// renderSinglePanel renders a single panel with all its content and styling
+func (m Model) renderSinglePanel(panelType PanelType, dimensions PanelDimensions, panelNumber int) string {
+	content := m.getPanelContent(panelType)
+	scrolledContent := m.applyScrolling(content, panelType, dimensions)
+	styledContent := m.stylePanel(scrolledContent, panelType, dimensions, panelNumber)
+
+	return styledContent
+}
+
+// applyScrolling applies scrolling logic to panel content
+func (m Model) applyScrolling(content string, panelType PanelType, dimensions PanelDimensions) string {
+	contentLines := strings.Split(content, "\n")
+	scrollOffset := m.ScrollOffset[panelType]
+
+	heights := m.calculateContentHeights(dimensions, panelType)
+	scrollOffset = m.normalizeScrollOffset(scrollOffset, contentLines, heights.Content, panelType)
+
+	visibleLines := m.extractVisibleLines(contentLines, scrollOffset, heights.Content)
+	finalContent := m.addScrollIndicators(visibleLines, scrollOffset, contentLines, heights, panelType)
+
+	return m.truncateLongLines(finalContent, dimensions.Width)
+}
+
+// ContentHeights holds calculated content heights
+type ContentHeights struct {
+	Available int
+	Content   int
+}
+
+// calculateContentHeights calculates available and content heights for a panel
+func (m Model) calculateContentHeights(dimensions PanelDimensions, panelType PanelType) ContentHeights {
+	// Account for: title (1) + borders (2) + padding (2) = 5 lines
+	availableHeight := dimensions.Height - 5
+	if availableHeight < 1 {
+		availableHeight = 1 // Minimum 1 line of content
+	}
+
+	contentHeight := availableHeight
+
+	// Reserve space for scroll indicators on active panels
+	if panelType == m.ActivePanel {
+		contentHeight = availableHeight - 2
+		if contentHeight < 1 {
+			contentHeight = 1
+		}
+	}
+
+	// Extra buffer for spell panel to prevent resizing
+	if panelType == Spells {
+		contentHeight = contentHeight - 2
+		if contentHeight < 1 {
+			contentHeight = 1
+		}
+	}
+
+	return ContentHeights{
+		Available: availableHeight,
+		Content:   contentHeight,
+	}
+}
+
+// normalizeScrollOffset ensures scroll offset is within valid bounds
+func (m Model) normalizeScrollOffset(scrollOffset int, contentLines []string, contentHeight int, panelType PanelType) int {
+	maxScroll := len(contentLines) - contentHeight
+	if maxScroll < 0 {
+		maxScroll = 0
+	}
+
+	if scrollOffset > maxScroll {
+		m.ScrollOffset[panelType] = maxScroll
+		scrollOffset = maxScroll
+	}
+	if scrollOffset < 0 {
+		m.ScrollOffset[panelType] = 0
+		scrollOffset = 0
+	}
+
+	return scrollOffset
+}
+
+// extractVisibleLines extracts the lines that should be visible based on scroll offset
+func (m Model) extractVisibleLines(contentLines []string, scrollOffset, contentHeight int) []string {
+	if len(contentLines) <= contentHeight {
+		return contentLines
+	}
+
+	endIndex := scrollOffset + contentHeight
+	if endIndex > len(contentLines) {
+		endIndex = len(contentLines)
+	}
+
+	visibleLines := contentLines[scrollOffset:endIndex]
+
+	// Ensure we don't exceed the available height
+	if len(visibleLines) > contentHeight {
+		visibleLines = visibleLines[:contentHeight]
+	}
+
+	return visibleLines
+}
+
+// addScrollIndicators adds scroll indicators and maintains consistent spacing
+func (m Model) addScrollIndicators(visibleLines []string, scrollOffset int, contentLines []string, heights ContentHeights, panelType PanelType) string {
+	var finalLines []string
+
+	// Add top indicator space
+	if panelType == m.ActivePanel && scrollOffset > 0 && len(contentLines) > heights.Available {
+		finalLines = append(finalLines, "▲ (more above)")
+	} else {
+		finalLines = append(finalLines, "") // Empty line to maintain spacing
+	}
+
+	// Add visible content
+	finalLines = append(finalLines, visibleLines...)
+
+	// Add bottom indicator space
+	if panelType == m.ActivePanel && scrollOffset+len(visibleLines) < len(contentLines) && len(contentLines) > heights.Available {
+		finalLines = append(finalLines, "▼ (more below)")
+	} else {
+		finalLines = append(finalLines, "") // Empty line to maintain spacing
+	}
+
+	// Ensure total matches available height exactly
+	if len(finalLines) > heights.Available {
+		finalLines = finalLines[:heights.Available]
+	}
+	for len(finalLines) < heights.Available {
+		finalLines = append(finalLines, "")
+	}
+
+	return strings.Join(finalLines, "\n")
+}
+
+// truncateLongLines truncates lines that are too long to prevent wrapping
+func (m Model) truncateLongLines(content string, panelWidth int) string {
+	finalLines := strings.Split(content, "\n")
+	maxLineWidth := panelWidth - 6 // Account for padding and borders
+
+	for i, line := range finalLines {
+		if len(line) > maxLineWidth {
+			finalLines[i] = line[:maxLineWidth-3] + "..."
+		}
+	}
+
+	return strings.Join(finalLines, "\n")
+}
+
+// stylePanel applies styling to a panel
+func (m Model) stylePanel(content string, panelType PanelType, dimensions PanelDimensions, panelNumber int) string {
+	title := fmt.Sprintf(" %d. %s ", panelNumber, PanelNames[panelNumber-1])
+	titleBar := PanelTitleStyle.Render(title)
+
+	borderColor := m.getBorderColor(panelType)
+	panelStyle := m.createPanelStyle(borderColor, dimensions)
+
+	panelContent := titleBar + "\n" + content
+	return panelStyle.Render(panelContent)
+}
+
+// getBorderColor returns the appropriate border color for a panel
+func (m Model) getBorderColor(panelType PanelType) string {
+	if panelType == m.ActivePanel {
+		return "#7D56F4"
+	}
+	return "#444444"
+}
+
+// createPanelStyle creates the lipgloss style for a panel
+func (m Model) createPanelStyle(borderColor string, dimensions PanelDimensions) lipgloss.Style {
+	return lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(borderColor)).
+		Padding(1, 2).
+		Width(dimensions.Width).
+		Height(dimensions.Height)
+}
+
+// arrangeInGrid arranges the four panels in a 2x2 grid
+func (m Model) arrangeInGrid(panelViews []string) string {
 	topRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[0], panelViews[1])
 	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3])
 
 	return lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
 }
 
+// PanelContentProvider defines a function type for getting panel content
+type PanelContentProvider func(Model) string
+
+// panelContentProviders maps panel types to their content provider functions
+var panelContentProviders = map[PanelType]PanelContentProvider{
+	DiceRoller:        getDiceRollerContent,
+	InitiativeTracker: getInitiativeTrackerContent,
+	Spells:           getSpellsContent,
+	Monsters:         getMonstersContent,
+}
+
 // getPanelContent returns the content for a specific panel
 func (m Model) getPanelContent(panelType PanelType) string {
-	var content string
-
-	switch panelType {
-	case DiceRoller:
-		content = panels.GetDiceRollerContent(m.DiceInput, m.DiceResult, m.DiceHistory, m.LastDiceCommand, m.InputMode, m.ActivePanel == DiceRoller)
-	case InitiativeTracker:
-		content = panels.GetInitiativeTrackerContent(m.InitiativeList, m.InitiativeInput, m.InitiativeInputMode, m.InitiativeInputType, m.SelectedEntry, m.ActivePanel == InitiativeTracker, m.InitiativeListMode, m.InitiativeEditMode, m.InitiativeEditType)
-	case Spells:
-		content = panels.GetSpellsContent(m.SpellSearchInput, m.SelectedSpell, m.SpellSuggestions, m.SuggestionIndex, m.SpellSearchMode, m.ActivePanel == Spells)
-	case Monsters:
-		content = panels.GetMonstersContent(m.MonsterSearchInput, m.SelectedMonster, m.MonsterSuggestions, m.MonsterSuggestionIndex, m.MonsterSearchMode, m.ActivePanel == Monsters)
+	// Get base content from provider
+	provider, exists := panelContentProviders[panelType]
+	if !exists {
+		return "Unknown panel type"
 	}
+
+	content := provider(m)
 
 	// Add help text for active panel
 	if panelType == m.ActivePanel {
@@ -246,41 +294,126 @@ func (m Model) getPanelContent(panelType PanelType) string {
 	return content
 }
 
+// ========== PANEL CONTENT PROVIDERS ==========
+
+// getDiceRollerContent gets content for the dice roller panel
+func getDiceRollerContent(m Model) string {
+	return panels.GetDiceRollerContent(
+		m.DiceInput,
+		m.DiceResult,
+		m.DiceHistory,
+		m.LastDiceCommand,
+		m.InputMode,
+		m.ActivePanel == DiceRoller,
+	)
+}
+
+// getInitiativeTrackerContent gets content for the initiative tracker panel
+func getInitiativeTrackerContent(m Model) string {
+	return panels.GetInitiativeTrackerContent(
+		m.InitiativeList,
+		m.InitiativeInput,
+		m.InitiativeInputMode,
+		m.InitiativeInputType,
+		m.SelectedEntry,
+		m.ActivePanel == InitiativeTracker,
+		m.InitiativeListMode,
+		m.InitiativeEditMode,
+		m.InitiativeEditType,
+	)
+}
+
+// getSpellsContent gets content for the spells panel
+func getSpellsContent(m Model) string {
+	return panels.GetSpellsContent(
+		m.SpellSearchInput,
+		m.SelectedSpell,
+		m.SpellSuggestions,
+		m.SuggestionIndex,
+		m.SpellSearchMode,
+		m.ActivePanel == Spells,
+	)
+}
+
+// getMonstersContent gets content for the monsters panel
+func getMonstersContent(m Model) string {
+	return panels.GetMonstersContent(
+		m.MonsterSearchInput,
+		m.SelectedMonster,
+		m.MonsterSuggestions,
+		m.MonsterSuggestionIndex,
+		m.MonsterSearchMode,
+		m.ActivePanel == Monsters,
+	)
+}
+
+// HelpTextProvider defines a function type for getting help text
+type HelpTextProvider func(Model) string
+
+// helpTextProviders maps panel types to their help text provider functions
+var helpTextProviders = map[PanelType]HelpTextProvider{
+	DiceRoller:        getDiceRollerHelpText,
+	InitiativeTracker: getInitiativeTrackerHelpText,
+	Spells:           getSpellsHelpText,
+	Monsters:         getMonstersHelpText,
+}
+
 // getHelpText returns context-sensitive help text
 func (m Model) getHelpText(panelType PanelType) string {
-	if panelType == DiceRoller {
-		if m.InputMode {
-			return "\n" + HelpStyle.Render("Enter: roll • Esc: cancel • F1-F4: switch panels")
-		} else {
-			if m.LastDiceCommand != "" {
-				return "\n" + HelpStyle.Render("Enter: input dice • r: reroll • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
-			} else {
-				return "\n" + HelpStyle.Render("Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
-			}
-		}
-	} else if panelType == InitiativeTracker {
-		if m.InitiativeEditMode {
-			return "\n" + HelpStyle.Render("Enter: confirm edit • Esc: cancel • F1-F4: switch panels")
-		} else if m.InitiativeInputMode {
-			return "\n" + HelpStyle.Render("Enter: confirm • Esc: cancel • F1-F4: switch panels")
-		} else if m.InitiativeListMode {
-			return "\n" + HelpStyle.Render("↑↓: select • i: edit initiative • h: edit HP • d: delete • Esc: exit edit • F1-F4: switch")
-		} else {
-			return "\n" + HelpStyle.Render("p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
-		}
-	} else if panelType == Spells {
-		if m.SpellSearchMode {
-			return "\n" + HelpStyle.Render("Enter: select spell • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
-		} else {
-			return "\n" + HelpStyle.Render("Enter: search spells • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
-		}
-	} else if panelType == Monsters {
-		if m.MonsterSearchMode {
-			return "\n" + HelpStyle.Render("Enter: select monster • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
-		} else {
-			return "\n" + HelpStyle.Render("Enter: search monsters • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
-		}
-	} else {
+	provider, exists := helpTextProviders[panelType]
+	if !exists {
 		return "\n" + HelpStyle.Render("↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
 	}
+
+	return provider(m)
+}
+
+// ========== HELP TEXT PROVIDERS ==========
+
+// getDiceRollerHelpText gets help text for the dice roller panel
+func getDiceRollerHelpText(m Model) string {
+	if m.InputMode {
+		return "\n" + HelpStyle.Render("Enter: roll • Esc: cancel • F1-F4: switch panels")
+	}
+
+	if m.LastDiceCommand != "" {
+		return "\n" + HelpStyle.Render("Enter: input dice • r: reroll • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+	}
+
+	return "\n" + HelpStyle.Render("Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+}
+
+// getInitiativeTrackerHelpText gets help text for the initiative tracker panel
+func getInitiativeTrackerHelpText(m Model) string {
+	if m.InitiativeEditMode {
+		return "\n" + HelpStyle.Render("Enter: confirm edit • Esc: cancel • F1-F4: switch panels")
+	}
+
+	if m.InitiativeInputMode {
+		return "\n" + HelpStyle.Render("Enter: confirm • Esc: cancel • F1-F4: switch panels")
+	}
+
+	if m.InitiativeListMode {
+		return "\n" + HelpStyle.Render("↑↓: select • i: edit initiative • h: edit HP • d: delete • Esc: exit edit • F1-F4: switch")
+	}
+
+	return "\n" + HelpStyle.Render("p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+}
+
+// getSpellsHelpText gets help text for the spells panel
+func getSpellsHelpText(m Model) string {
+	if m.SpellSearchMode {
+		return "\n" + HelpStyle.Render("Enter: select spell • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
+	}
+
+	return "\n" + HelpStyle.Render("Enter: search spells • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
+}
+
+// getMonstersHelpText gets help text for the monsters panel
+func getMonstersHelpText(m Model) string {
+	if m.MonsterSearchMode {
+		return "\n" + HelpStyle.Render("Enter: select monster • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
+	}
+
+	return "\n" + HelpStyle.Render("Enter: search monsters • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
 }
