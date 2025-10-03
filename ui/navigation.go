@@ -18,24 +18,32 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "1":
 		if m.InputMode {
 			m.DiceInput += "1"
+		} else if m.InitiativeInputMode {
+			m.InitiativeInput += "1"
 		} else {
 			m.ActivePanel = DiceRoller
 		}
 	case "2":
 		if m.InputMode {
 			m.DiceInput += "2"
+		} else if m.InitiativeInputMode {
+			m.InitiativeInput += "2"
 		} else {
-			m.ActivePanel = CharacterSheet
+			m.ActivePanel = InitiativeTracker
 		}
 	case "3":
 		if m.InputMode {
 			m.DiceInput += "3"
+		} else if m.InitiativeInputMode {
+			m.InitiativeInput += "3"
 		} else {
 			m.ActivePanel = Spells
 		}
 	case "4":
 		if m.InputMode {
 			m.DiceInput += "4"
+		} else if m.InitiativeInputMode {
+			m.InitiativeInput += "4"
 		} else {
 			m.ActivePanel = CampaignNotes
 		}
@@ -49,7 +57,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.ActivePanel = DiceRoller
 		m.InputMode = false
 	case "f2":
-		m.ActivePanel = CharacterSheet
+		m.ActivePanel = InitiativeTracker
 		m.InputMode = false
 	case "f3":
 		m.ActivePanel = Spells
@@ -98,6 +106,11 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			} else {
 				m.InputMode = true
 			}
+		} else if m.ActivePanel == InitiativeTracker {
+			if m.InitiativeInputMode {
+				// Process initiative tracker input
+				m = m.processInitiativeInput()
+			}
 		} else if m.ActivePanel == Spells {
 			if m.SpellSearchMode {
 				// Select spell from suggestions
@@ -136,7 +149,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "r":
-		if m.ActivePanel == DiceRoller && !m.InputMode && m.LastDiceCommand != "" {
+		if m.ActivePanel == DiceRoller && !m.InputMode && !m.InitiativeInputMode && m.LastDiceCommand != "" {
 			// Reroll the last dice command
 			result := panels.RollDice(m.LastDiceCommand)
 			m.DiceResult = result
@@ -144,12 +157,19 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if len(m.DiceHistory) > 15 {
 				m.DiceHistory = m.DiceHistory[1:]
 			}
+		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+			// Add 'r' to input when in input mode
+			m.InitiativeInput += "r"
 		}
 
 	case "esc":
 		if m.ActivePanel == DiceRoller {
 			m.DiceInput = ""
 			m.InputMode = false
+		} else if m.ActivePanel == InitiativeTracker {
+			m.InitiativeInput = ""
+			m.InitiativeInputMode = false
+			m.InitiativeInputType = ""
 		} else if m.ActivePanel == Spells {
 			m.SpellSearchInput = ""
 			m.SpellSearchMode = false
@@ -160,6 +180,8 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "backspace", "ctrl+h":
 		if m.InputMode && len(m.DiceInput) > 0 {
 			m.DiceInput = m.DiceInput[:len(m.DiceInput)-1]
+		} else if m.InitiativeInputMode && len(m.InitiativeInput) > 0 {
+			m.InitiativeInput = m.InitiativeInput[:len(m.InitiativeInput)-1]
 		} else if m.SpellSearchMode && len(m.SpellSearchInput) > 0 {
 			m.SpellSearchInput = m.SpellSearchInput[:len(m.SpellSearchInput)-1]
 			// Update suggestions
@@ -171,9 +193,33 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 		}
 
+	case "p":
+		if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
+			// Start adding a player
+			m.InitiativeInputMode = true
+			m.InitiativeInputType = "player_name"
+			m.InitiativeInput = ""
+		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+			// Add 'p' to input when in input mode
+			m.InitiativeInput += "p"
+		}
+
+	case "m":
+		if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
+			// Start adding a monster
+			m.InitiativeInputMode = true
+			m.InitiativeInputType = "monster_name"
+			m.InitiativeInput = ""
+		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+			// Add 'm' to input when in input mode
+			m.InitiativeInput += "m"
+		}
+
 	case "space":
 		if m.InputMode && m.ActivePanel == DiceRoller {
 			m.DiceInput += " "
+		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+			m.InitiativeInput += " "
 		} else if m.SpellSearchMode && m.ActivePanel == Spells {
 			m.SpellSearchInput += " "
 			// Update suggestions
@@ -197,6 +243,16 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				key == "+" || key == "-" || key == "d") {
 				m.DiceInput += key
 			}
+		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+			// Handle text input for initiative tracker
+			key := msg.String()
+			if len(key) == 1 && (
+				(key >= "a" && key <= "z") ||
+				(key >= "A" && key <= "Z") ||
+				(key >= "0" && key <= "9") ||
+				key == " " || key == "'" || key == "-" || key == "." || key == "_") {
+				m.InitiativeInput += key
+			}
 		} else if m.SpellSearchMode && m.ActivePanel == Spells {
 			// Handle text input for spell search
 			key := msg.String()
@@ -217,4 +273,68 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+// processInitiativeInput handles the multi-step process of adding players/monsters
+func (m Model) processInitiativeInput() Model {
+	switch m.InitiativeInputType {
+	case "player_name":
+		if val, err := panels.ParseInput(m.InitiativeInput, "player_name"); err == nil {
+			// Store name and move to initiative input
+			m.TempEntry.Name = val.(string)
+			m.TempEntry.Type = "player"
+			m.InitiativeInputType = "player_initiative"
+			m.InitiativeInput = ""
+		}
+
+	case "player_initiative":
+		if val, err := panels.ParseInput(m.InitiativeInput, "player_initiative"); err == nil {
+			// Complete player entry
+			m.TempEntry.Initiative = val.(int)
+			m.InitiativeList = append(m.InitiativeList, m.TempEntry)
+			m.InitiativeInputMode = false
+			m.InitiativeInputType = ""
+			m.InitiativeInput = ""
+			m.TempEntry = InitiativeEntry{} // Reset temp entry
+		}
+
+	case "monster_name":
+		if val, err := panels.ParseInput(m.InitiativeInput, "monster_name"); err == nil {
+			// Store name and move to HP input
+			m.TempEntry.Name = val.(string)
+			m.TempEntry.Type = "monster"
+			m.InitiativeInputType = "monster_hp"
+			m.InitiativeInput = ""
+		}
+
+	case "monster_hp":
+		if val, err := panels.ParseInput(m.InitiativeInput, "monster_hp"); err == nil {
+			// Store HP and move to AC input
+			m.TempEntry.HP = val.(int)
+			m.TempEntry.MaxHP = val.(int)
+			m.InitiativeInputType = "monster_ac"
+			m.InitiativeInput = ""
+		}
+
+	case "monster_ac":
+		if val, err := panels.ParseInput(m.InitiativeInput, "monster_ac"); err == nil {
+			// Store AC and move to initiative input
+			m.TempEntry.AC = val.(int)
+			m.InitiativeInputType = "monster_initiative"
+			m.InitiativeInput = ""
+		}
+
+	case "monster_initiative":
+		if val, err := panels.ParseInput(m.InitiativeInput, "monster_initiative"); err == nil {
+			// Complete monster entry
+			m.TempEntry.Initiative = val.(int)
+			m.InitiativeList = append(m.InitiativeList, m.TempEntry)
+			m.InitiativeInputMode = false
+			m.InitiativeInputType = ""
+			m.InitiativeInput = ""
+			m.TempEntry = InitiativeEntry{} // Reset temp entry
+		}
+	}
+
+	return m
 }

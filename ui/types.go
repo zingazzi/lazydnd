@@ -6,7 +6,7 @@ type PanelType int
 
 const (
 	DiceRoller PanelType = iota
-	CharacterSheet
+	InitiativeTracker
 	Spells
 	CampaignNotes
 )
@@ -28,6 +28,23 @@ type Model struct {
 	SelectedSpell       *Spell
 	SpellSuggestions    []string
 	SuggestionIndex     int
+	// Initiative tracker state
+	InitiativeList      []InitiativeEntry
+	InitiativeInput     string
+	InitiativeInputMode bool
+	InitiativeInputType string // "player", "monster", "initiative"
+	SelectedEntry       int
+	TempEntry           InitiativeEntry // Temporary storage while building entry
+}
+
+// InitiativeEntry represents a player or monster in the initiative tracker
+type InitiativeEntry struct {
+	Name       string
+	Type       string // "player" or "monster"
+	Initiative int
+	HP         int    // Only for monsters
+	MaxHP      int    // Only for monsters
+	AC         int    // Only for monsters
 }
 
 // Spell represents a D&D spell
@@ -50,7 +67,7 @@ type Spell struct {
 // Panel configuration
 var PanelNames = []string{
 	"Dice Roller",
-	"Character Sheet",
+	"Initiative Tracker",
 	"Spells",
 	"Campaign Notes",
 }
