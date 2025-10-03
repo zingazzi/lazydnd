@@ -291,7 +291,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "p":
-		if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
+		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'p' to monster search input
+			m.MonsterSearchInput += "p"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
 			// Start adding a player
 			m.InitiativeInputMode = true
 			m.InitiativeInputType = "player_name"
@@ -302,7 +312,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "m":
-		if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
+		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'm' to monster search input
+			m.MonsterSearchInput += "m"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode {
 			// Start adding a monster
 			m.InitiativeInputMode = true
 			m.InitiativeInputType = "monster_name"
@@ -313,7 +333,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "e":
-		if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode && !m.InitiativeEditMode && len(m.InitiativeList) > 0 {
+		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'e' to monster search input
+			m.MonsterSearchInput += "e"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode && !m.InitiativeEditMode && len(m.InitiativeList) > 0 {
 			// Enter list edit mode
 			m.InitiativeListMode = true
 			if m.SelectedEntry == -1 {
@@ -325,7 +355,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "i":
-		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'i' to monster search input
+			m.MonsterSearchInput += "i"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 			// Edit initiative
 			m.InitiativeEditMode = true
 			m.InitiativeEditType = "initiative"
@@ -336,7 +376,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "h":
-		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'h' to monster search input
+			m.MonsterSearchInput += "h"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 			// Edit HP (only for monsters)
 			originalIndex := m.findOriginalIndex(m.SelectedEntry)
 			if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
@@ -350,7 +400,20 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "d":
-		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		if m.InputMode && m.ActivePanel == DiceRoller {
+			// Add 'd' to dice input (for dice notation like "2d6")
+			m.DiceInput += "d"
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'd' to monster search input
+			m.MonsterSearchInput += "d"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 			// Delete entry
 			m.InitiativeEditMode = true
 			m.InitiativeEditType = "delete"
