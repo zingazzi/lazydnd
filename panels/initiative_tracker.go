@@ -36,20 +36,36 @@ var (
 )
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string) string {
 	var contentLines []string
 
 	// Header
 	contentLines = append(contentLines, "⚔️ INITIATIVE TRACKER ⚔️")
 	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, "Dungeon Master Panel")
-	contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster")
+
+	// Show different instructions based on mode
+	if editMode {
+		contentLines = append(contentLines, "EDIT MODE")
+		switch editType {
+		case "initiative":
+			contentLines = append(contentLines, "Enter new initiative value:")
+		case "hp":
+			contentLines = append(contentLines, "Enter HP change (+heal/-damage):")
+		case "delete":
+			contentLines = append(contentLines, "Press Enter to confirm deletion")
+		}
+	} else if listMode {
+		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete")
+	} else {
+		contentLines = append(contentLines, "Dungeon Master Panel")
+		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, 'e' to edit")
+	}
 	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, strings.Repeat("─", 40))
 	contentLines = append(contentLines, "")
 
-	// Input field (when adding entries)
-	if inputMode {
+	// Input field (when adding entries or editing)
+	if inputMode || editMode {
 		var prompt string
 		switch inputType {
 		case "player_name":
@@ -66,6 +82,18 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 			prompt = "Monster Initiative (or 'r' to roll): "
 		default:
 			prompt = "Input: "
+		}
+
+		// Override prompt for edit modes
+		if editMode {
+			switch editType {
+			case "initiative":
+				prompt = "New Initiative: "
+			case "hp":
+				prompt = "HP Change (+heal/-damage): "
+			case "delete":
+				prompt = "Press Enter to confirm deletion"
+			}
 		}
 
 		if isActive {
@@ -171,12 +199,23 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					var line string
 					if entry.Type == "player" {
 						line = fmt.Sprintf("%2d. %s (Initiative: %d)", i+1, entry.Name, entry.Initiative)
-						line = playerStyle.Render(line)
+						if listMode && selectedEntry == i {
+							line = selectedEntryStyle.Render("► " + line)
+						} else {
+							line = playerStyle.Render(line)
+						}
 					} else if entry.Type == "monster" {
 						line = fmt.Sprintf("%2d. %s (Init: %d, HP: %s/%s, AC: %s)", i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC)
-						line = monsterStyle.Render(line)
+						if listMode && selectedEntry == i {
+							line = selectedEntryStyle.Render("► " + line)
+						} else {
+							line = monsterStyle.Render(line)
+						}
 					} else {
 						line = fmt.Sprintf("%2d. %s (Initiative: %d)", i+1, entry.Name, entry.Initiative)
+						if listMode && selectedEntry == i {
+							line = selectedEntryStyle.Render("► " + line)
+						}
 					}
 
 					contentLines = append(contentLines, line)
@@ -250,6 +289,29 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		}
 		if val < 0 {
 			return nil, fmt.Errorf("must be positive")
+		}
+		return val, nil
+
+	case "initiative":
+		// Edit initiative value
+		val, err := strconv.Atoi(strings.TrimSpace(input))
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 0 {
+			return nil, fmt.Errorf("must be positive")
+		}
+		return val, nil
+
+	case "hp_change":
+		// HP change (can be positive or negative)
+		input = strings.TrimSpace(input)
+		if input == "" {
+			return nil, fmt.Errorf("enter a number (+ to heal, - to damage)")
+		}
+		val, err := strconv.Atoi(input)
+		if err != nil {
+			return nil, fmt.Errorf("must be a number (+ to heal, - to damage)")
 		}
 		return val, nil
 	}

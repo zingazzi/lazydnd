@@ -31,6 +31,9 @@ func InitialModel() Model {
 		InitiativeInputType: "",
 		SelectedEntry:       -1,
 		TempEntry:           InitiativeEntry{},
+		InitiativeEditMode:  false,
+		InitiativeEditType:  "",
+		InitiativeListMode:  false,
 	}
 }
 
@@ -202,7 +205,7 @@ func (m Model) getPanelContent(panelType PanelType) string {
 	case DiceRoller:
 		content = panels.GetDiceRollerContent(m.DiceInput, m.DiceResult, m.DiceHistory, m.LastDiceCommand, m.InputMode, m.ActivePanel == DiceRoller)
 	case InitiativeTracker:
-		content = panels.GetInitiativeTrackerContent(m.InitiativeList, m.InitiativeInput, m.InitiativeInputMode, m.InitiativeInputType, m.SelectedEntry, m.ActivePanel == InitiativeTracker)
+		content = panels.GetInitiativeTrackerContent(m.InitiativeList, m.InitiativeInput, m.InitiativeInputMode, m.InitiativeInputType, m.SelectedEntry, m.ActivePanel == InitiativeTracker, m.InitiativeListMode, m.InitiativeEditMode, m.InitiativeEditType)
 	case Spells:
 		content = panels.GetSpellsContent(m.SpellSearchInput, m.SelectedSpell, m.SpellSuggestions, m.SuggestionIndex, m.SpellSearchMode, m.ActivePanel == Spells)
 	case CampaignNotes:
@@ -230,10 +233,14 @@ func (m Model) getHelpText(panelType PanelType) string {
 			}
 		}
 	} else if panelType == InitiativeTracker {
-		if m.InitiativeInputMode {
+		if m.InitiativeEditMode {
+			return "\n" + HelpStyle.Render("Enter: confirm edit • Esc: cancel • F1-F4: switch panels")
+		} else if m.InitiativeInputMode {
 			return "\n" + HelpStyle.Render("Enter: confirm • Esc: cancel • F1-F4: switch panels")
+		} else if m.InitiativeListMode {
+			return "\n" + HelpStyle.Render("↑↓: select • i: edit initiative • h: edit HP • d: delete • Esc: exit edit • F1-F4: switch")
 		} else {
-			return "\n" + HelpStyle.Render("p: add player • m: add monster • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+			return "\n" + HelpStyle.Render("p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
 		}
 	} else if panelType == Spells {
 		if m.SpellSearchMode {

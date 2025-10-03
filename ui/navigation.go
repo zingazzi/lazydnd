@@ -18,7 +18,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "1":
 		if m.InputMode {
 			m.DiceInput += "1"
-		} else if m.InitiativeInputMode {
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
 			m.InitiativeInput += "1"
 		} else {
 			m.ActivePanel = DiceRoller
@@ -26,7 +26,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "2":
 		if m.InputMode {
 			m.DiceInput += "2"
-		} else if m.InitiativeInputMode {
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
 			m.InitiativeInput += "2"
 		} else {
 			m.ActivePanel = InitiativeTracker
@@ -34,7 +34,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "3":
 		if m.InputMode {
 			m.DiceInput += "3"
-		} else if m.InitiativeInputMode {
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
 			m.InitiativeInput += "3"
 		} else {
 			m.ActivePanel = Spells
@@ -42,7 +42,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "4":
 		if m.InputMode {
 			m.DiceInput += "4"
-		} else if m.InitiativeInputMode {
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
 			m.InitiativeInput += "4"
 		} else {
 			m.ActivePanel = CampaignNotes
@@ -72,7 +72,12 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if m.SuggestionIndex > 0 {
 				m.SuggestionIndex--
 			}
-		} else if !m.InputMode {
+		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
+			// Navigate initiative list
+			if m.SelectedEntry > 0 {
+				m.SelectedEntry--
+			}
+		} else if !m.InputMode && !m.InitiativeInputMode {
 			// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
 			if m.ScrollOffset[m.ActivePanel] > 0 {
 				m.ScrollOffset[m.ActivePanel]--
@@ -85,7 +90,12 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
 				m.SuggestionIndex++
 			}
-		} else if !m.InputMode {
+		} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && len(m.InitiativeList) > 0 {
+			// Navigate initiative list
+			if m.SelectedEntry < len(m.InitiativeList)-1 {
+				m.SelectedEntry++
+			}
+		} else if !m.InputMode && !m.InitiativeInputMode {
 			// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
 			m.ScrollOffset[m.ActivePanel]++
 		}
@@ -107,7 +117,10 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				m.InputMode = true
 			}
 		} else if m.ActivePanel == InitiativeTracker {
-			if m.InitiativeInputMode {
+			if m.InitiativeEditMode {
+				// Process edit action
+				m = m.processInitiativeEdit()
+			} else if m.InitiativeInputMode {
 				// Process initiative tracker input
 				m = m.processInitiativeInput()
 			}
@@ -167,9 +180,21 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.DiceInput = ""
 			m.InputMode = false
 		} else if m.ActivePanel == InitiativeTracker {
-			m.InitiativeInput = ""
-			m.InitiativeInputMode = false
-			m.InitiativeInputType = ""
+			if m.InitiativeEditMode {
+				// Exit edit mode
+				m.InitiativeEditMode = false
+				m.InitiativeEditType = ""
+				m.InitiativeInput = ""
+			} else if m.InitiativeListMode {
+				// Exit list mode
+				m.InitiativeListMode = false
+				m.SelectedEntry = -1
+			} else {
+				// Exit input mode
+				m.InitiativeInput = ""
+				m.InitiativeInputMode = false
+				m.InitiativeInputType = ""
+			}
 		} else if m.ActivePanel == Spells {
 			m.SpellSearchInput = ""
 			m.SpellSearchMode = false
@@ -215,10 +240,57 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.InitiativeInput += "m"
 		}
 
+	case "e":
+		if m.ActivePanel == InitiativeTracker && !m.InitiativeInputMode && !m.InitiativeEditMode && len(m.InitiativeList) > 0 {
+			// Enter list edit mode
+			m.InitiativeListMode = true
+			if m.SelectedEntry == -1 {
+				m.SelectedEntry = 0
+			}
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
+			// Add 'e' to input when in input/edit mode
+			m.InitiativeInput += "e"
+		}
+
+	case "i":
+		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+			// Edit initiative
+			m.InitiativeEditMode = true
+			m.InitiativeEditType = "initiative"
+			m.InitiativeInput = ""
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
+			// Add 'i' to input when in input/edit mode
+			m.InitiativeInput += "i"
+		}
+
+	case "h":
+		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+			// Edit HP (only for monsters)
+			originalIndex := m.findOriginalIndex(m.SelectedEntry)
+			if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
+				m.InitiativeEditMode = true
+				m.InitiativeEditType = "hp"
+				m.InitiativeInput = ""
+			}
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
+			// Add 'h' to input when in input/edit mode
+			m.InitiativeInput += "h"
+		}
+
+	case "d":
+		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+			// Delete entry
+			m.InitiativeEditMode = true
+			m.InitiativeEditType = "delete"
+		} else if m.InitiativeInputMode || m.InitiativeEditMode {
+			// Add 'd' to input when in input/edit mode
+			m.InitiativeInput += "d"
+		}
+
 	case "space":
 		if m.InputMode && m.ActivePanel == DiceRoller {
 			m.DiceInput += " "
-		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+		} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
 			m.InitiativeInput += " "
 		} else if m.SpellSearchMode && m.ActivePanel == Spells {
 			m.SpellSearchInput += " "
@@ -243,14 +315,14 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				key == "+" || key == "-" || key == "d") {
 				m.DiceInput += key
 			}
-		} else if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
-			// Handle text input for initiative tracker
+		} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
+			// Handle text input for initiative tracker (both input and edit modes)
 			key := msg.String()
 			if len(key) == 1 && (
 				(key >= "a" && key <= "z") ||
 				(key >= "A" && key <= "Z") ||
 				(key >= "0" && key <= "9") ||
-				key == " " || key == "'" || key == "-" || key == "." || key == "_") {
+				key == " " || key == "'" || key == "-" || key == "." || key == "_" || key == "+") {
 				m.InitiativeInput += key
 			}
 		} else if m.SpellSearchMode && m.ActivePanel == Spells {
@@ -337,4 +409,98 @@ func (m Model) processInitiativeInput() Model {
 	}
 
 	return m
+}
+
+// processInitiativeEdit handles editing existing initiative entries
+func (m Model) processInitiativeEdit() Model {
+	if m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
+		return m
+	}
+
+	// Find the original array index for the selected display position
+	originalIndex := m.findOriginalIndex(m.SelectedEntry)
+	if originalIndex == -1 {
+		// Invalid selection, exit edit mode
+		m.InitiativeEditMode = false
+		m.InitiativeEditType = ""
+		m.InitiativeInput = ""
+		return m
+	}
+
+	switch m.InitiativeEditType {
+	case "initiative":
+		if val, err := panels.ParseInput(m.InitiativeInput, "initiative"); err == nil {
+			// Update initiative
+			m.InitiativeList[originalIndex].Initiative = val.(int)
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		}
+
+	case "hp":
+		if val, err := panels.ParseInput(m.InitiativeInput, "hp_change"); err == nil {
+			// Update HP (can be positive or negative)
+			change := val.(int)
+			newHP := m.InitiativeList[originalIndex].HP + change
+			if newHP < 0 {
+				newHP = 0
+			}
+			if newHP > m.InitiativeList[originalIndex].MaxHP {
+				newHP = m.InitiativeList[originalIndex].MaxHP
+			}
+			m.InitiativeList[originalIndex].HP = newHP
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		}
+
+	case "delete":
+		// Delete the selected entry
+		m.InitiativeList = append(m.InitiativeList[:originalIndex], m.InitiativeList[originalIndex+1:]...)
+		// Adjust selected entry if needed
+		if m.SelectedEntry >= len(m.InitiativeList) && len(m.InitiativeList) > 0 {
+			m.SelectedEntry = len(m.InitiativeList) - 1
+		} else if len(m.InitiativeList) == 0 {
+			m.SelectedEntry = -1
+			m.InitiativeListMode = false
+		}
+		m.InitiativeEditMode = false
+		m.InitiativeEditType = ""
+	}
+
+	return m
+}
+
+// findOriginalIndex finds the original array index for a sorted display position
+func (m Model) findOriginalIndex(sortedIndex int) int {
+	if sortedIndex < 0 || sortedIndex >= len(m.InitiativeList) {
+		return -1
+	}
+
+	// Create a copy of the list with original indices
+	type indexedEntry struct {
+		entry InitiativeEntry
+		originalIndex int
+	}
+
+	var indexed []indexedEntry
+	for i, entry := range m.InitiativeList {
+		indexed = append(indexed, indexedEntry{entry: entry, originalIndex: i})
+	}
+
+	// Sort by initiative (highest first) - same logic as display
+	for i := 0; i < len(indexed); i++ {
+		for j := i + 1; j < len(indexed); j++ {
+			if indexed[j].entry.Initiative > indexed[i].entry.Initiative {
+				indexed[i], indexed[j] = indexed[j], indexed[i]
+			}
+		}
+	}
+
+	// Return the original index for the sorted position
+	if sortedIndex < len(indexed) {
+		return indexed[sortedIndex].originalIndex
+	}
+
+	return -1
 }

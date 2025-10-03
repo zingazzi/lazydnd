@@ -35,6 +35,10 @@ type Model struct {
 	InitiativeInputType string // "player", "monster", "initiative"
 	SelectedEntry       int
 	TempEntry           InitiativeEntry // Temporary storage while building entry
+	// Initiative edit state
+	InitiativeEditMode  bool
+	InitiativeEditType  string // "initiative", "hp", "delete"
+	InitiativeListMode  bool   // When true, navigating the list instead of adding entries
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
