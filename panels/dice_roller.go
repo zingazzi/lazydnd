@@ -27,7 +27,7 @@ var (
 )
 
 // GetDiceRollerContent returns the content for the dice roller panel
-func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, inputMode, isActive bool) string {
+func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, lastCommand string, inputMode, isActive bool) string {
 	content := "🎲 DICE ROLLER 🎲\nPress Enter to roll, Esc to clear input"
 
 	content += "\n\n" + strings.Repeat("─", 30)
@@ -44,6 +44,11 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, in
 	// Last result
 	if diceResult != "" {
 		content += "\n" + diceResultStyle.Render("Last Roll: "+diceResult)
+	}
+
+	// Show last command for reroll
+	if lastCommand != "" && !inputMode {
+		content += "\n\nLast Command: " + lastCommand + " (press 'r' to reroll)"
 	}
 
 	// History (most recent first)

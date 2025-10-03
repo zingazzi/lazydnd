@@ -13,12 +13,18 @@ import (
 // InitialModel creates the initial application model
 func InitialModel() Model {
 	return Model{
-		ActivePanel:  DiceRoller,
-		DiceInput:    "",
-		DiceResult:   "",
-		DiceHistory:  []string{},
-		InputMode:    false,
-		ScrollOffset: make(map[PanelType]int),
+		ActivePanel:         DiceRoller,
+		DiceInput:           "",
+		DiceResult:          "",
+		DiceHistory:         []string{},
+		LastDiceCommand:     "",
+		InputMode:           false,
+		ScrollOffset:        make(map[PanelType]int),
+		SpellSearchInput:    "",
+		SpellSearchMode:     false,
+		SelectedSpell:       nil,
+		SpellSuggestions:    []string{},
+		SuggestionIndex:     -1,
 	}
 }
 
@@ -28,7 +34,7 @@ func (m Model) View() string {
 		return "Loading..."
 	}
 
-	// Calculate panel dimensions
+	// Calculate panel dimensions to fill the screen
 	panelWidth := (m.Width - 6) / 2
 	panelHeight := (m.Height - 4) / 2
 
@@ -39,45 +45,116 @@ func (m Model) View() string {
 		panelType := PanelType(i)
 		content := m.getPanelContent(panelType)
 
-		// Apply scrolling
+		// Apply scrolling with strict height enforcement
 		contentLines := strings.Split(content, "\n")
 		scrollOffset := m.ScrollOffset[panelType]
 
-		// Calculate available content height (panel height minus title and padding)
-		availableHeight := panelHeight - 4 // Account for title, borders, and padding
+		// Calculate available content height - match original approach
+		// Account for: title (1) + borders (2) + padding (2) = 5 lines
+		availableHeight := panelHeight - 5
+		if availableHeight < 1 {
+			availableHeight = 1 // Minimum 1 line of content
+		}
 
-		// Apply scroll offset
-		if scrollOffset > 0 && scrollOffset < len(contentLines) {
-			if scrollOffset+availableHeight < len(contentLines) {
-				contentLines = contentLines[scrollOffset : scrollOffset+availableHeight]
-			} else {
-				contentLines = contentLines[scrollOffset:]
-			}
-		} else if scrollOffset >= len(contentLines) {
-			// Reset scroll if we've gone too far
-			m.ScrollOffset[panelType] = 0
-		} else {
-			// Show from beginning
-			if len(contentLines) > availableHeight {
-				contentLines = contentLines[:availableHeight]
+		// Reserve space for scroll indicators if needed
+		contentHeight := availableHeight
+		if len(contentLines) > availableHeight && panelType == m.ActivePanel {
+			contentHeight = availableHeight - 2 // Reserve 2 lines for scroll indicators
+			if contentHeight < 1 {
+				contentHeight = 1
 			}
 		}
 
-		scrolledContent := strings.Join(contentLines, "\n")
+		// Ensure scroll offset is within bounds
+		maxScroll := len(contentLines) - contentHeight
+		if maxScroll < 0 {
+			maxScroll = 0
+		}
+		if scrollOffset > maxScroll {
+			m.ScrollOffset[panelType] = maxScroll
+			scrollOffset = maxScroll
+		}
+		if scrollOffset < 0 {
+			m.ScrollOffset[panelType] = 0
+			scrollOffset = 0
+		}
 
-		// Style the panel
+		// Apply scroll offset and strictly limit content
+		var scrolledContent string
+		var visibleLines []string
+
+		if len(contentLines) <= contentHeight {
+			// Content fits, no scrolling needed
+			visibleLines = contentLines
+		} else {
+			// Content needs scrolling - strictly limit to contentHeight
+			endIndex := scrollOffset + contentHeight
+			if endIndex > len(contentLines) {
+				endIndex = len(contentLines)
+			}
+			visibleLines = contentLines[scrollOffset:endIndex]
+		}
+
+		// Ensure we don't exceed the available height
+		if len(visibleLines) > contentHeight {
+			visibleLines = visibleLines[:contentHeight]
+		}
+
+		// Add scroll indicators if active panel and content is scrollable
+		if len(contentLines) > availableHeight && panelType == m.ActivePanel {
+			var finalLines []string
+
+			// Add top scroll indicator
+			if scrollOffset > 0 {
+				finalLines = append(finalLines, "▲ (more above)")
+			}
+
+			// Add visible content
+			finalLines = append(finalLines, visibleLines...)
+
+			// Add bottom scroll indicator
+			if scrollOffset+len(visibleLines) < len(contentLines) {
+				finalLines = append(finalLines, "▼ (more below)")
+			}
+
+			// Ensure total doesn't exceed available height
+			if len(finalLines) > availableHeight {
+				finalLines = finalLines[:availableHeight]
+			}
+
+			scrolledContent = strings.Join(finalLines, "\n")
+		} else {
+			scrolledContent = strings.Join(visibleLines, "\n")
+		}
+
+		// Ensure content doesn't exceed available height
+		finalLines := strings.Split(scrolledContent, "\n")
+		if len(finalLines) > availableHeight {
+			finalLines = finalLines[:availableHeight]
+			scrolledContent = strings.Join(finalLines, "\n")
+		}
+
+		// Style the panel - use consistent styling approach
 		title := fmt.Sprintf(" %d. %s ", i+1, PanelNames[i])
 		titleBar := PanelTitleStyle.Render(title)
 
-		var panelStyle lipgloss.Style
+		// Always use the same base style, just change border color
+		var borderColor string
 		if panelType == m.ActivePanel {
-			panelStyle = ActivePanelStyle
+			borderColor = "#7D56F4"
 		} else {
-			panelStyle = InactivePanelStyle
+			borderColor = "#444444"
 		}
 
+		panelStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color(borderColor)).
+			Padding(1, 2).
+			Width(panelWidth).
+			Height(panelHeight)
+
 		panelContent := titleBar + "\n" + scrolledContent
-		panelViews[i] = panelStyle.Width(panelWidth).Height(panelHeight).Render(panelContent)
+		panelViews[i] = panelStyle.Render(panelContent)
 	}
 
 	// Arrange panels in 2x2 grid
@@ -93,11 +170,11 @@ func (m Model) getPanelContent(panelType PanelType) string {
 
 	switch panelType {
 	case DiceRoller:
-		content = panels.GetDiceRollerContent(m.DiceInput, m.DiceResult, m.DiceHistory, m.InputMode, m.ActivePanel == DiceRoller)
+		content = panels.GetDiceRollerContent(m.DiceInput, m.DiceResult, m.DiceHistory, m.LastDiceCommand, m.InputMode, m.ActivePanel == DiceRoller)
 	case CharacterSheet:
 		content = panels.GetCharacterSheetContent()
 	case Spells:
-		content = panels.GetSpellsContent()
+		content = panels.GetSpellsContent(m.SpellSearchInput, m.SelectedSpell, m.SpellSuggestions, m.SuggestionIndex, m.SpellSearchMode, m.ActivePanel == Spells)
 	case CampaignNotes:
 		content = panels.GetCampaignNotesContent()
 	}
@@ -116,7 +193,17 @@ func (m Model) getHelpText(panelType PanelType) string {
 		if m.InputMode {
 			return "\n" + HelpStyle.Render("Enter: roll • Esc: cancel • F1-F4: switch panels")
 		} else {
-			return "\n" + HelpStyle.Render("Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+			if m.LastDiceCommand != "" {
+				return "\n" + HelpStyle.Render("Enter: input dice • r: reroll • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+			} else {
+				return "\n" + HelpStyle.Render("Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
+			}
+		}
+	} else if panelType == Spells {
+		if m.SpellSearchMode {
+			return "\n" + HelpStyle.Render("Enter: select spell • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
+		} else {
+			return "\n" + HelpStyle.Render("Enter: search spells • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
 		}
 	} else {
 		return "\n" + HelpStyle.Render("↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")

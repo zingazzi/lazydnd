@@ -1,39 +1,144 @@
 // panels/spells.go
 package panels
 
+import (
+	"fmt"
+	"reflect"
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	spellInputStyle = lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("#7D56F4")).
+			Padding(0, 1).
+			Margin(1, 0)
+
+	suggestionStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#888888")).
+				Margin(0, 1)
+
+	selectedSuggestionStyle = lipgloss.NewStyle().
+					Bold(true).
+					Foreground(lipgloss.Color("#FAFAFA")).
+					Background(lipgloss.Color("#7D56F4")).
+					Margin(0, 1)
+
+	spellDetailStyle = lipgloss.NewStyle().
+				Border(lipgloss.NormalBorder()).
+				BorderForeground(lipgloss.Color("#7D56F4")).
+				Padding(1).
+				Margin(1, 0)
+)
+
 // GetSpellsContent returns the content for the spells panel
-func GetSpellsContent() string {
-	return `✨ SPELLS ✨
+func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool) string {
+	content := "✨ SPELL SEARCH ✨\n\nSearch for D&D spells by name\nPress Enter to start searching"
 
-Cantrips (At Will):
-• Firebolt (1d10 fire damage)
-  Range: 120 ft, Action
-• Mage Hand
-  Range: 30 ft, Action
-• Prestidigitation
-  Range: 10 ft, Action
+	content += "\n\n" + strings.Repeat("─", 30)
 
-Level 1 Spells (3/3 slots):
-• Magic Missile
-  3 darts, 1d4+1 force each
-• Shield
-  +5 AC until start of next turn
-• Detect Magic
-  Sense magic within 30 ft
+	// Search input field
+	searchPrompt := "Search: "
+	if searchMode && isActive {
+		searchPrompt += searchInput + "█"
+	} else {
+		searchPrompt += searchInput
+	}
+	content += "\n\n" + spellInputStyle.Render(searchPrompt)
 
-Level 2 Spells (2/2 slots):
-• Misty Step
-  Teleport 30 ft as bonus action
-• Scorching Ray
-  3 ranged spell attacks, 2d6 fire each
+	// Show suggestions
+	if len(suggestions) > 0 && searchMode {
+		content += "\n\nSuggestions:"
+		for i, suggestion := range suggestions {
+			if i == suggestionIndex {
+				content += "\n" + selectedSuggestionStyle.Render("▶ "+suggestion)
+			} else {
+				content += "\n" + suggestionStyle.Render("  "+suggestion)
+			}
+		}
+	}
 
-Level 3 Spells (1/1 slots):
-• Fireball
-  8d6 fire damage, 20 ft radius
-• Counterspell
-  Stop a spell being cast
+	// Show selected spell details
+	if selectedSpell != nil {
+		content += "\n\n" + strings.Repeat("═", 40)
+		content += "\n" + spellDetailStyle.Render(FormatSelectedSpell(selectedSpell))
+	}
 
-Spell Attack Bonus: +7
-Spell Save DC: 15
-Spellcasting Ability: Intelligence`
+	return content
+}
+
+// FormatSelectedSpell formats a spell from interface{} for display
+func FormatSelectedSpell(selectedSpell interface{}) string {
+	if selectedSpell == nil {
+		return "No spell selected"
+	}
+
+	// Use reflection to extract spell data
+	v := reflect.ValueOf(selectedSpell)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return fmt.Sprintf("Invalid spell data: %+v", selectedSpell)
+	}
+
+	// Extract fields using reflection
+	var spell Spell
+
+	if nameField := v.FieldByName("Name"); nameField.IsValid() && nameField.Kind() == reflect.String {
+		spell.Name = nameField.String()
+	}
+	if levelField := v.FieldByName("Level"); levelField.IsValid() && levelField.Kind() == reflect.Int {
+		spell.Level = int(levelField.Int())
+	}
+	if schoolField := v.FieldByName("School"); schoolField.IsValid() && schoolField.Kind() == reflect.String {
+		spell.School = schoolField.String()
+	}
+	if actionField := v.FieldByName("ActionType"); actionField.IsValid() && actionField.Kind() == reflect.String {
+		spell.ActionType = actionField.String()
+	}
+	if rangeField := v.FieldByName("Range"); rangeField.IsValid() && rangeField.Kind() == reflect.String {
+		spell.Range = rangeField.String()
+	}
+	if durationField := v.FieldByName("Duration"); durationField.IsValid() && durationField.Kind() == reflect.String {
+		spell.Duration = durationField.String()
+	}
+	if descField := v.FieldByName("Description"); descField.IsValid() && descField.Kind() == reflect.String {
+		spell.Description = descField.String()
+	}
+	if materialField := v.FieldByName("Material"); materialField.IsValid() && materialField.Kind() == reflect.String {
+		spell.Material = materialField.String()
+	}
+	if cantripField := v.FieldByName("CantripUpgrade"); cantripField.IsValid() && cantripField.Kind() == reflect.String {
+		spell.CantripUpgrade = cantripField.String()
+	}
+	if concField := v.FieldByName("Concentration"); concField.IsValid() && concField.Kind() == reflect.Bool {
+		spell.Concentration = concField.Bool()
+	}
+	if ritualField := v.FieldByName("Ritual"); ritualField.IsValid() && ritualField.Kind() == reflect.Bool {
+		spell.Ritual = ritualField.Bool()
+	}
+
+	// Handle slice fields
+	if classesField := v.FieldByName("Classes"); classesField.IsValid() && classesField.Kind() == reflect.Slice {
+		spell.Classes = make([]string, classesField.Len())
+		for i := 0; i < classesField.Len(); i++ {
+			if elem := classesField.Index(i); elem.Kind() == reflect.String {
+				spell.Classes[i] = elem.String()
+			}
+		}
+	}
+	if compField := v.FieldByName("Components"); compField.IsValid() && compField.Kind() == reflect.Slice {
+		spell.Components = make([]string, compField.Len())
+		for i := 0; i < compField.Len(); i++ {
+			if elem := compField.Index(i); elem.Kind() == reflect.String {
+				spell.Components[i] = elem.String()
+			}
+		}
+	}
+
+	return FormatSpell(&spell)
 }

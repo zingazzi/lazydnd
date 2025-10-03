@@ -59,14 +59,26 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.InputMode = false
 
 	case "up":
-		if !m.InputMode {
+		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
+			// Navigate spell suggestions
+			if m.SuggestionIndex > 0 {
+				m.SuggestionIndex--
+			}
+		} else if !m.InputMode {
+			// Allow scrolling in all panels when not in input mode
 			if m.ScrollOffset[m.ActivePanel] > 0 {
 				m.ScrollOffset[m.ActivePanel]--
 			}
 		}
 
 	case "down":
-		if !m.InputMode {
+		if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
+			// Navigate spell suggestions
+			if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
+				m.SuggestionIndex++
+			}
+		} else if !m.InputMode {
+			// Allow scrolling in all panels when not in input mode
 			m.ScrollOffset[m.ActivePanel]++
 		}
 
@@ -77,6 +89,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				result := panels.RollDice(m.DiceInput)
 				m.DiceResult = result
 				m.DiceHistory = append(m.DiceHistory, result)
+				m.LastDiceCommand = m.DiceInput
 				if len(m.DiceHistory) > 15 {
 					m.DiceHistory = m.DiceHistory[1:]
 				}
@@ -85,22 +98,91 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			} else {
 				m.InputMode = true
 			}
+		} else if m.ActivePanel == Spells {
+			if m.SpellSearchMode {
+				// Select spell from suggestions
+				if len(m.SpellSuggestions) > 0 && m.SuggestionIndex >= 0 && m.SuggestionIndex < len(m.SpellSuggestions) {
+					selectedSpellName := m.SpellSuggestions[m.SuggestionIndex]
+					foundSpell := panels.FindSpell(selectedSpellName)
+					if foundSpell != nil {
+						// Convert panels.Spell to ui.Spell
+						m.SelectedSpell = &Spell{
+							Name:            foundSpell.Name,
+							Level:           foundSpell.Level,
+							School:          foundSpell.School,
+							Classes:         foundSpell.Classes,
+							ActionType:      foundSpell.ActionType,
+							Concentration:   foundSpell.Concentration,
+							Ritual:          foundSpell.Ritual,
+							Range:           foundSpell.Range,
+							Components:      foundSpell.Components,
+							Material:        foundSpell.Material,
+							Duration:        foundSpell.Duration,
+							Description:     foundSpell.Description,
+							CantripUpgrade:  foundSpell.CantripUpgrade,
+						}
+					}
+					m.SpellSearchInput = selectedSpellName
+					m.SpellSearchMode = false
+					m.SpellSuggestions = []string{}
+					m.SuggestionIndex = -1
+				}
+			} else {
+				// Start spell search mode
+				m.SpellSearchMode = true
+				m.SpellSuggestions = []string{}
+				m.SuggestionIndex = -1
+			}
+		}
+
+	case "r":
+		if m.ActivePanel == DiceRoller && !m.InputMode && m.LastDiceCommand != "" {
+			// Reroll the last dice command
+			result := panels.RollDice(m.LastDiceCommand)
+			m.DiceResult = result
+			m.DiceHistory = append(m.DiceHistory, result)
+			if len(m.DiceHistory) > 15 {
+				m.DiceHistory = m.DiceHistory[1:]
+			}
 		}
 
 	case "esc":
 		if m.ActivePanel == DiceRoller {
 			m.DiceInput = ""
 			m.InputMode = false
+		} else if m.ActivePanel == Spells {
+			m.SpellSearchInput = ""
+			m.SpellSearchMode = false
+			m.SpellSuggestions = []string{}
+			m.SuggestionIndex = -1
 		}
 
 	case "backspace", "ctrl+h":
 		if m.InputMode && len(m.DiceInput) > 0 {
 			m.DiceInput = m.DiceInput[:len(m.DiceInput)-1]
+		} else if m.SpellSearchMode && len(m.SpellSearchInput) > 0 {
+			m.SpellSearchInput = m.SpellSearchInput[:len(m.SpellSearchInput)-1]
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
 		}
 
 	case "space":
 		if m.InputMode && m.ActivePanel == DiceRoller {
 			m.DiceInput += " "
+		} else if m.SpellSearchMode && m.ActivePanel == Spells {
+			m.SpellSearchInput += " "
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
 		}
 
 	default:
@@ -114,6 +196,22 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 				(key >= "0" && key <= "9") ||
 				key == "+" || key == "-" || key == "d") {
 				m.DiceInput += key
+			}
+		} else if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Handle text input for spell search
+			key := msg.String()
+			if len(key) == 1 && (
+				(key >= "a" && key <= "z") ||
+				(key >= "A" && key <= "Z") ||
+				key == "'" || key == "-") {
+				m.SpellSearchInput += key
+				// Update suggestions
+				m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+				if len(m.SpellSuggestions) > 0 {
+					m.SuggestionIndex = 0
+				} else {
+					m.SuggestionIndex = -1
+				}
 			}
 		}
 	}
