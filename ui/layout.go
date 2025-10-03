@@ -177,12 +177,21 @@ func (m Model) View() string {
 			scrolledContent = strings.Join(finalLines, "\n")
 		}
 
-		// Ensure content doesn't exceed available height
+		// Ensure content doesn't exceed available height and width
 		finalLines := strings.Split(scrolledContent, "\n")
 		if len(finalLines) > availableHeight {
 			finalLines = finalLines[:availableHeight]
-			scrolledContent = strings.Join(finalLines, "\n")
 		}
+
+		// Truncate long lines to prevent wrapping and height changes
+		maxLineWidth := panelWidth - 6 // Account for padding and borders
+		for i, line := range finalLines {
+			if len(line) > maxLineWidth {
+				finalLines[i] = line[:maxLineWidth-3] + "..."
+			}
+		}
+
+		scrolledContent = strings.Join(finalLines, "\n")
 
 		// Style the panel - use consistent styling approach
 		title := fmt.Sprintf(" %d. %s ", i+1, PanelNames[i])

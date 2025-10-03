@@ -151,12 +151,18 @@ func FormatSpell(spell *Spell) string {
 
 	// Description
 	result.WriteString("Description:\n")
-	result.WriteString(spell.Description)
+	wrappedDesc := wrapSpellText(spell.Description, 60)
+	for _, line := range wrappedDesc {
+		result.WriteString(line + "\n")
+	}
 
 	// Cantrip upgrade
 	if spell.CantripUpgrade != "" {
-		result.WriteString("\n\nAt Higher Levels:\n")
-		result.WriteString(spell.CantripUpgrade)
+		result.WriteString("\nAt Higher Levels:\n")
+		wrappedUpgrade := wrapSpellText(spell.CantripUpgrade, 60)
+		for _, line := range wrappedUpgrade {
+			result.WriteString(line + "\n")
+		}
 	}
 
 	return result.String()
@@ -180,4 +186,40 @@ func ordinal(n int) string {
 		}
 	}
 	return fmt.Sprintf("%d%s", n, suffix)
+}
+
+// wrapSpellText wraps text to specified line length
+func wrapSpellText(text string, maxWidth int) []string {
+	if text == "" {
+		return []string{}
+	}
+
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return []string{}
+	}
+
+	var lines []string
+	var currentLine strings.Builder
+
+	for _, word := range words {
+		// If adding this word would exceed the line length, start a new line
+		if currentLine.Len() > 0 && currentLine.Len()+1+len(word) > maxWidth {
+			lines = append(lines, currentLine.String())
+			currentLine.Reset()
+		}
+
+		// Add word to current line
+		if currentLine.Len() > 0 {
+			currentLine.WriteString(" ")
+		}
+		currentLine.WriteString(word)
+	}
+
+	// Add the last line if it has content
+	if currentLine.Len() > 0 {
+		lines = append(lines, currentLine.String())
+	}
+
+	return lines
 }

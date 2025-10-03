@@ -146,7 +146,8 @@ func FormatMonster(monster *Monster) string {
 	if monster.Traits != "" {
 		lines = append(lines, "TRAITS:")
 		cleanTraits := cleanHTML(monster.Traits)
-		lines = append(lines, cleanTraits)
+		wrappedTraits := wrapText(cleanTraits, 60) // Wrap at 60 characters
+		lines = append(lines, wrappedTraits...)
 		lines = append(lines, "")
 	}
 
@@ -154,7 +155,8 @@ func FormatMonster(monster *Monster) string {
 	if monster.Actions != "" {
 		lines = append(lines, "ACTIONS:")
 		cleanActions := cleanHTML(monster.Actions)
-		lines = append(lines, cleanActions)
+		wrappedActions := wrapText(cleanActions, 60) // Wrap at 60 characters
+		lines = append(lines, wrappedActions...)
 		lines = append(lines, "")
 	}
 
@@ -162,7 +164,8 @@ func FormatMonster(monster *Monster) string {
 	if monster.LegendaryActions != "" {
 		lines = append(lines, "LEGENDARY ACTIONS:")
 		cleanLegendary := cleanHTML(monster.LegendaryActions)
-		lines = append(lines, cleanLegendary)
+		wrappedLegendary := wrapText(cleanLegendary, 60) // Wrap at 60 characters
+		lines = append(lines, wrappedLegendary...)
 	}
 
 	return strings.Join(lines, "\n")
@@ -194,4 +197,40 @@ func cleanHTML(html string) string {
 	text = strings.TrimSpace(text)
 
 	return text
+}
+
+// wrapText wraps text to specified line length
+func wrapText(text string, maxWidth int) []string {
+	if text == "" {
+		return []string{}
+	}
+
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return []string{}
+	}
+
+	var lines []string
+	var currentLine strings.Builder
+
+	for _, word := range words {
+		// If adding this word would exceed the line length, start a new line
+		if currentLine.Len() > 0 && currentLine.Len()+1+len(word) > maxWidth {
+			lines = append(lines, currentLine.String())
+			currentLine.Reset()
+		}
+
+		// Add word to current line
+		if currentLine.Len() > 0 {
+			currentLine.WriteString(" ")
+		}
+		currentLine.WriteString(word)
+	}
+
+	// Add the last line if it has content
+	if currentLine.Len() > 0 {
+		lines = append(lines, currentLine.String())
+	}
+
+	return lines
 }
