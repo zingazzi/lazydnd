@@ -11,8 +11,28 @@ import (
 func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "ctrl+c", "q":
-		if !m.InputMode {
+		if !m.InputMode && !m.InitiativeInputMode && !m.SpellSearchMode && !m.MonsterSearchMode {
 			return m, tea.Quit
+		} else if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'q' to spell search input
+			m.SpellSearchInput += "q"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'q' to monster search input
+			m.MonsterSearchInput += "q"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
 		}
 
 	case "1":
@@ -220,7 +240,27 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "r":
-		if m.ActivePanel == DiceRoller && !m.InputMode && !m.InitiativeInputMode && m.LastDiceCommand != "" {
+		if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'r' to spell search input
+			m.SpellSearchInput += "r"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+			// Add 'r' to monster search input
+			m.MonsterSearchInput += "r"
+			// Update suggestions
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			if len(m.MonsterSuggestions) > 0 {
+				m.MonsterSuggestionIndex = 0
+			} else {
+				m.MonsterSuggestionIndex = -1
+			}
+		} else if m.ActivePanel == DiceRoller && !m.InputMode && !m.InitiativeInputMode && m.LastDiceCommand != "" {
 			// Reroll the last dice command
 			result := panels.RollDice(m.LastDiceCommand)
 			m.DiceResult = result
@@ -291,7 +331,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "p":
-		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'p' to spell search input
+			m.SpellSearchInput += "p"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 			// Add 'p' to monster search input
 			m.MonsterSearchInput += "p"
 			// Update suggestions
@@ -312,7 +362,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "m":
-		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'm' to spell search input
+			m.SpellSearchInput += "m"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 			// Add 'm' to monster search input
 			m.MonsterSearchInput += "m"
 			// Update suggestions
@@ -333,7 +393,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "e":
-		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'e' to spell search input
+			m.SpellSearchInput += "e"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 			// Add 'e' to monster search input
 			m.MonsterSearchInput += "e"
 			// Update suggestions
@@ -355,7 +425,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "i":
-		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'i' to spell search input
+			m.SpellSearchInput += "i"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 			// Add 'i' to monster search input
 			m.MonsterSearchInput += "i"
 			// Update suggestions
@@ -376,7 +456,17 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 	case "h":
-		if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'h' to spell search input
+			m.SpellSearchInput += "h"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
+		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 			// Add 'h' to monster search input
 			m.MonsterSearchInput += "h"
 			// Update suggestions
@@ -403,6 +493,16 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.InputMode && m.ActivePanel == DiceRoller {
 			// Add 'd' to dice input (for dice notation like "2d6")
 			m.DiceInput += "d"
+		} else if m.SpellSearchMode && m.ActivePanel == Spells {
+			// Add 'd' to spell search input
+			m.SpellSearchInput += "d"
+			// Update suggestions
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			if len(m.SpellSuggestions) > 0 {
+				m.SuggestionIndex = 0
+			} else {
+				m.SuggestionIndex = -1
+			}
 		} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 			// Add 'd' to monster search input
 			m.MonsterSearchInput += "d"
@@ -466,7 +566,7 @@ func (m Model) HandleNavigation(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if len(key) == 1 && (
 				(key >= "a" && key <= "z") ||
 				(key >= "A" && key <= "Z") ||
-				key == "'" || key == "-") {
+				key == "'" || key == "-" || key == " ") {
 				m.SpellSearchInput += key
 				// Update suggestions
 				m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
