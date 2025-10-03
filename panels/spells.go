@@ -13,23 +13,19 @@ var (
 	spellInputStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("#7D56F4")).
-			Padding(0, 1).
-			Margin(1, 0)
+			Padding(0, 1)
 
-	suggestionStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#888888")).
-				Margin(0, 1)
+	spellSuggestionStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#888888"))
 
-	selectedSuggestionStyle = lipgloss.NewStyle().
-					Bold(true).
-					Foreground(lipgloss.Color("#FAFAFA")).
+	selectedSpellSuggestionStyle = lipgloss.NewStyle().
 					Background(lipgloss.Color("#7D56F4")).
-					Margin(0, 1)
+					Foreground(lipgloss.Color("#FAFAFA"))
 
 	spellDetailStyle = lipgloss.NewStyle().
-				Border(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("#7D56F4")).
-				Padding(1).
+				Foreground(lipgloss.Color("#FAFAFA")).
+				Background(lipgloss.Color("#444444")).
+				Padding(1, 2).
 				Margin(1, 0)
 )
 
@@ -37,124 +33,103 @@ var (
 func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool) string {
 	var contentLines []string
 
-	// Fixed header section
-	contentLines = append(contentLines, "✨ SPELL SEARCH ✨")
+	// Header
+	contentLines = append(contentLines, "✨ SPELL COMPENDIUM ✨")
 	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, "Search for D&D spells by name")
+	contentLines = append(contentLines, "Search D&D 5e Spells")
 	contentLines = append(contentLines, "Press Enter to start searching")
 	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, strings.Repeat("─", 30))
+	contentLines = append(contentLines, strings.Repeat("─", 40))
 	contentLines = append(contentLines, "")
 
-	// Search input field
-	searchPrompt := "Search: "
-	if searchMode && isActive {
-		searchPrompt += searchInput + "█"
-	} else {
-		searchPrompt += searchInput
+	// Search input
+	if searchMode {
+		var prompt string
+		if isActive {
+			prompt = "Search: " + searchInput + "█"
+		} else {
+			prompt = "Search: " + searchInput
+		}
+		contentLines = append(contentLines, spellInputStyle.Render(prompt))
+		contentLines = append(contentLines, "")
+
+		// Show suggestions
+		if len(suggestions) > 0 {
+			contentLines = append(contentLines, "Suggestions:")
+			for i, suggestion := range suggestions {
+				if i == suggestionIndex {
+					contentLines = append(contentLines, selectedSpellSuggestionStyle.Render("► "+suggestion))
+				} else {
+					contentLines = append(contentLines, spellSuggestionStyle.Render("  "+suggestion))
+				}
+			}
+			contentLines = append(contentLines, "")
+		}
 	}
-	contentLines = append(contentLines, searchPrompt)
-	contentLines = append(contentLines, "")
 
-	// Suggestions section (always reserve space)
-	if len(suggestions) > 0 && searchMode {
-		contentLines = append(contentLines, "Suggestions:")
-		for i, suggestion := range suggestions {
-			if i == suggestionIndex {
-				contentLines = append(contentLines, "▶ "+suggestion)
-			} else {
-				contentLines = append(contentLines, "  "+suggestion)
+	// Show selected spell details
+	if selectedSpell != nil {
+		spellDetails := FormatSelectedSpell(selectedSpell)
+		if spellDetails != "" {
+			contentLines = append(contentLines, "Spell Details:")
+			contentLines = append(contentLines, "")
+			// Split the details into lines and add them
+			detailLines := strings.Split(spellDetails, "\n")
+			for _, line := range detailLines {
+				contentLines = append(contentLines, line)
 			}
 		}
-	} else {
-		// Add empty space to maintain consistent structure
+	} else if !searchMode {
+		contentLines = append(contentLines, "No spell selected")
 		contentLines = append(contentLines, "")
-	}
-
-	// Separator before spell details
-	contentLines = append(contentLines, "")
-	if selectedSpell != nil {
-		contentLines = append(contentLines, strings.Repeat("═", 40))
-
-		// Format spell details and split into lines
-		spellDetails := FormatSelectedSpell(selectedSpell)
-		detailLines := strings.Split(spellDetails, "\n")
-		contentLines = append(contentLines, detailLines...)
+		contentLines = append(contentLines, "Press Enter to search for spells")
 	}
 
 	return strings.Join(contentLines, "\n")
 }
 
-// FormatSelectedSpell formats a spell from interface{} for display
+// FormatSelectedSpell formats the selected spell for display
 func FormatSelectedSpell(selectedSpell interface{}) string {
 	if selectedSpell == nil {
-		return "No spell selected"
+		return ""
 	}
 
-	// Use reflection to extract spell data
+	// Use reflection to handle the interface{} type
 	v := reflect.ValueOf(selectedSpell)
 	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return ""
+		}
 		v = v.Elem()
 	}
 
 	if v.Kind() != reflect.Struct {
-		return fmt.Sprintf("Invalid spell data: %+v", selectedSpell)
+		return ""
 	}
 
 	// Extract fields using reflection
-	var spell Spell
-
-	if nameField := v.FieldByName("Name"); nameField.IsValid() && nameField.Kind() == reflect.String {
-		spell.Name = nameField.String()
-	}
-	if levelField := v.FieldByName("Level"); levelField.IsValid() && levelField.Kind() == reflect.Int {
-		spell.Level = int(levelField.Int())
-	}
-	if schoolField := v.FieldByName("School"); schoolField.IsValid() && schoolField.Kind() == reflect.String {
-		spell.School = schoolField.String()
-	}
-	if actionField := v.FieldByName("ActionType"); actionField.IsValid() && actionField.Kind() == reflect.String {
-		spell.ActionType = actionField.String()
-	}
-	if rangeField := v.FieldByName("Range"); rangeField.IsValid() && rangeField.Kind() == reflect.String {
-		spell.Range = rangeField.String()
-	}
-	if durationField := v.FieldByName("Duration"); durationField.IsValid() && durationField.Kind() == reflect.String {
-		spell.Duration = durationField.String()
-	}
-	if descField := v.FieldByName("Description"); descField.IsValid() && descField.Kind() == reflect.String {
-		spell.Description = descField.String()
-	}
-	if materialField := v.FieldByName("Material"); materialField.IsValid() && materialField.Kind() == reflect.String {
-		spell.Material = materialField.String()
-	}
-	if cantripField := v.FieldByName("CantripUpgrade"); cantripField.IsValid() && cantripField.Kind() == reflect.String {
-		spell.CantripUpgrade = cantripField.String()
-	}
-	if concField := v.FieldByName("Concentration"); concField.IsValid() && concField.Kind() == reflect.Bool {
-		spell.Concentration = concField.Bool()
-	}
-	if ritualField := v.FieldByName("Ritual"); ritualField.IsValid() && ritualField.Kind() == reflect.Bool {
-		spell.Ritual = ritualField.Bool()
+	name := getSpellFieldString(v, "Name")
+	if name == "" {
+		return ""
 	}
 
-	// Handle slice fields
-	if classesField := v.FieldByName("Classes"); classesField.IsValid() && classesField.Kind() == reflect.Slice {
-		spell.Classes = make([]string, classesField.Len())
-		for i := 0; i < classesField.Len(); i++ {
-			if elem := classesField.Index(i); elem.Kind() == reflect.String {
-				spell.Classes[i] = elem.String()
-			}
-		}
-	}
-	if compField := v.FieldByName("Components"); compField.IsValid() && compField.Kind() == reflect.Slice {
-		spell.Components = make([]string, compField.Len())
-		for i := 0; i < compField.Len(); i++ {
-			if elem := compField.Index(i); elem.Kind() == reflect.String {
-				spell.Components[i] = elem.String()
-			}
-		}
+	// Find the spell and format it
+	spell := FindSpell(name)
+	if spell == nil {
+		return fmt.Sprintf("Spell '%s' not found in database", name)
 	}
 
-	return FormatSpell(&spell)
+	return FormatSpell(spell)
+}
+
+// getSpellFieldString gets a string field value using reflection
+func getSpellFieldString(v reflect.Value, fieldName string) string {
+	field := v.FieldByName(fieldName)
+	if !field.IsValid() {
+		return ""
+	}
+	if field.Kind() == reflect.String {
+		return field.String()
+	}
+	return ""
 }
