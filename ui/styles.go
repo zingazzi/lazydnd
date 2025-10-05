@@ -55,4 +55,36 @@ var (
 	StatusBarTextStyle = lipgloss.NewStyle().
 				Background(lipgloss.Color("#7D56F4")).
 				Foreground(lipgloss.Color("#FAFAFA"))
+
+	// Help popup styles
+	HelpPopupStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("#7D56F4")).
+			Background(lipgloss.Color("#1A1A1A")).
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Padding(1, 2).
+			Margin(1, 2)
+
+	HelpPopupTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("#7D56F4")).
+				Underline(true).
+				Margin(0, 0, 1, 0)
+
+	HelpPopupSectionStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("#00FF00")).
+				Margin(1, 0, 0, 0)
+
+	HelpPopupKeyStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("#7D56F4")).
+				Width(15)
+
+	HelpPopupDescStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#CCCCCC"))
+
+	HelpPopupOverlayStyle = lipgloss.NewStyle().
+				Background(lipgloss.Color("#000000")).
+				Foreground(lipgloss.Color("#000000"))
 )
