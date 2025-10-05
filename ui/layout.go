@@ -375,7 +375,7 @@ var helpTextProviders = map[PanelType]HelpTextProvider{
 func (m Model) getHelpText(panelType PanelType) string {
 	provider, exists := helpTextProviders[panelType]
 	if !exists {
-		return "\n" + HelpStyle.Render("↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
+		return "\n" + HelpStyle.Render(DefaultInlineHelp())
 	}
 
 	return provider(m)
@@ -385,74 +385,52 @@ func (m Model) getHelpText(panelType PanelType) string {
 
 // getDiceRollerHelpText gets help text for the dice roller panel
 func getDiceRollerHelpText(m Model) string {
-		if m.InputMode {
-			return "\n" + HelpStyle.Render("Enter: roll • Esc: cancel • F1-F4: switch panels")
-	}
-
-			if m.LastDiceCommand != "" {
-				return "\n" + HelpStyle.Render("Enter: input dice • r: reroll • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
-	}
-
-				return "\n" + HelpStyle.Render("Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
-			}
+	text := DiceRollerInlineHelp(m.InputMode, m.LastDiceCommand != "")
+	return "\n" + HelpStyle.Render(text)
+}
 
 // getInitiativeTrackerHelpText gets help text for the initiative tracker panel
 func getInitiativeTrackerHelpText(m Model) string {
-		if m.InitiativeEditMode {
-			return "\n" + HelpStyle.Render("Enter: confirm edit • Esc: cancel • F1-F4: switch panels")
-	}
-
-	if m.InitiativeInputMode {
-			return "\n" + HelpStyle.Render("Enter: confirm • Esc: cancel • F1-F4: switch panels")
-	}
-
-	if m.InitiativeListMode {
-			return "\n" + HelpStyle.Render("↑↓: select • i: edit initiative • h: edit HP • d: delete • Esc: exit edit • F1-F4: switch")
-	}
-
-			return "\n" + HelpStyle.Render("p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit")
-		}
+	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode)
+	return "\n" + HelpStyle.Render(text)
+}
 
 // getSpellsHelpText gets help text for the spells panel
 func getSpellsHelpText(m Model) string {
-		if m.SpellSearchMode {
-			return "\n" + HelpStyle.Render("Enter: select spell • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
-	}
-
-			return "\n" + HelpStyle.Render("Enter: search spells • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
-		}
+	text := SpellsInlineHelp(m.SpellSearchMode)
+	return "\n" + HelpStyle.Render(text)
+}
 
 // getMonstersHelpText gets help text for the monsters panel
 func getMonstersHelpText(m Model) string {
-		if m.MonsterSearchMode {
-			return "\n" + HelpStyle.Render("Enter: select monster • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch")
-	}
-
-			return "\n" + HelpStyle.Render("Enter: search monsters • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
-		}
+	text := MonstersInlineHelp(m.MonsterSearchMode)
+	return "\n" + HelpStyle.Render(text)
+}
 
 // ========== STATUS BAR ==========
 
 // renderStatusBar renders the status bar at the bottom of the screen
 func (m Model) renderStatusBar() string {
+	text := DefaultStatusBarText
+
 	// Project name
-	projectName := StatusBarTextStyle.Render("🎲 LazyDnD")
+	projectName := StatusBarTextStyle.Render(text.ProjectName)
 
 	// Navigation hints
-	tabKey := StatusBarKeyStyle.Render("Tab")
-	tabText := StatusBarTextStyle.Render("Switch Panel")
+	tabKey := StatusBarKeyStyle.Render(text.TabKey)
+	tabText := StatusBarTextStyle.Render(text.TabDesc)
 
-	arrowKeys := StatusBarKeyStyle.Render("↑↓←→")
-	arrowText := StatusBarTextStyle.Render("Navigate")
+	arrowKeys := StatusBarKeyStyle.Render(text.ArrowKeys)
+	arrowText := StatusBarTextStyle.Render(text.ArrowDesc)
 
-	numbersKey := StatusBarKeyStyle.Render("1-4")
-	numbersText := StatusBarTextStyle.Render("Quick Switch")
+	numbersKey := StatusBarKeyStyle.Render(text.NumbersKey)
+	numbersText := StatusBarTextStyle.Render(text.NumbersDesc)
 
-	helpKey := StatusBarKeyStyle.Render("?")
-	helpText := StatusBarTextStyle.Render("Help")
+	helpKey := StatusBarKeyStyle.Render(text.HelpKey)
+	helpText := StatusBarTextStyle.Render(text.HelpDesc)
 
-	quitKey := StatusBarKeyStyle.Render("q")
-	quitText := StatusBarTextStyle.Render("Quit")
+	quitKey := StatusBarKeyStyle.Render(text.QuitKey)
+	quitText := StatusBarTextStyle.Render(text.QuitDesc)
 
 	// Build the status bar content
 	leftSection := lipgloss.JoinHorizontal(
@@ -512,130 +490,4 @@ func (m Model) renderStatusBar() string {
 		Render(statusBarContent)
 
 	return statusBar
-}
-
-// ========== HELP POPUP ==========
-
-// renderHelpPopupOverlay renders the help popup over the main view
-func (m Model) renderHelpPopupOverlay(mainView string) string {
-	helpContent := m.buildHelpContent()
-
-	// Create the popup
-	popup := HelpPopupStyle.Render(helpContent)
-
-	// Calculate position to center the popup
-	popupWidth := lipgloss.Width(popup)
-	popupHeight := lipgloss.Height(popup)
-
-	// Center horizontally and vertically
-	leftPadding := (m.Width - popupWidth) / 2
-	topPadding := (m.Height - popupHeight) / 2
-
-	if leftPadding < 0 {
-		leftPadding = 0
-	}
-	if topPadding < 0 {
-		topPadding = 0
-	}
-
-	// Place popup over the main view
-	return lipgloss.Place(
-		m.Width,
-		m.Height,
-		lipgloss.Center,
-		lipgloss.Center,
-		popup,
-		lipgloss.WithWhitespaceChars("░"),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color("#333333")),
-	)
-}
-
-// buildHelpContent builds the help popup content
-func (m Model) buildHelpContent() string {
-	var content strings.Builder
-
-	// Title
-	title := HelpPopupTitleStyle.Render("🎲 LazyDnD - Help")
-	content.WriteString(title)
-	content.WriteString("\n\n")
-
-	// Common navigation section
-	commonSection := HelpPopupSectionStyle.Render("Common Navigation:")
-	content.WriteString(commonSection)
-	content.WriteString("\n")
-	content.WriteString(m.formatHelpLine("Tab", "Switch to next panel"))
-	content.WriteString(m.formatHelpLine("1-4", "Quick switch to panel"))
-	content.WriteString(m.formatHelpLine("F1-F4", "Switch to specific panel"))
-	content.WriteString(m.formatHelpLine("↑/↓", "Scroll panel content"))
-	content.WriteString(m.formatHelpLine("Esc", "Cancel/Exit current mode"))
-	content.WriteString(m.formatHelpLine("?", "Toggle this help"))
-	content.WriteString(m.formatHelpLine("q", "Quit application"))
-
-	// Panel-specific section
-	panelSection := HelpPopupSectionStyle.Render(fmt.Sprintf("\n%s Panel Keys:", PanelNames[m.ActivePanel]))
-	content.WriteString(panelSection)
-	content.WriteString("\n")
-	content.WriteString(m.getPanelSpecificHelp(m.ActivePanel))
-
-	// Footer
-	content.WriteString("\n")
-	footer := HelpPopupDescStyle.Render("Press ? or Esc to close this help")
-	content.WriteString(footer)
-
-	return content.String()
-}
-
-// formatHelpLine formats a single help line with key and description
-func (m Model) formatHelpLine(key, description string) string {
-	keyPart := HelpPopupKeyStyle.Render(key)
-	descPart := HelpPopupDescStyle.Render(description)
-	return keyPart + " " + descPart + "\n"
-}
-
-// getPanelSpecificHelp returns panel-specific help content
-func (m Model) getPanelSpecificHelp(panelType PanelType) string {
-	var content strings.Builder
-
-	switch panelType {
-	case DiceRoller:
-		content.WriteString(m.formatHelpLine("Enter", "Start/confirm dice input"))
-		content.WriteString(m.formatHelpLine("r", "Reroll last command"))
-		content.WriteString(m.formatHelpLine("Examples:", ""))
-		content.WriteString(m.formatHelpLine("  2d6", "Roll 2 six-sided dice"))
-		content.WriteString(m.formatHelpLine("  1d20+5", "Roll d20 with +5 modifier"))
-		content.WriteString(m.formatHelpLine("  adv", "Roll with advantage"))
-		content.WriteString(m.formatHelpLine("  dis", "Roll with disadvantage"))
-
-	case InitiativeTracker:
-		content.WriteString(m.formatHelpLine("p", "Add player to initiative"))
-		content.WriteString(m.formatHelpLine("m", "Add monster to initiative"))
-		content.WriteString(m.formatHelpLine("e", "Enter edit mode"))
-		content.WriteString(m.formatHelpLine("", ""))
-		content.WriteString(m.formatHelpLine("In Edit Mode:", ""))
-		content.WriteString(m.formatHelpLine("  ↑/↓", "Select entry"))
-		content.WriteString(m.formatHelpLine("  i", "Edit initiative value"))
-		content.WriteString(m.formatHelpLine("  h", "Edit HP (monsters only)"))
-		content.WriteString(m.formatHelpLine("  d", "Delete entry"))
-
-	case Spells:
-		content.WriteString(m.formatHelpLine("Enter", "Start spell search"))
-		content.WriteString(m.formatHelpLine("", ""))
-		content.WriteString(m.formatHelpLine("In Search Mode:", ""))
-		content.WriteString(m.formatHelpLine("  Type", "Search for spells"))
-		content.WriteString(m.formatHelpLine("  ↑/↓", "Navigate suggestions"))
-		content.WriteString(m.formatHelpLine("  Enter", "Select spell"))
-		content.WriteString(m.formatHelpLine("  Backspace", "Delete character"))
-
-	case Monsters:
-		content.WriteString(m.formatHelpLine("Enter", "Start monster search"))
-		content.WriteString(m.formatHelpLine("a", "Add to initiative tracker"))
-		content.WriteString(m.formatHelpLine("", ""))
-		content.WriteString(m.formatHelpLine("In Search Mode:", ""))
-		content.WriteString(m.formatHelpLine("  Type", "Search for monsters"))
-		content.WriteString(m.formatHelpLine("  ↑/↓", "Navigate suggestions"))
-		content.WriteString(m.formatHelpLine("  Enter", "Select monster"))
-		content.WriteString(m.formatHelpLine("  Backspace", "Delete character"))
-	}
-
-	return content.String()
 }
