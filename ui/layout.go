@@ -42,7 +42,7 @@ func InitialModel() Model {
 	}
 }
 
-// View renders the main application view with 2x2 panel layout
+// View renders the main application view with 2x2 panel layout and status bar
 func (m Model) View() string {
 	if m.Width == 0 || m.Height == 0 {
 		return "Loading..."
@@ -50,8 +50,10 @@ func (m Model) View() string {
 
 	dimensions := m.calculatePanelDimensions()
 	panelViews := m.renderAllPanels(dimensions)
+	grid := m.arrangeInGrid(panelViews)
+	statusBar := m.renderStatusBar()
 
-	return m.arrangeInGrid(panelViews)
+	return lipgloss.JoinVertical(lipgloss.Left, grid, statusBar)
 }
 
 // PanelDimensions holds calculated panel dimensions
@@ -62,9 +64,12 @@ type PanelDimensions struct {
 
 // calculatePanelDimensions calculates panel dimensions to fill the screen
 func (m Model) calculatePanelDimensions() PanelDimensions {
+	// Reserve 2 lines for status bar at the bottom
+	availableHeight := m.Height - 2
+
 	return PanelDimensions{
 		Width:  (m.Width - 6) / 2,
-		Height: (m.Height - 4) / 2,
+		Height: (availableHeight - 4) / 2,
 	}
 }
 
@@ -416,4 +421,82 @@ func getMonstersHelpText(m Model) string {
 	}
 
 	return "\n" + HelpStyle.Render("Enter: search monsters • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit")
+}
+
+// ========== STATUS BAR ==========
+
+// renderStatusBar renders the status bar at the bottom of the screen
+func (m Model) renderStatusBar() string {
+	// Project name
+	projectName := StatusBarTextStyle.Render("🎲 LazyDnD")
+
+	// Navigation hints
+	tabKey := StatusBarKeyStyle.Render("Tab")
+	tabText := StatusBarTextStyle.Render("Switch Panel")
+
+	arrowKeys := StatusBarKeyStyle.Render("↑↓←→")
+	arrowText := StatusBarTextStyle.Render("Navigate")
+
+	numbersKey := StatusBarKeyStyle.Render("1-4")
+	numbersText := StatusBarTextStyle.Render("Quick Switch")
+
+	quitKey := StatusBarKeyStyle.Render("q")
+	quitText := StatusBarTextStyle.Render("Quit")
+
+	// Build the status bar content
+	leftSection := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		projectName,
+		"  ",
+	)
+
+	middleSection := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		tabKey,
+		tabText,
+		arrowKeys,
+		arrowText,
+		numbersKey,
+		numbersText,
+	)
+
+	rightSection := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		quitKey,
+		quitText,
+	)
+
+	// Calculate spacing to distribute sections across the width
+	leftWidth := lipgloss.Width(leftSection)
+	middleWidth := lipgloss.Width(middleSection)
+	rightWidth := lipgloss.Width(rightSection)
+
+	totalContentWidth := leftWidth + middleWidth + rightWidth
+	availableSpace := m.Width - totalContentWidth
+
+	// Distribute space evenly
+	spacing1 := availableSpace / 3
+	spacing2 := availableSpace / 3
+	if spacing1 < 2 {
+		spacing1 = 2
+	}
+	if spacing2 < 2 {
+		spacing2 = 2
+	}
+
+	statusBarContent := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		leftSection,
+		strings.Repeat(" ", spacing1),
+		middleSection,
+		strings.Repeat(" ", spacing2),
+		rightSection,
+	)
+
+	// Apply full-width background style
+	statusBar := StatusBarStyle.
+		Width(m.Width).
+		Render(statusBarContent)
+
+	return statusBar
 }

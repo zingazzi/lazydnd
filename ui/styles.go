@@ -38,4 +38,21 @@ var (
 	HelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#666666")).
 			Margin(1, 0, 0, 0)
+
+	StatusBarStyle = lipgloss.NewStyle().
+			Background(lipgloss.Color("#7D56F4")).
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Padding(0, 1).
+			Bold(true)
+
+	StatusBarKeyStyle = lipgloss.NewStyle().
+				Background(lipgloss.Color("#5A3D9E")).
+				Foreground(lipgloss.Color("#FFFFFF")).
+				Padding(0, 1).
+				Bold(true).
+				Margin(0, 1)
+
+	StatusBarTextStyle = lipgloss.NewStyle().
+				Background(lipgloss.Color("#7D56F4")).
+				Foreground(lipgloss.Color("#FAFAFA"))
 )
