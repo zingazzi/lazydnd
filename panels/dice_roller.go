@@ -28,7 +28,7 @@ var (
 
 // GetDiceRollerContent returns the content for the dice roller panel
 func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, lastCommand string, inputMode, isActive bool) string {
-	content := "🎲 DICE ROLLER 🎲\nPress Enter to roll, Esc to clear input\nExamples: 1d20, 2d6+3, 1d20 adv, 3d8 dis"
+	content := "Press Enter to roll, Esc to clear input\nExamples: 1d20, 2d6+3, 1d20 adv, 3d8 dis"
 
 	content += "\n\n" + strings.Repeat("─", 30)
 

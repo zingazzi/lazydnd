@@ -108,8 +108,8 @@ type Monster struct {
 
 // Panel configuration
 var PanelNames = []string{
-	"Dice Roller",
-	"Initiative Tracker",
-	"Spells",
-	"Monsters",
+	"🎲 Dice Roller",
+	"⚔️  Initiative Tracker",
+	"✨ Spells",
+	"🐉 Monsters",
 }

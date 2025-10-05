@@ -39,10 +39,6 @@ var (
 func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string) string {
 	var contentLines []string
 
-	// Header
-	contentLines = append(contentLines, "⚔️ INITIATIVE TRACKER ⚔️")
-	contentLines = append(contentLines, "")
-
 	// Show different instructions based on mode
 	if editMode {
 		contentLines = append(contentLines, "EDIT MODE")

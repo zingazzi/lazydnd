@@ -34,10 +34,9 @@ func GetMonstersContent(searchInput string, selectedMonster interface{}, suggest
 	var contentLines []string
 
 	// Header
-	contentLines = append(contentLines, "🐲 MONSTER COMPENDIUM 🐲")
-	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, "Search D&D 5e Monsters")
 	contentLines = append(contentLines, "Press Enter to start searching")
+	contentLines = append(contentLines, "Press 'a' to add to initiative")
 	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, strings.Repeat("─", 40))
 	contentLines = append(contentLines, "")

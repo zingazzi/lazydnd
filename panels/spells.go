@@ -34,8 +34,6 @@ func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions
 	var contentLines []string
 
 	// Header
-	contentLines = append(contentLines, "✨ SPELL COMPENDIUM ✨")
-	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, "Search D&D 5e Spells")
 	contentLines = append(contentLines, "Press Enter to start searching")
 	contentLines = append(contentLines, "")
