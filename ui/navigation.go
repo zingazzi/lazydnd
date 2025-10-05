@@ -50,6 +50,9 @@ var keyHandlers = map[string]KeyHandler{
 	"h": handleH,
 	"a": handleA,
 	"d": handleD,
+
+	// Special handlers
+	"?": handleHelp,
 }
 
 // HandleNavigation processes navigation-related key presses
@@ -100,6 +103,12 @@ func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleEscape handles escape key presses
 func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Close help popup if open
+	if m.ShowHelpPopup {
+		m.ShowHelpPopup = false
+		return m, nil
+	}
+
 	if m.ActivePanel == DiceRoller {
 		m.DiceInput = ""
 		m.InputMode = false
@@ -748,6 +757,14 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.InitiativeInput += "d"
 	}
 
+	return m, nil
+}
+
+// ========== SPECIAL HANDLERS ==========
+
+// handleHelp toggles the help popup
+func handleHelp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	m.ShowHelpPopup = !m.ShowHelpPopup
 	return m, nil
 }
 

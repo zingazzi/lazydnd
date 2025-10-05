@@ -45,6 +45,8 @@ type Model struct {
 	SelectedMonster       *Monster
 	MonsterSuggestions    []string
 	MonsterSuggestionIndex int
+	// Help popup state
+	ShowHelpPopup bool
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
