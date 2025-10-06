@@ -1,0 +1,37 @@
+# .dockerignore
+# Ignore build artifacts
+build/
+lazydnd
+*.exe
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore documentation (not needed in container)
+*.md
+!README.md
+
+# Ignore CI/CD files
+.github/
+
+# Ignore test files
+*_test.go
+*.test
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore Docker files themselves
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
