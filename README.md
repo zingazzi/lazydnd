@@ -100,10 +100,12 @@ This creates executables in the `build/` directory for:
 
 #### 1. Dice Roller
 - **Simple Rolls**: `1d20`, `2d6`, `3d8`
-- **With Modifiers**: `2d6+3`, `1d20-1`
-- **Multiple Dice**: `2d8+3d6`, `1d6+3+2d8+5`
-- **Comma-Separated**: `1d8+3, 3d6+1` (rolls multiple expressions)
+- **With Modifiers**: `2d6+3`, `1d20-1`, `1d8-2`
+- **Multiple Dice**: `2d8+3d6`, `1d6-1d4`, `2d8+3d6-1d4`
+- **Complex Expressions**: `1d6+3+2d8-5`, `2d6-1d4+3`
+- **Comma-Separated**: `1d8+3, 3d6-1` (rolls multiple expressions)
 - **Advantage/Disadvantage**: `1d20 adv`, `2d6 dis`
+- **Minimum Value**: Results never go below 1 (D&D rule)
 - **Available Dice**: d4, d6, d8, d10, d12, d20, d100
 - **History**: View recent rolls
 - **Reroll**: Press 'r' to reroll last command
