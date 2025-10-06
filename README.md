@@ -13,12 +13,38 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 ## Installation
 
+### Option 1: Build from Source
+
 ```bash
 # Clone and build
 git clone <your-repo>
 cd lazydnd
 go build -o lazydnd
 ./lazydnd
+```
+
+### Option 2: Cross-Platform Build
+
+Build executables for both Linux and macOS:
+
+```bash
+# Run the build script
+./build.sh
+```
+
+This creates executables in the `build/` directory:
+- `lazydnd-linux-amd64` - Linux (Intel/AMD 64-bit)
+- `lazydnd-linux-arm64` - Linux (ARM 64-bit)
+- `lazydnd-macos-amd64` - macOS (Intel)
+- `lazydnd-macos-arm64` - macOS (Apple Silicon M1/M2/M3)
+
+Run the appropriate executable for your platform:
+```bash
+# Linux (Intel/AMD)
+./build/lazydnd-linux-amd64
+
+# macOS (Apple Silicon)
+./build/lazydnd-macos-arm64
 ```
 
 ## Usage
