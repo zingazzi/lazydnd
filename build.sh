@@ -42,14 +42,24 @@ else
     echo "✗ macOS (arm64) build failed"
 fi
 
+# Build for Windows (amd64)
+echo "Building for Windows (amd64)..."
+GOOS=windows GOARCH=amd64 go build -o build/lazydnd-windows-amd64.exe .
+if [ $? -eq 0 ]; then
+    echo "✓ Windows (amd64) build successful: build/lazydnd-windows-amd64.exe"
+else
+    echo "✗ Windows (amd64) build failed"
+fi
+
 echo ""
 echo "Build complete! Executables are in the 'build/' directory:"
 ls -lh build/
 
 echo ""
 echo "Usage:"
-echo "  Linux (Intel/AMD):    ./build/lazydnd-linux-amd64"
-echo "  Linux (ARM):          ./build/lazydnd-linux-arm64"
-echo "  macOS (Intel):        ./build/lazydnd-macos-amd64"
+echo "  Linux (Intel/AMD):     ./build/lazydnd-linux-amd64"
+echo "  Linux (ARM):           ./build/lazydnd-linux-arm64"
+echo "  macOS (Intel):         ./build/lazydnd-macos-amd64"
 echo "  macOS (Apple Silicon): ./build/lazydnd-macos-arm64"
+echo "  Windows:               ./build/lazydnd-windows-amd64.exe"
 

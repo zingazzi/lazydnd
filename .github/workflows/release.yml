@@ -1,0 +1,116 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Build binaries
+        run: |
+          mkdir -p build
+
+          # Build for Linux (amd64)
+          GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o build/lazydnd-linux-amd64 .
+
+          # Build for Linux (arm64)
+          GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -o build/lazydnd-linux-arm64 .
+
+          # Build for macOS (amd64 - Intel)
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o build/lazydnd-macos-amd64 .
+
+          # Build for macOS (arm64 - Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o build/lazydnd-macos-arm64 .
+
+          # Build for Windows (amd64)
+          GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o build/lazydnd-windows-amd64.exe .
+
+          # Make binaries executable
+          chmod +x build/lazydnd-*
+
+      - name: Create checksums
+        run: |
+          cd build
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/lazydnd-linux-amd64
+            build/lazydnd-linux-arm64
+            build/lazydnd-macos-amd64
+            build/lazydnd-macos-arm64
+            build/lazydnd-windows-amd64.exe
+            build/checksums.txt
+          body: |
+            ## LazyDnD ${{ steps.get_version.outputs.VERSION }}
+
+            ### Installation
+
+            Download the appropriate binary for your system and make it executable:
+
+            **Linux (Intel/AMD):**
+            ```bash
+            curl -L -o lazydnd https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/lazydnd-linux-amd64
+            chmod +x lazydnd
+            sudo mv lazydnd /usr/local/bin/
+            ```
+
+            **Linux (ARM):**
+            ```bash
+            curl -L -o lazydnd https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/lazydnd-linux-arm64
+            chmod +x lazydnd
+            sudo mv lazydnd /usr/local/bin/
+            ```
+
+            **macOS (Intel):**
+            ```bash
+            curl -L -o lazydnd https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/lazydnd-macos-amd64
+            chmod +x lazydnd
+            sudo mv lazydnd /usr/local/bin/
+            ```
+
+            **macOS (Apple Silicon):**
+            ```bash
+            curl -L -o lazydnd https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/lazydnd-macos-arm64
+            chmod +x lazydnd
+            sudo mv lazydnd /usr/local/bin/
+            ```
+
+            **Windows:**
+            Download `lazydnd-windows-amd64.exe` and add it to your PATH.
+
+            ### Verify Installation
+            ```bash
+            lazydnd
+            ```
+
+            ### Checksums
+            Verify your download with the checksums in `checksums.txt`
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

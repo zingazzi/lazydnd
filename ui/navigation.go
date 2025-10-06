@@ -18,9 +18,10 @@ var keyHandlers = map[string]KeyHandler{
 	"q":      handleQuit,
 
 	// Navigation handlers
-	"tab":  handleTab,
-	"up":   handleUp,
-	"down": handleDown,
+	"tab":       handleTab,
+	"shift+tab": handleShiftTab,
+	"up":        handleUp,
+	"down":      handleDown,
 
 	// Function key handlers
 	"f1": handleF1,
@@ -145,10 +146,18 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // ========== NAVIGATION HANDLERS ==========
 
-// handleTab handles tab key navigation
+// handleTab handles tab key navigation (forward)
 func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
 		m.ActivePanel = (m.ActivePanel + 1) % 4
+	}
+	return m, nil
+}
+
+// handleShiftTab handles shift+tab key navigation (backward)
+func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if !m.InputMode {
+		m.ActivePanel = (m.ActivePanel - 1 + 4) % 4
 	}
 	return m, nil
 }
@@ -784,7 +793,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			(key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
-			key == "+" || key == "-" || key == "d" || key == " ") {
+			key == "+" || key == "-" || key == "d" || key == " " || key == ",") {
 			m.DiceInput += key
 		}
 	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
