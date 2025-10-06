@@ -671,7 +671,10 @@ func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleA handles the 'a' key
 func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	if m.ActivePanel == Monsters && m.SelectedMonster != nil && !m.MonsterSearchMode {
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		// Add 'a' to dice input (for advantage notation)
+		m.DiceInput += "a"
+	} else if m.ActivePanel == Monsters && m.SelectedMonster != nil && !m.MonsterSearchMode {
 		// Add selected monster to initiative tracker
 		monsterName := getMonsterFieldString(reflect.ValueOf(m.SelectedMonster).Elem(), "Name")
 		if monsterName != "" {
