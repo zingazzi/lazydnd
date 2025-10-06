@@ -13,6 +13,23 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 ## Installation
 
+### Docker (Easiest)
+
+**Run with Docker (no installation needed):**
+```bash
+docker run -it --rm ghcr.io/zingazzi/lazydnd:latest
+```
+
+**Or build locally:**
+```bash
+git clone https://github.com/zingazzi/lazydnd
+cd lazydnd
+./docker-build.sh
+./docker-run.sh
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker documentation.
+
 ### Quick Install (Recommended)
 
 **One-line installer (Linux/macOS):**
@@ -143,6 +160,34 @@ This creates executables in the `build/` directory for:
 
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
 - [Lip Gloss](https://github.com/charmbracelet/lipgloss) - Styling
+
+## Contribute
+
+We welcome contributions! Whether it's bug fixes, new features, documentation, or suggestions, your help is appreciated.
+
+**How to contribute:**
+1. [Fork the repository](https://github.com/zingazzi/lazydnd/fork)
+2. Create a new branch: `git checkout -b feature/your-feature`
+3. Make your changes and commit: `git commit -am 'Add new feature'`
+4. Push to your fork: `git push origin feature/your-feature`
+5. [Open a Pull Request](https://github.com/zingazzi/lazydnd/pulls)
+
+Please review the [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for code organization and best practices.
+
+### Reporting Issues
+
+If you find a bug, have a feature request, or need help:
+- [Open an Issue](https://github.com/zingazzi/lazydnd/issues)
+- Include clear steps to reproduce, expected behavior, and screenshots/logs if possible.
+
+Thank you for helping improve LazyDnD!
+
+## Enjoy LazyDnd? Buy me a coffee
+
+If you find LazyDnD helpful, consider supporting development!  
+[☕ Buy me a coffee](https://www.buymeacoffee.com/zingazzi)  
+Your support helps keep the project alive and growing. Thank you!
+
 
 ## License
 
