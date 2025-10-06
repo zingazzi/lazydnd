@@ -784,7 +784,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			(key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
-			key == "+" || key == "-" || key == "d" || key == " ") {
+			key == "+" || key == "-" || key == "d" || key == " " || key == ",") {
 			m.DiceInput += key
 		}
 	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
