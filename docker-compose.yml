@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  lazydnd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lazydnd:latest
+    container_name: lazydnd
+    stdin_open: true # Keep STDIN open
+    tty: true # Allocate a pseudo-TTY
+    environment:
+      - TERM=xterm-256color
+    # Optional: mount data directory for persistent storage
+    # volumes:
+    #   - ./data:/home/lazydnd/data

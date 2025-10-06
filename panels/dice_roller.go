@@ -28,7 +28,7 @@ var (
 
 // GetDiceRollerContent returns the content for the dice roller panel
 func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, lastCommand string, inputMode, isActive bool) string {
-	content := "Press Enter to roll, Esc to clear input\nExamples: 1d20, 2d8+3d6, 1d8+3, 3d6+1"
+	content := "Press Enter to roll, Esc to clear input\nExamples: 1d20, 2d8+3d6, 1d8-2, 1d6-1d4"
 
 	content += "\n\n" + strings.Repeat("─", 30)
 
@@ -307,6 +307,11 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 
 		finalTotal := total + modifier
 		
+		// Ensure minimum value of 1 (D&D rule: no negative results)
+		if finalTotal < 1 {
+			finalTotal = 1
+		}
+		
 		// Format result - Total first, then breakdown
 		result := fmt.Sprintf("TOTAL: %d\n", finalTotal)
 		result += fmt.Sprintf("%d (%s): [%s]", total, diceExpr, strings.Join(rollsStr, ", "))
@@ -396,6 +401,11 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 				total -= results[i]
 			}
 		}
+	}
+	
+	// Ensure minimum value of 1 (D&D rule: no negative results)
+	if total < 1 {
+		total = 1
 	}
 	
 	// Format result - Total first, then breakdown
@@ -563,6 +573,11 @@ func rollComplexExpression(command string) string {
 				total -= results[i]
 			}
 		}
+	}
+	
+	// Ensure minimum value of 1 (D&D rule: no negative results)
+	if total < 1 {
+		total = 1
 	}
 	
 	// Format result compactly for comma-separated display
