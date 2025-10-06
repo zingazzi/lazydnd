@@ -13,54 +13,97 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 ## Installation
 
-### Option 1: Build from Source
+### Quick Install (Recommended)
+
+**One-line installer (Linux/macOS):**
+```bash
+curl -sSL https://raw.githubusercontent.com/zingazzi/lazydnd/main/install.sh | bash
+```
+
+Or download and run the installer:
+```bash
+curl -O https://raw.githubusercontent.com/zingazzi/lazydnd/main/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+### Manual Installation
+
+Download the latest release for your platform from the [Releases page](https://github.com/zingazzi/lazydnd/releases/latest):
+
+**Linux (Intel/AMD):**
+```bash
+curl -L -o lazydnd https://github.com/zingazzi/lazydnd/releases/latest/download/lazydnd-linux-amd64
+chmod +x lazydnd
+sudo mv lazydnd /usr/local/bin/
+```
+
+**Linux (ARM):**
+```bash
+curl -L -o lazydnd https://github.com/zingazzi/lazydnd/releases/latest/download/lazydnd-linux-arm64
+chmod +x lazydnd
+sudo mv lazydnd /usr/local/bin/
+```
+
+**macOS (Intel):**
 
 ```bash
-# Clone and build
-git clone <your-repo>
+curl -L -o lazydnd https://github.com/zingazzi/lazydnd/releases/latest/download/lazydnd-macos-amd64
+chmod +x lazydnd
+sudo mv lazydnd /usr/local/bin/
+```
+
+**macOS (Apple Silicon):**
+```bash
+curl -L -o lazydnd https://github.com/zingazzi/lazydnd/releases/latest/download/lazydnd-macos-arm64
+chmod +x lazydnd
+sudo mv lazydnd /usr/local/bin/
+```
+
+**Windows:**
+Download `lazydnd-windows-amd64.exe` from the [Releases page](https://github.com/zingazzi/lazydnd/releases/latest) and add it to your PATH.
+
+### Build from Source
+
+```bash
+git clone https://github.com/zingazzi/lazydnd
 cd lazydnd
 go build -o lazydnd
 ./lazydnd
 ```
 
-### Option 2: Cross-Platform Build
+### Cross-Platform Build
 
-Build executables for both Linux and macOS:
-
+Build executables for all platforms:
 ```bash
-# Run the build script
 ./build.sh
 ```
 
-This creates executables in the `build/` directory:
-- `lazydnd-linux-amd64` - Linux (Intel/AMD 64-bit)
-- `lazydnd-linux-arm64` - Linux (ARM 64-bit)
-- `lazydnd-macos-amd64` - macOS (Intel)
-- `lazydnd-macos-arm64` - macOS (Apple Silicon M1/M2/M3)
-
-Run the appropriate executable for your platform:
-```bash
-# Linux (Intel/AMD)
-./build/lazydnd-linux-amd64
-
-# macOS (Apple Silicon)
-./build/lazydnd-macos-arm64
-```
+This creates executables in the `build/` directory for:
+- Linux (amd64, arm64)
+- macOS (amd64, arm64)
+- Windows (amd64)
 
 ## Usage
 
 ### Navigation
 - **Numbers 1-4** or **F1-F4**: Jump directly to panels
-- **Tab**: Cycle through panels
+- **Tab**: Cycle forward through panels
+- **Shift+Tab**: Cycle backward through panels
 - **↑↓**: Navigate lists and scroll content
 - **Enter**: Activate input modes or select items
 - **Esc**: Cancel input or exit modes
+- **?**: Show help popup
 - **q**: Quit application
 
 ### Panel Features
 
 #### 1. Dice Roller
-- **Commands**: `1d20`, `2d6+3`, `3d8-1`, etc.
+- **Simple Rolls**: `1d20`, `2d6`, `3d8`
+- **With Modifiers**: `2d6+3`, `1d20-1`
+- **Multiple Dice**: `2d8+3d6`, `1d6+3+2d8+5`
+- **Comma-Separated**: `1d8+3, 3d6+1` (rolls multiple expressions)
+- **Advantage/Disadvantage**: `1d20 adv`, `2d6 dis`
 - **Available Dice**: d4, d6, d8, d10, d12, d20, d100
 - **History**: View recent rolls
 - **Reroll**: Press 'r' to reroll last command
