@@ -2,7 +2,6 @@
 package ui
 
 import (
-	
 	"lazydnd/panels"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -252,7 +251,7 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.InputMode && len(m.DiceInput) > 0 {
 		m.DiceInput = m.DiceInput[:len(m.DiceInput)-1]
-	} else if m.InitiativeInputMode && len(m.InitiativeInput) > 0 {
+	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && len(m.InitiativeInput) > 0 {
 		m.InitiativeInput = m.InitiativeInput[:len(m.InitiativeInput)-1]
 	} else if m.SpellSearchMode && len(m.SpellSearchInput) > 0 {
 		m.SpellSearchInput = m.SpellSearchInput[:len(m.SpellSearchInput)-1]
