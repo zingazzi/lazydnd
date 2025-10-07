@@ -2,6 +2,7 @@
 package ui
 
 import (
+	"fmt"
 	"lazydnd/panels"
 	"reflect"
 	"strings"
@@ -53,6 +54,7 @@ var keyHandlers = map[string]KeyHandler{
 	"a": handleA,
 	"d": handleD,
 	"l": handleL,
+	"c": handleC,
 
 	// Special handlers
 	"?": handleHelp,
@@ -770,10 +772,14 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 					MaxHP:       hp,
 					AC:          ac,
 					MonsterData: m.SelectedMonster, // Link to full monster data
+					BaseName:    monsterName,
 				}
 
 				// Add to initiative list
 				m.InitiativeList = append(m.InitiativeList, newEntry)
+
+				// Renumber instances if there are duplicates
+				m = m.renumberMonsterInstances()
 			}
 		}
 	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
@@ -887,6 +893,66 @@ func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		// Add 'l' to input when in input/edit mode
 		m.InitiativeInput += "l"
+	}
+
+	return m, nil
+}
+
+// handleC handles the 'c' key
+func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'c' to spell search input
+		m.SpellSearchInput += "c"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'c' to monster search input
+		m.MonsterSearchInput += "c"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Duplicate the selected entry
+		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		if originalIndex >= 0 {
+			original := m.InitiativeList[originalIndex]
+
+			// Use the BaseName from the original (not the numbered Name)
+			baseName := original.BaseName
+			if baseName == "" {
+				baseName = original.Name
+			}
+
+			// Create a duplicate with same stats
+			duplicate := InitiativeEntry{
+				Name:        baseName, // Use base name, will be renumbered
+				Type:        original.Type,
+				Initiative:  original.Initiative,
+				HP:          original.HP,
+				MaxHP:       original.MaxHP,
+				AC:          original.AC,
+				MonsterData: original.MonsterData,
+				BaseName:    baseName,
+			}
+
+			// Add to initiative list
+			m.InitiativeList = append(m.InitiativeList, duplicate)
+
+			// Renumber all instances of this monster
+			m = m.renumberMonsterInstances()
+		}
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'c' to input when in input/edit mode
+		m.InitiativeInput += "c"
 	}
 
 	return m, nil
@@ -1081,6 +1147,9 @@ func (m Model) processInitiativeEdit() Model {
 		}
 		m.InitiativeEditMode = false
 		m.InitiativeEditType = ""
+
+		// Renumber instances after deletion
+		m = m.renumberMonsterInstances()
 	}
 
 	return m
@@ -1167,4 +1236,44 @@ func cleanDiceNotation(damage string) string {
 	result = strings.ReplaceAll(result, "- ", "-")
 
 	return strings.TrimSpace(result)
+}
+
+// renumberMonsterInstances renumbers all monster instances based on duplicates
+func (m Model) renumberMonsterInstances() Model {
+	// First pass: normalize all base names (strip existing numbers)
+	for i := range m.InitiativeList {
+		if m.InitiativeList[i].BaseName == "" {
+			// Extract base name by removing " N" suffix if present
+			name := m.InitiativeList[i].Name
+			// Simple approach: if BaseName is empty, use current Name as BaseName
+			m.InitiativeList[i].BaseName = name
+		}
+	}
+
+	// Count instances of each base name
+	nameCounts := make(map[string]int)
+	for _, entry := range m.InitiativeList {
+		nameCounts[entry.BaseName]++
+	}
+
+	// Track current instance number for each base name
+	instanceNumbers := make(map[string]int)
+
+	// Update all entries
+	for i := range m.InitiativeList {
+		baseName := m.InitiativeList[i].BaseName
+
+		// If there's more than one instance, add numbers
+		if nameCounts[baseName] > 1 {
+			instanceNumbers[baseName]++
+			m.InitiativeList[i].InstanceNum = instanceNumbers[baseName]
+			m.InitiativeList[i].Name = fmt.Sprintf("%s %d", baseName, instanceNumbers[baseName])
+		} else {
+			// Only one instance, no number needed
+			m.InitiativeList[i].InstanceNum = 0
+			m.InitiativeList[i].Name = baseName
+		}
+	}
+
+	return m
 }

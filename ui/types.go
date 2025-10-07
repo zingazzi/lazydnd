@@ -56,13 +56,15 @@ type Model struct {
 
 // InitiativeEntry represents a player or monster in the initiative tracker
 type InitiativeEntry struct {
-	Name        string
-	Type        string   // "player" or "monster"
-	Initiative  int
-	HP          int      // Only for monsters
-	MaxHP       int      // Only for monsters
-	AC          int      // Only for monsters
-	MonsterData *Monster // Link to full monster data for actions
+	Name         string
+	Type         string   // "player" or "monster"
+	Initiative   int
+	HP           int      // Only for monsters
+	MaxHP        int      // Only for monsters
+	AC           int      // Only for monsters
+	MonsterData  *Monster // Link to full monster data for actions
+	InstanceNum  int      // Instance number for duplicates (0 = no number shown)
+	BaseName     string   // Original name without number
 }
 
 // Spell represents a D&D spell
