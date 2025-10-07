@@ -12,12 +12,25 @@ import (
 	"time"
 )
 
-const SaveDirectory = "saves"
+// getSaveDirectory returns the path to the save directory in user's home
+func getSaveDirectory() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get user home directory: %w", err)
+	}
+	return filepath.Join(homeDir, ".lazydnd"), nil
+}
 
 // SaveCampaign saves the current campaign state to a JSON file
 func SaveCampaign(m Model, campaignName string) error {
+	// Get save directory path
+	saveDir, err := getSaveDirectory()
+	if err != nil {
+		return err
+	}
+
 	// Create saves directory if it doesn't exist
-	if err := os.MkdirAll(SaveDirectory, 0755); err != nil {
+	if err := os.MkdirAll(saveDir, 0755); err != nil {
 		return fmt.Errorf("failed to create saves directory: %w", err)
 	}
 
@@ -59,10 +72,10 @@ func SaveCampaign(m Model, campaignName string) error {
 
 	// Create filename from campaign name
 	filename := sanitizeFilename(campaignName) + ".json"
-	filepath := filepath.Join(SaveDirectory, filename)
+	filePath := filepath.Join(saveDir, filename)
 
 	// Write to file
-	if err := ioutil.WriteFile(filepath, data, 0644); err != nil {
+	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write save file: %w", err)
 	}
 
@@ -73,9 +86,15 @@ func SaveCampaign(m Model, campaignName string) error {
 func LoadCampaign(filename string) (SaveState, []InitiativeEntry, error) {
 	var saveState SaveState
 
+	// Get save directory path
+	saveDir, err := getSaveDirectory()
+	if err != nil {
+		return saveState, nil, err
+	}
+
 	// Read file
-	filepath := filepath.Join(SaveDirectory, filename)
-	data, err := ioutil.ReadFile(filepath)
+	filePath := filepath.Join(saveDir, filename)
+	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return saveState, nil, fmt.Errorf("failed to read save file: %w", err)
 	}
@@ -188,13 +207,19 @@ func LoadCampaign(filename string) (SaveState, []InitiativeEntry, error) {
 
 // ListCampaigns returns a list of all saved campaign files
 func ListCampaigns() ([]string, error) {
+	// Get save directory path
+	saveDir, err := getSaveDirectory()
+	if err != nil {
+		return nil, err
+	}
+
 	// Create saves directory if it doesn't exist
-	if err := os.MkdirAll(SaveDirectory, 0755); err != nil {
+	if err := os.MkdirAll(saveDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create saves directory: %w", err)
 	}
 
 	// Read directory
-	files, err := ioutil.ReadDir(SaveDirectory)
+	files, err := ioutil.ReadDir(saveDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read saves directory: %w", err)
 	}

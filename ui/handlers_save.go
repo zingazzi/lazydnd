@@ -212,8 +212,11 @@ func handleRenamePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		// Delete old file
 		if m.CurrentCampaignFile != "" {
-			oldPath := filepath.Join(SaveDirectory, m.CurrentCampaignFile)
-			_ = os.Remove(oldPath) // Ignore error if file doesn't exist
+			saveDir, err := getSaveDirectory()
+			if err == nil {
+				oldPath := filepath.Join(saveDir, m.CurrentCampaignFile)
+				_ = os.Remove(oldPath) // Ignore error if file doesn't exist
+			}
 		}
 
 		// Save with new name
