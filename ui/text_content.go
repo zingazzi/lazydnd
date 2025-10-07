@@ -86,6 +86,8 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"  ↑/↓", "Select entry"},
 	{"  i", "Edit initiative value"},
 	{"  h", "Edit HP (monsters only)"},
+	{"  l", "View linked monster details"},
+	{"  a", "Show monster actions (if linked)"},
 	{"  d", "Delete entry"},
 }
 
@@ -152,7 +154,7 @@ func InitiativeTrackerInlineHelp(editMode, inputMode, listMode bool) string {
 		return "Enter: confirm • Esc: cancel • F1-F4: switch panels"
 	}
 	if listMode {
-		return "↑↓: select • i: edit initiative • h: edit HP • d: delete • Esc: exit edit • F1-F4: switch"
+		return "↑↓: select • i: initiative • h: HP • l: view monster • a: actions • d: delete • Esc: exit • F1-F4: switch"
 	}
 	return "p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }

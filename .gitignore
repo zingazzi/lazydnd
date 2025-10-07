@@ -1,5 +1,7 @@
 # Binaries
 lazydnd
+!lazydnd
+
 build/
 
 # Go build artifacts
@@ -36,3 +38,5 @@ Thumbs.db
 docker-data/
 .docker/
 
+parse_monster_actions.py
+validate_monsters.py
