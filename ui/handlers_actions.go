@@ -2,7 +2,6 @@
 package ui
 
 import (
-	
 	"lazydnd/panels"
 	"reflect"
 
@@ -160,6 +159,7 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 					AC:          ac,
 					MonsterData: m.SelectedMonster, // Link to full monster data
 					BaseName:    monsterName,
+					MonsterName: monsterName, // Store for save/load persistence
 				}
 
 				// Add to initiative list

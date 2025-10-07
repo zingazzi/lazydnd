@@ -51,6 +51,21 @@ func (m Model) View() string {
 
 	mainView := lipgloss.JoinVertical(lipgloss.Left, grid, statusBar)
 
+	// Show save popup if active (highest priority)
+	if m.ShowSavePopup {
+		return m.renderSavePopupOverlay(mainView)
+	}
+
+	// Show load popup if active (highest priority)
+	if m.ShowLoadPopup {
+		return m.renderLoadPopupOverlay(mainView)
+	}
+
+	// Show rename popup if active (highest priority)
+	if m.ShowRenamePopup {
+		return m.renderRenamePopupOverlay(mainView)
+	}
+
 	// Show action popup if active (takes priority over help popup)
 	if m.ShowActionPopup {
 		return m.renderActionPopupOverlay(mainView)
@@ -87,4 +102,28 @@ func (m Model) arrangeInGrid(panelViews []string) string {
 	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3])
 
 	return lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+}
+
+// renderSavePopupOverlay renders the save popup over the main view
+func (m Model) renderSavePopupOverlay(mainView string) string {
+	popup := RenderSavePopup(m)
+
+	// Place popup over main view with centered positioning
+	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+}
+
+// renderLoadPopupOverlay renders the load popup over the main view
+func (m Model) renderLoadPopupOverlay(mainView string) string {
+	popup := RenderLoadPopup(m)
+
+	// Place popup over main view with centered positioning
+	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+}
+
+// renderRenamePopupOverlay renders the rename popup over the main view
+func (m Model) renderRenamePopupOverlay(mainView string) string {
+	popup := RenderRenamePopup(m)
+
+	// Place popup over main view with centered positioning
+	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
 }

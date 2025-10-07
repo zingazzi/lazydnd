@@ -29,15 +29,15 @@ type StatusBarText struct {
 var DefaultStatusBarText = StatusBarText{
 	ProjectName: AppNameEmoji,
 	TabKey:      "Tab",
-	TabDesc:     "Switch Panel",
-	ArrowKeys:   "↑↓←→",
+	TabDesc:     "Switch",
+	ArrowKeys:   "↑↓",
 	ArrowDesc:   "Navigate",
 	NumbersKey:  "1-4",
-	NumbersDesc: "Quick Switch",
+	NumbersDesc: "Panels",
 	HelpKey:     "?",
 	HelpDesc:    "Help",
-	QuitKey:     "q",
-	QuitDesc:    "Quit",
+	QuitKey:     "Ctrl+S/L",
+	QuitDesc:    "Save/Load",
 }
 
 // ========== HELP POPUP TEXT ==========
@@ -58,6 +58,9 @@ var CommonNavigationKeys = []HelpKey{
 	{"1-4", "Quick switch to panel"},
 	{"F1-F4", "Switch to specific panel"},
 	{"↑/↓", "Scroll panel content"},
+	{"Ctrl+S", "Save campaign"},
+	{"Ctrl+L", "Load campaign"},
+	{"Ctrl+N", "Rename campaign"},
 	{"Esc", "Cancel/Exit current mode"},
 	{"?", "Toggle this help"},
 	{"q", "Quit application"},

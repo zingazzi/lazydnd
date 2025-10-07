@@ -11,8 +11,15 @@ import (
 func (m Model) renderStatusBar() string {
 	text := DefaultStatusBarText
 
-	// Project name
-	projectName := StatusBarTextStyle.Render(text.ProjectName)
+	// Project name with campaign info
+	projectNameText := text.ProjectName
+	if m.CurrentCampaignName != "" {
+		projectNameText += " | 📁 " + m.CurrentCampaignName
+		if m.LastAutoSave != "" {
+			projectNameText += " (💾 " + m.LastAutoSave + ")"
+		}
+	}
+	projectName := StatusBarTextStyle.Render(projectNameText)
 
 	// Navigation hints
 	tabKey := StatusBarKeyStyle.Render(text.TabKey)

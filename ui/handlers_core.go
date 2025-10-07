@@ -2,8 +2,6 @@
 package ui
 
 import (
-	
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -55,11 +53,31 @@ var keyHandlers = map[string]KeyHandler{
 
 	// Special handlers
 	"?": handleHelp,
+
+	// Save/Load handlers
+	"ctrl+s": handleCtrlS,
+	"ctrl+l": handleCtrlL,
+	"ctrl+n": handleCtrlN,
 }
 
 // HandleNavigation processes navigation-related key presses
 func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	key := msg.String()
+
+	// Handle save popup input
+	if m.ShowSavePopup {
+		return handleSavePopupInput(m, msg)
+	}
+
+	// Handle load popup input
+	if m.ShowLoadPopup {
+		return handleLoadPopupInput(m, msg)
+	}
+
+	// Handle rename popup input
+	if m.ShowRenamePopup {
+		return handleRenamePopupInput(m, msg)
+	}
 
 	// Check if we have a specific handler for this key
 	if handler, exists := keyHandlers[key]; exists {

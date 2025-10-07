@@ -1,0 +1,50 @@
+{
+  "campaign_name": "Phandalen1",
+  "saved_at": "2025-10-07T13:37:14+02:00",
+  "initiative_list": [
+    {
+      "name": "gwinvia",
+      "type": "player",
+      "initiative": 12,
+      "hp": 0,
+      "max_hp": 0,
+      "ac": 0,
+      "monster_name": "",
+      "instance_num": 0,
+      "base_name": "gwinvia"
+    },
+    {
+      "name": "sigterm",
+      "type": "player",
+      "initiative": 6,
+      "hp": 0,
+      "max_hp": 0,
+      "ac": 0,
+      "monster_name": "",
+      "instance_num": 0,
+      "base_name": "sigterm"
+    },
+    {
+      "name": "Goblin",
+      "type": "monster",
+      "initiative": 14,
+      "hp": 7,
+      "max_hp": 7,
+      "ac": 15,
+      "monster_name": "Goblin",
+      "instance_num": 0,
+      "base_name": "Goblin"
+    },
+    {
+      "name": "Jaheem",
+      "type": "player",
+      "initiative": 21,
+      "hp": 0,
+      "max_hp": 0,
+      "ac": 0,
+      "monster_name": "",
+      "instance_num": 0,
+      "base_name": ""
+    }
+  ]
+}
