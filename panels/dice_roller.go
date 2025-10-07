@@ -46,12 +46,13 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, la
 		// Split result by newlines first (for multi-line results)
 		resultLines := strings.Split(diceResult, "\n")
 		var allWrappedLines []string
-		
+
 		for _, line := range resultLines {
-			wrappedLines := wrapText(line, 50)
+			// Wrap at 35 characters to fit within panel width
+			wrappedLines := wrapText(line, 35)
 			allWrappedLines = append(allWrappedLines, wrappedLines...)
 		}
-		
+
 		wrappedResult := strings.Join(allWrappedLines, "\n")
 		content += "\n" + diceResultStyle.Render("Last Roll:\n"+wrappedResult)
 	}
@@ -306,12 +307,12 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 		}
 
 		finalTotal := total + modifier
-		
+
 		// Ensure minimum value of 1 (D&D rule: no negative results)
 		if finalTotal < 1 {
 			finalTotal = 1
 		}
-		
+
 		// Format result - Total first, then breakdown
 		result := fmt.Sprintf("TOTAL: %d\n", finalTotal)
 		result += fmt.Sprintf("%d (%s): [%s]", total, diceExpr, strings.Join(rollsStr, ", "))
@@ -339,7 +340,7 @@ func rollDiceSet(numDice, sides int) (int, []int) {
 func hasMultipleDiceExpressions(command string) bool {
 	// Remove spaces
 	command = strings.ReplaceAll(command, " ", "")
-	
+
 	// Check if there's a '+' or '-' in the command
 	return strings.ContainsAny(command, "+-") && strings.Contains(command, "d")
 }
@@ -348,12 +349,12 @@ func hasMultipleDiceExpressions(command string) bool {
 func handleMultipleDiceExpressions(command string, advantage, disadvantage bool) string {
 	// Remove spaces
 	command = strings.ReplaceAll(command, " ", "")
-	
+
 	// Split by + and - while keeping track of operators
 	var expressions []string
 	var operators []string
 	currentExpr := ""
-	
+
 	for i := 0; i < len(command); i++ {
 		if (command[i] == '+' || command[i] == '-') && i > 0 && currentExpr != "" {
 			expressions = append(expressions, currentExpr)
@@ -366,11 +367,11 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 	if currentExpr != "" {
 		expressions = append(expressions, currentExpr)
 	}
-	
+
 	// Roll each expression
 	var results []int
 	var resultStrings []string
-	
+
 	for _, expr := range expressions {
 		// Check if it's a dice expression or just a number
 		if strings.Contains(expr, "d") {
@@ -390,7 +391,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 			resultStrings = append(resultStrings, expr)
 		}
 	}
-	
+
 	// Calculate total
 	total := results[0]
 	for i := 1; i < len(results); i++ {
@@ -402,21 +403,21 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 			}
 		}
 	}
-	
+
 	// Ensure minimum value of 1 (D&D rule: no negative results)
 	if total < 1 {
 		total = 1
 	}
-	
+
 	// Format result - Total first, then breakdown
 	resultStr := fmt.Sprintf("TOTAL: %d", total)
-	
+
 	if advantage {
 		resultStr += " (ADV)"
 	} else if disadvantage {
 		resultStr += " (DIS)"
 	}
-	
+
 	// Add breakdown on new line
 	resultStr += "\n"
 	resultStr += resultStrings[0]
@@ -425,7 +426,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 			resultStr += " " + operators[i-1] + " " + resultStrings[i]
 		}
 	}
-	
+
 	return resultStr
 }
 
@@ -436,7 +437,7 @@ func rollSingleDiceExpression(expr string, advantage, disadvantage bool) int {
 	if len(parts) != 2 {
 		return -1
 	}
-	
+
 	numDice := 1
 	if parts[0] != "" {
 		var err error
@@ -445,12 +446,12 @@ func rollSingleDiceExpression(expr string, advantage, disadvantage bool) int {
 			return -1
 		}
 	}
-	
+
 	sides, err := strconv.Atoi(parts[1])
 	if err != nil || sides <= 0 {
 		return -1
 	}
-	
+
 	// Validate dice type
 	validDice := []int{4, 6, 8, 10, 12, 20, 100}
 	isValid := false
@@ -463,12 +464,12 @@ func rollSingleDiceExpression(expr string, advantage, disadvantage bool) int {
 	if !isValid {
 		return -1
 	}
-	
+
 	// Roll dice
 	if advantage || disadvantage {
 		total1, _ := rollDiceSet(numDice, sides)
 		total2, _ := rollDiceSet(numDice, sides)
-		
+
 		if advantage {
 			if total1 >= total2 {
 				return total1
@@ -481,7 +482,7 @@ func rollSingleDiceExpression(expr string, advantage, disadvantage bool) int {
 			return total2
 		}
 	}
-	
+
 	total, _ := rollDiceSet(numDice, sides)
 	return total
 }
@@ -490,14 +491,14 @@ func rollSingleDiceExpression(expr string, advantage, disadvantage bool) int {
 func handleMultipleRolls(command string) string {
 	// Split by comma
 	rolls := strings.Split(command, ",")
-	
+
 	var results []string
 	for _, roll := range rolls {
 		roll = strings.TrimSpace(roll)
 		if roll == "" {
 			continue
 		}
-		
+
 		// Check if this roll is a complex expression (has + or -)
 		if hasMultipleDiceExpressions(roll) || (strings.ContainsAny(roll, "+-") && strings.Contains(roll, "d")) {
 			// Handle as complex expression
@@ -512,7 +513,7 @@ func handleMultipleRolls(command string) string {
 			results = append(results, fmt.Sprintf("%d (%s)", total, roll))
 		}
 	}
-	
+
 	return strings.Join(results, " | ")
 }
 
@@ -520,12 +521,12 @@ func handleMultipleRolls(command string) string {
 func rollComplexExpression(command string) string {
 	// Remove spaces
 	command = strings.ReplaceAll(command, " ", "")
-	
+
 	// Split by + and - while keeping track of operators
 	var expressions []string
 	var operators []string
 	currentExpr := ""
-	
+
 	for i := 0; i < len(command); i++ {
 		if (command[i] == '+' || command[i] == '-') && i > 0 && currentExpr != "" {
 			expressions = append(expressions, currentExpr)
@@ -538,11 +539,11 @@ func rollComplexExpression(command string) string {
 	if currentExpr != "" {
 		expressions = append(expressions, currentExpr)
 	}
-	
+
 	// Roll each expression
 	var results []int
 	var resultStrings []string
-	
+
 	for _, expr := range expressions {
 		// Check if it's a dice expression or just a number
 		if strings.Contains(expr, "d") {
@@ -562,7 +563,7 @@ func rollComplexExpression(command string) string {
 			resultStrings = append(resultStrings, expr)
 		}
 	}
-	
+
 	// Calculate total
 	total := results[0]
 	for i := 1; i < len(results); i++ {
@@ -574,12 +575,12 @@ func rollComplexExpression(command string) string {
 			}
 		}
 	}
-	
+
 	// Ensure minimum value of 1 (D&D rule: no negative results)
 	if total < 1 {
 		total = 1
 	}
-	
+
 	// Format result compactly for comma-separated display
 	breakdown := resultStrings[0]
 	for i := 1; i < len(resultStrings); i++ {
@@ -587,6 +588,6 @@ func rollComplexExpression(command string) string {
 			breakdown += operators[i-1] + resultStrings[i]
 		}
 	}
-	
+
 	return fmt.Sprintf("%d (%s)", total, breakdown)
 }
