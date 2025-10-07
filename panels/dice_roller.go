@@ -23,7 +23,8 @@ var (
 				Foreground(lipgloss.Color("#00FF00")).
 				Background(lipgloss.Color("#1A1A1A")).
 				Padding(0, 1).
-				Margin(1, 0)
+				Margin(1, 0).
+				MaxWidth(35)
 )
 
 // GetDiceRollerContent returns the content for the dice roller panel
