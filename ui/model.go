@@ -16,7 +16,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Height = msg.Height
 
 	case tea.KeyMsg:
-		return m.HandleNavigation(msg)
+		return HandleNavigation(m, msg)
 	}
 
 	return m, nil

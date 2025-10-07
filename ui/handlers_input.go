@@ -1,7 +1,8 @@
-// ui/handlers_input.go
+// ui/handlers/input.go
 package ui
 
 import (
+	
 	"lazydnd/panels"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -152,10 +153,10 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.ActivePanel == InitiativeTracker {
 		if m.InitiativeEditMode {
 			// Process edit action
-			m = m.processInitiativeEdit()
+			m = processInitiativeEdit(m)
 		} else if m.InitiativeInputMode {
 			// Process initiative tracker input
-			m = m.processInitiativeInput()
+			m = processInitiativeInput(m)
 		}
 	} else if m.ActivePanel == Spells {
 		if m.SpellSearchMode {
@@ -164,7 +165,7 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				selectedSpellName := m.SpellSuggestions[m.SuggestionIndex]
 				foundSpell := panels.FindSpell(selectedSpellName)
 				if foundSpell != nil {
-					// Convert panels.Spell to ui.Spell
+					// Convert panels.Spell to Spell
 					m.SelectedSpell = &Spell{
 						Name:            foundSpell.Name,
 						Level:           foundSpell.Level,
@@ -199,7 +200,7 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				selectedMonsterName := m.MonsterSuggestions[m.MonsterSuggestionIndex]
 				foundMonster := panels.FindMonster(selectedMonsterName)
 				if foundMonster != nil {
-					// Convert panels.Monster to ui.Monster
+					// Convert panels.Monster to Monster
 					m.SelectedMonster = &Monster{
 						Name:             foundMonster.Name,
 						Meta:             foundMonster.Meta,

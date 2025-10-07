@@ -1,7 +1,8 @@
-// ui/handlers_actions.go
+// ui/handlers/actions.go
 package ui
 
 import (
+	
 	"lazydnd/panels"
 	"reflect"
 
@@ -14,7 +15,7 @@ import (
 func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("r"), nil
+		return handleSearchModeInput(m, "r"), nil
 	}
 
 	// Reroll dice command
@@ -34,7 +35,7 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("p"), nil
+		return handleSearchModeInput(m, "p"), nil
 	}
 
 	// Start adding a player to initiative
@@ -51,7 +52,7 @@ func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("m"), nil
+		return handleSearchModeInput(m, "m"), nil
 	}
 
 	// Start adding a monster to initiative
@@ -68,7 +69,7 @@ func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("e"), nil
+		return handleSearchModeInput(m, "e"), nil
 	}
 
 	// Enter list edit mode in initiative tracker
@@ -92,7 +93,7 @@ func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("i"), nil
+		return handleSearchModeInput(m, "i"), nil
 	}
 
 	// Edit initiative value in list mode
@@ -109,12 +110,12 @@ func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("h"), nil
+		return handleSearchModeInput(m, "h"), nil
 	}
 
 	// Edit HP in list mode (only for monsters)
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
 			m.InitiativeEditMode = true
 			m.InitiativeEditType = "hp"
@@ -135,7 +136,7 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("a"), nil
+		return handleSearchModeInput(m, "a"), nil
 	}
 
 	// Add monster to initiative from Monster panel
@@ -165,12 +166,12 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				m.InitiativeList = append(m.InitiativeList, newEntry)
 
 				// Renumber instances if there are duplicates
-				m = m.renumberMonsterInstances()
+				m = renumberMonsterInstances(m)
 			}
 		}
 	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		// Show action popup for selected monster (if it has actions)
-		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 && m.InitiativeList[originalIndex].MonsterData != nil {
 			monster := m.InitiativeList[originalIndex].MonsterData
 			if len(monster.ActionList) > 0 {
@@ -195,7 +196,7 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("d"), nil
+		return handleSearchModeInput(m, "d"), nil
 	}
 
 	// Delete entry in list mode
@@ -211,12 +212,12 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("l"), nil
+		return handleSearchModeInput(m, "l"), nil
 	}
 
 	// Show linked monster details in Monster panel
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 && m.InitiativeList[originalIndex].MonsterData != nil {
 			m.SelectedMonster = m.InitiativeList[originalIndex].MonsterData
 			m.ActivePanel = Monsters
@@ -230,13 +231,13 @@ func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.handleSearchModeInput("c"), nil
+		return handleSearchModeInput(m, "c"), nil
 	}
 
 	// Duplicate entry in list mode
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		// Duplicate the selected entry
-		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 {
 			original := m.InitiativeList[originalIndex]
 
@@ -262,7 +263,7 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.InitiativeList = append(m.InitiativeList, duplicate)
 
 			// Renumber all instances of this monster
-			m = m.renumberMonsterInstances()
+			m = renumberMonsterInstances(m)
 		}
 	}
 

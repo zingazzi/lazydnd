@@ -1,7 +1,8 @@
-// ui/handlers_helpers.go
+// ui/handlers/helpers.go
 package ui
 
 import (
+	
 	"fmt"
 	"lazydnd/panels"
 	"reflect"
@@ -11,7 +12,7 @@ import (
 // ========== INITIATIVE PROCESSING ==========
 
 // processInitiativeInput handles the multi-step process of adding players/monsters
-func (m Model) processInitiativeInput() Model {
+func processInitiativeInput(m Model) Model {
 	switch m.InitiativeInputType {
 	case "player_name":
 		if val, err := panels.ParseInput(m.InitiativeInput, "player_name"); err == nil {
@@ -75,13 +76,13 @@ func (m Model) processInitiativeInput() Model {
 }
 
 // processInitiativeEdit handles editing existing initiative entries
-func (m Model) processInitiativeEdit() Model {
+func processInitiativeEdit(m Model) Model {
 	if m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
 		return m
 	}
 
 	// Find the original array index for the selected display position
-	originalIndex := m.findOriginalIndex(m.SelectedEntry)
+	originalIndex := findOriginalIndex(m, m.SelectedEntry)
 	if originalIndex == -1 {
 		// Invalid selection, exit edit mode
 		m.InitiativeEditMode = false
@@ -131,14 +132,14 @@ func (m Model) processInitiativeEdit() Model {
 		m.InitiativeEditType = ""
 
 		// Renumber instances after deletion
-		m = m.renumberMonsterInstances()
+		m = renumberMonsterInstances(m)
 	}
 
 	return m
 }
 
 // findOriginalIndex finds the original array index for a sorted display position
-func (m Model) findOriginalIndex(sortedIndex int) int {
+func findOriginalIndex(m Model, sortedIndex int) int {
 	if sortedIndex < 0 || sortedIndex >= len(m.InitiativeList) {
 		return -1
 	}
@@ -172,7 +173,7 @@ func (m Model) findOriginalIndex(sortedIndex int) int {
 }
 
 // renumberMonsterInstances renumbers all monster instances based on duplicates
-func (m Model) renumberMonsterInstances() Model {
+func renumberMonsterInstances(m Model) Model {
 	// First pass: normalize all base names (strip existing numbers)
 	for i := range m.InitiativeList {
 		if m.InitiativeList[i].BaseName == "" {
@@ -214,7 +215,7 @@ func (m Model) renumberMonsterInstances() Model {
 // ========== SEARCH INPUT HELPERS ==========
 
 // addToSpellSearch adds a character to spell search input and updates suggestions
-func (m Model) addToSpellSearch(char string) Model {
+func addToSpellSearch(m Model, char string) Model {
 	m.SpellSearchInput += char
 	m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
 	if len(m.SpellSuggestions) > 0 {
@@ -226,7 +227,7 @@ func (m Model) addToSpellSearch(char string) Model {
 }
 
 // addToMonsterSearch adds a character to monster search input and updates suggestions
-func (m Model) addToMonsterSearch(char string) Model {
+func addToMonsterSearch(m Model, char string) Model {
 	m.MonsterSearchInput += char
 	m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
 	if len(m.MonsterSuggestions) > 0 {
@@ -238,19 +239,19 @@ func (m Model) addToMonsterSearch(char string) Model {
 }
 
 // addToInitiativeInput adds a character to initiative input
-func (m Model) addToInitiativeInput(char string) Model {
+func addToInitiativeInput(m Model, char string) Model {
 	m.InitiativeInput += char
 	return m
 }
 
 // handleSearchModeInput handles input when in search mode for spells or monsters
-func (m Model) handleSearchModeInput(char string) Model {
+func handleSearchModeInput(m Model, char string) Model {
 	if m.SpellSearchMode && m.ActivePanel == Spells {
-		return m.addToSpellSearch(char)
+		return addToSpellSearch(m, char)
 	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
-		return m.addToMonsterSearch(char)
+		return addToMonsterSearch(m, char)
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
-		return m.addToInitiativeInput(char)
+		return addToInitiativeInput(m, char)
 	}
 	return m
 }
@@ -269,7 +270,7 @@ func getMonsterFieldString(v reflect.Value, fieldName string) string {
 	return ""
 }
 
-// convertMonsterActions converts panels.MonsterAction to ui.MonsterAction
+// convertMonsterActions converts panels.MonsterAction to MonsterAction
 func convertMonsterActions(panelActions []panels.MonsterAction) []MonsterAction {
 	uiActions := make([]MonsterAction, len(panelActions))
 	for i, action := range panelActions {
