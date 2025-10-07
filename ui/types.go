@@ -52,6 +52,17 @@ type Model struct {
 	ActionPopupActions []MonsterAction
 	ActionPopupIndex   int
 	ActionPopupMonster string // Name of the monster whose actions are shown
+	// Save/Load state
+	ShowSavePopup       bool
+	ShowLoadPopup       bool
+	ShowRenamePopup     bool
+	SaveInput           string
+	CurrentCampaignFile string
+	CurrentCampaignName string
+	CampaignList        []string
+	CampaignListIndex   int
+	LastAutoSave        string
+	AutoSaveEnabled     bool
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
@@ -65,6 +76,7 @@ type InitiativeEntry struct {
 	MonsterData  *Monster // Link to full monster data for actions
 	InstanceNum  int      // Instance number for duplicates (0 = no number shown)
 	BaseName     string   // Original name without number
+	MonsterName  string   // Original monster name for save/load persistence
 }
 
 // Spell represents a D&D spell
@@ -128,6 +140,26 @@ type Monster struct {
 	ImgURL           string          `json:"img_url,omitempty"`
 	ActionNumber     int             `json:"ActionNumber"`
 	ActionList       []MonsterAction `json:"ActionList"`
+}
+
+// SaveState represents a saved campaign state
+type SaveState struct {
+	CampaignName   string                   `json:"campaign_name"`
+	SavedAt        string                   `json:"saved_at"`
+	InitiativeList []SavedInitiativeEntry   `json:"initiative_list"`
+}
+
+// SavedInitiativeEntry represents an initiative entry for persistence
+type SavedInitiativeEntry struct {
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Initiative  int    `json:"initiative"`
+	HP          int    `json:"hp"`
+	MaxHP       int    `json:"max_hp"`
+	AC          int    `json:"ac"`
+	MonsterName string `json:"monster_name"`
+	InstanceNum int    `json:"instance_num"`
+	BaseName    string `json:"base_name"`
 }
 
 // Panel configuration

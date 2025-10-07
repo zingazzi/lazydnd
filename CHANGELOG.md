@@ -1,5 +1,58 @@
 # CHANGELOG
 
+## 2.0.0
+- **Major UI Overhaul**
+  - Redesigned panel layout system for better space utilization
+  - Improved panel resizing and scrolling behavior
+  - Enhanced visual hierarchy and readability
+  - Added status bar with campaign info and auto-save status
+  - Cleaner borders and spacing between panels
+
+- **Campaign Management**
+  - New campaign save/load system with auto-save
+  - Campaign state persistence (initiative, monster links, etc.)
+  - Campaign renaming support
+  - Auto-save every 5 minutes with status indicator
+  - Save files stored in ~/.lazydnd/
+
+- **Initiative Tracker Enhancements**
+  - Monster linking from Monster panel with full data
+  - Action integration - view and roll monster actions
+  - HP tracking with +/- modification
+  - Entry duplication with auto-numbering
+  - Edit mode improvements
+  - Initiative sorting
+
+- **Monster Panel Improvements**
+  - 8750+ D&D 5e monsters database
+  - Structured action parsing
+  - Complete stat blocks
+  - Quick add to initiative with 'a' key
+  - Real-time search with suggestions
+
+- **Spell Panel Updates**
+  - Complete D&D 5e spell database
+  - Real-time search with autocomplete
+  - Detailed spell information display
+  - Class availability indicators
+  - Ritual and concentration markers
+
+- **Dice Roller Updates**
+  - Support for advantage/disadvantage rolls
+  - Complex dice expressions
+  - Roll history display
+  - Quick reroll functionality
+  - D&D minimum value rule enforcement
+
+- **Performance & Stability**
+  - Optimized panel rendering
+  - Reduced memory usage
+  - Improved error handling
+  - Better state management
+  - Faster search response times
+
+
+
 ## v1.1.0
 - **Code Refactoring & Organization**
   - Refactored layout.go from 287 lines to focused functions
