@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## v1.1.0
+- **Code Refactoring & Organization**
+  - Refactored layout.go from 287 lines to focused functions
+  - Extracted panel dimension calculation
+  - Separated scrolling logic
+  - Created provider pattern for panel content and help text
+  - Added struct types for better data organization
+  - Organized functions into clear sections
+  - Refactored navigation.go from 824-line switch to KeyHandler map pattern
+  - Organized handlers by category (quit, navigation, function keys, etc.)
+  - Each handler has clear naming and focused purpose
+  - Improved code maintainability and readability
+  - Better adherence to single responsibility principle
+
+- **Documentation & Standards**
+  - Added file path/name comments
+  - Improved commenting standards
+  - Comments focus on purpose over effect
+  - Added descriptive section headers
+  - Clearer function documentation
+
+
 ## v1.0.1
 - **Docker Support**
   - Complete Docker containerization
@@ -10,17 +32,17 @@
   - Published to GitHub Container Registry (GHCR)
   - Helper scripts: `docker-build.sh`, `docker-run.sh`
   - Comprehensive Docker documentation
-  
+
 - **Installation & Release System**
   - Automated GitHub Actions workflow for releases
   - Cross-platform builds (Linux, macOS, Windows)
   - One-line installer script
   - Comprehensive installation documentation
-  
+
 - **Navigation Improvements**
   - Added Shift+Tab for backward panel navigation
   - Tab cycles forward, Shift+Tab cycles backward
-  
+
 - **Dice Roller Enhancements**
   - Support for multiple dice expressions: `2d8+3d6`, `1d6-1d4`
   - Support for subtraction: `1d8-2`, `2d6-1d4+3`
