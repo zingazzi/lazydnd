@@ -2,8 +2,6 @@
 package ui
 
 import (
-	
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -168,5 +166,30 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else {
 		m.ActivePanel = Monsters
 	}
+	return m, nil
+}
+
+// ========== TURN TRACKING HANDLERS ==========
+
+// handleNextTurn advances to the next turn in initiative order
+func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Only works in initiative tracker panel when not in input/edit modes
+	if m.ActivePanel != InitiativeTracker || m.InitiativeInputMode || m.InitiativeEditMode || m.InitiativeListMode {
+		return m, nil
+	}
+
+	// If there are no entries, do nothing
+	if len(m.InitiativeList) == 0 {
+		return m, nil
+	}
+
+	// If combat hasn't started (CurrentTurn == -1), start at 0
+	if m.CurrentTurn == -1 {
+		m.CurrentTurn = 0
+	} else {
+		// Advance to next turn, wrap around to 0 if at the end
+		m.CurrentTurn = (m.CurrentTurn + 1) % len(m.InitiativeList)
+	}
+
 	return m, nil
 }

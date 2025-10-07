@@ -60,6 +60,7 @@ func getInitiativeTrackerContent(m Model) string {
 		m.InitiativeListMode,
 		m.InitiativeEditMode,
 		m.InitiativeEditType,
+		m.CurrentTurn,
 	)
 }
 

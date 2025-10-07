@@ -26,6 +26,7 @@ func InitialModel() Model {
 		InitiativeInputType:    "",
 		SelectedEntry:          -1,
 		TempEntry:              InitiativeEntry{},
+		CurrentTurn:            -1,
 		InitiativeEditMode:     false,
 		InitiativeEditType:     "",
 		InitiativeListMode:     false,

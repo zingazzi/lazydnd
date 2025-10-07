@@ -84,6 +84,7 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"p", "Add player to initiative"},
 	{"m", "Add monster to initiative"},
 	{"e", "Enter edit mode"},
+	{"n", "Next turn (advance initiative)"},
 	{"", ""},
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},
@@ -160,7 +161,7 @@ func InitiativeTrackerInlineHelp(editMode, inputMode, listMode bool) string {
 	if listMode {
 		return "↑↓: select • i: init • h: HP • l: view • a: actions • c: copy • d: delete • Esc: exit"
 	}
-	return "p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+	return "p: add player • m: add monster • e: edit list • n: next turn • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }
 
 // SpellsInlineHelp returns inline help for spells panel
