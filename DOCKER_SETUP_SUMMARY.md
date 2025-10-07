@@ -129,10 +129,7 @@ When you push a tag (e.g., `v1.0.1`):
 
 **Important:** Make sure to update the repository name in:
 - `.github/workflows/docker.yml` (line 39: `images:`)
-- `DOCKER.md` (replace `zingazzi` with your username if different)
-- `DOCKER_QUICKSTART.md` (update GHCR URL)
-
-Or if your username is already `zingazzi`, you're all set! ✅
+- `DOCKER.md`
 
 ### 🧪 Testing
 
@@ -196,18 +193,7 @@ This works on:
 ### 📚 Further Reading
 
 - [DOCKER.md](DOCKER.md) - Complete Docker documentation
-- [DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md) - Quick reference
 - [Official Docker Docs](https://docs.docker.com/)
 - [GitHub Container Registry Docs](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 
-### ✨ Next Steps
-
-1. ✅ All files created
-2. ⏭️ Test locally: `./docker-build.sh && ./docker-run.sh`
-3. ⏭️ Commit and push: `git add . && git commit -m "Add Docker support"`
-4. ⏭️ Create tag: `git tag v1.0.1 && git push origin v1.0.1`
-5. ⏭️ Watch GitHub Actions build the image
-6. ⏭️ Test from GHCR: `docker run -it --rm ghcr.io/zingazzi/lazydnd:latest`
-
 🎲 **Your D&D tool is now fully containerized!** 🐳
-

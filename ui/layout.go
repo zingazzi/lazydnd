@@ -56,6 +56,11 @@ func (m Model) View() string {
 
 	mainView := lipgloss.JoinVertical(lipgloss.Left, grid, statusBar)
 
+	// Show action popup if active (takes priority over help popup)
+	if m.ShowActionPopup {
+		return m.renderActionPopupOverlay(mainView)
+	}
+
 	// Show help popup if active
 	if m.ShowHelpPopup {
 		return m.renderHelpPopupOverlay(mainView)

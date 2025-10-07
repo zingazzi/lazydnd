@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # GitHub repository
-REPO="YOUR_GITHUB_USERNAME/lazydnd"
+REPO="zingazzi/lazydnd"
 INSTALL_DIR="/usr/local/bin"
 
 echo -e "${GREEN}LazyDnD Installer${NC}"

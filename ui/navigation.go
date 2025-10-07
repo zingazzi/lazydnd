@@ -2,8 +2,10 @@
 package ui
 
 import (
+	"fmt"
 	"lazydnd/panels"
 	"reflect"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -51,6 +53,8 @@ var keyHandlers = map[string]KeyHandler{
 	"h": handleH,
 	"a": handleA,
 	"d": handleD,
+	"l": handleL,
+	"c": handleC,
 
 	// Special handlers
 	"?": handleHelp,
@@ -104,6 +108,15 @@ func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleEscape handles escape key presses
 func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Close action popup if open
+	if m.ShowActionPopup {
+		m.ShowActionPopup = false
+		m.ActionPopupActions = []MonsterAction{}
+		m.ActionPopupIndex = 0
+		m.ActionPopupMonster = ""
+		return m, nil
+	}
+
 	// Close help popup if open
 	if m.ShowHelpPopup {
 		m.ShowHelpPopup = false
@@ -164,7 +177,15 @@ func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleUp handles up arrow key
 func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	// Handle spell suggestion navigation first (highest priority)
+	// Handle action popup navigation first (highest priority)
+	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
+		if m.ActionPopupIndex > 0 {
+			m.ActionPopupIndex--
+		}
+		return m, nil
+	}
+
+	// Handle spell suggestion navigation
 	if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
 		if m.SuggestionIndex > 0 {
 			m.SuggestionIndex--
@@ -190,7 +211,15 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleDown handles down arrow key
 func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	// Handle spell suggestion navigation first (highest priority)
+	// Handle action popup navigation first (highest priority)
+	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
+		if m.ActionPopupIndex < len(m.ActionPopupActions)-1 {
+			m.ActionPopupIndex++
+		}
+		return m, nil
+	}
+
+	// Handle spell suggestion navigation
 	if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
 		if m.SuggestionIndex < len(m.SpellSuggestions)-1 {
 			m.SuggestionIndex++
@@ -296,6 +325,45 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleEnter handles enter key presses
 func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle action popup selection first (highest priority)
+	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 && m.ActionPopupIndex >= 0 && m.ActionPopupIndex < len(m.ActionPopupActions) {
+		selectedAction := m.ActionPopupActions[m.ActionPopupIndex]
+
+		// Build dice command from action
+		var diceCommand string
+		if selectedAction.Roll != "" && selectedAction.Damage != "" {
+			// Clean damage string: remove spaces and keep comma-separated format
+			cleanDamage := cleanDiceNotation(selectedAction.Damage)
+			// Format: "1d20+7, 2d6+4" (comma-separated for dice roller)
+			diceCommand = "1d20" + selectedAction.Roll + ", " + cleanDamage
+		} else if selectedAction.Damage != "" {
+			// Just damage roll
+			diceCommand = cleanDiceNotation(selectedAction.Damage)
+		} else if selectedAction.Roll != "" {
+			// Just attack roll
+			diceCommand = "1d20" + selectedAction.Roll
+		}
+
+		// Execute the dice roll if we have a command
+		if diceCommand != "" {
+			result := panels.RollDice(diceCommand)
+			m.DiceResult = result
+			m.DiceHistory = append(m.DiceHistory, result)
+			m.LastDiceCommand = diceCommand
+			if len(m.DiceHistory) > 15 {
+				m.DiceHistory = m.DiceHistory[1:]
+			}
+		}
+
+		// Close the popup
+		m.ShowActionPopup = false
+		m.ActionPopupActions = []MonsterAction{}
+		m.ActionPopupIndex = 0
+		m.ActionPopupMonster = ""
+
+		return m, nil
+	}
+
 	if m.ActivePanel == DiceRoller {
 		if m.InputMode && m.DiceInput != "" {
 			// Roll the dice
@@ -389,6 +457,8 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 						Actions:          foundMonster.Actions,
 						LegendaryActions: foundMonster.LegendaryActions,
 						ImgURL:           foundMonster.ImgURL,
+						ActionNumber:     foundMonster.ActionNumber,
+						ActionList:       convertMonsterActions(foundMonster.ActionList),
 					}
 				}
 				m.MonsterSearchInput = selectedMonsterName
@@ -693,18 +763,35 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				// Roll initiative for the monster
 				initiative := panels.RollInitiative()
 
-				// Create initiative entry
+				// Create initiative entry with full monster data link
 				newEntry := InitiativeEntry{
-					Name:       monsterName,
-					Type:       "monster",
-					Initiative: initiative,
-					HP:         hp,
-					MaxHP:      hp,
-					AC:         ac,
+					Name:        monsterName,
+					Type:        "monster",
+					Initiative:  initiative,
+					HP:          hp,
+					MaxHP:       hp,
+					AC:          ac,
+					MonsterData: m.SelectedMonster, // Link to full monster data
+					BaseName:    monsterName,
 				}
 
 				// Add to initiative list
 				m.InitiativeList = append(m.InitiativeList, newEntry)
+
+				// Renumber instances if there are duplicates
+				m = m.renumberMonsterInstances()
+			}
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Show action popup for selected monster (if it has actions)
+		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		if originalIndex >= 0 && m.InitiativeList[originalIndex].MonsterData != nil {
+			monster := m.InitiativeList[originalIndex].MonsterData
+			if len(monster.ActionList) > 0 {
+				m.ShowActionPopup = true
+				m.ActionPopupActions = monster.ActionList
+				m.ActionPopupIndex = 0
+				m.ActionPopupMonster = monster.Name
 			}
 		}
 	} else if m.SpellSearchMode && m.ActivePanel == Spells {
@@ -767,6 +854,105 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		// Add 'd' to input when in input/edit mode
 		m.InitiativeInput += "d"
+	}
+
+	return m, nil
+}
+
+// handleL handles the 'l' key
+func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'l' to spell search input
+		m.SpellSearchInput += "l"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'l' to monster search input
+		m.MonsterSearchInput += "l"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Show linked monster details in Monster panel
+		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		if originalIndex >= 0 && m.InitiativeList[originalIndex].MonsterData != nil {
+			// Set the selected monster in the Monster panel
+			m.SelectedMonster = m.InitiativeList[originalIndex].MonsterData
+			// Switch to Monster panel to show details
+			m.ActivePanel = Monsters
+		}
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'l' to input when in input/edit mode
+		m.InitiativeInput += "l"
+	}
+
+	return m, nil
+}
+
+// handleC handles the 'c' key
+func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	if m.SpellSearchMode && m.ActivePanel == Spells {
+		// Add 'c' to spell search input
+		m.SpellSearchInput += "c"
+		// Update suggestions
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		if len(m.SpellSuggestions) > 0 {
+			m.SuggestionIndex = 0
+		} else {
+			m.SuggestionIndex = -1
+		}
+	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
+		// Add 'c' to monster search input
+		m.MonsterSearchInput += "c"
+		// Update suggestions
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		if len(m.MonsterSuggestions) > 0 {
+			m.MonsterSuggestionIndex = 0
+		} else {
+			m.MonsterSuggestionIndex = -1
+		}
+	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		// Duplicate the selected entry
+		originalIndex := m.findOriginalIndex(m.SelectedEntry)
+		if originalIndex >= 0 {
+			original := m.InitiativeList[originalIndex]
+
+			// Use the BaseName from the original (not the numbered Name)
+			baseName := original.BaseName
+			if baseName == "" {
+				baseName = original.Name
+			}
+
+			// Create a duplicate with same stats
+			duplicate := InitiativeEntry{
+				Name:        baseName, // Use base name, will be renumbered
+				Type:        original.Type,
+				Initiative:  original.Initiative,
+				HP:          original.HP,
+				MaxHP:       original.MaxHP,
+				AC:          original.AC,
+				MonsterData: original.MonsterData,
+				BaseName:    baseName,
+			}
+
+			// Add to initiative list
+			m.InitiativeList = append(m.InitiativeList, duplicate)
+
+			// Renumber all instances of this monster
+			m = m.renumberMonsterInstances()
+		}
+	} else if m.InitiativeInputMode || m.InitiativeEditMode {
+		// Add 'c' to input when in input/edit mode
+		m.InitiativeInput += "c"
 	}
 
 	return m, nil
@@ -961,6 +1147,9 @@ func (m Model) processInitiativeEdit() Model {
 		}
 		m.InitiativeEditMode = false
 		m.InitiativeEditType = ""
+
+		// Renumber instances after deletion
+		m = m.renumberMonsterInstances()
 	}
 
 	return m
@@ -1010,4 +1199,81 @@ func getMonsterFieldString(v reflect.Value, fieldName string) string {
 		return field.String()
 	}
 	return ""
+}
+
+// convertMonsterActions converts panels.MonsterAction to ui.MonsterAction
+func convertMonsterActions(panelActions []panels.MonsterAction) []MonsterAction {
+	uiActions := make([]MonsterAction, len(panelActions))
+	for i, action := range panelActions {
+		uiActions[i] = MonsterAction{
+			Name:        action.Name,
+			Type:        action.Type,
+			Description: action.Description,
+			Roll:        action.Roll,
+			Reach:       action.Reach,
+			Range:       action.Range,
+			Damage:      action.Damage,
+			DamageType:  action.DamageType,
+			SaveDC:      action.SaveDC,
+			SaveType:    action.SaveType,
+		}
+	}
+	return uiActions
+}
+
+// cleanDiceNotation cleans up dice notation string for parsing
+// Removes spaces around operators but keeps comma-separated format
+// Example: "2d6 + 4, 7d6" -> "2d6+4, 7d6"
+func cleanDiceNotation(damage string) string {
+	result := damage
+
+	// Remove spaces around operators (+, -) but NOT around commas
+	result = strings.ReplaceAll(result, " + ", "+")
+	result = strings.ReplaceAll(result, " - ", "-")
+	result = strings.ReplaceAll(result, " +", "+")
+	result = strings.ReplaceAll(result, "+ ", "+")
+	result = strings.ReplaceAll(result, " -", "-")
+	result = strings.ReplaceAll(result, "- ", "-")
+
+	return strings.TrimSpace(result)
+}
+
+// renumberMonsterInstances renumbers all monster instances based on duplicates
+func (m Model) renumberMonsterInstances() Model {
+	// First pass: normalize all base names (strip existing numbers)
+	for i := range m.InitiativeList {
+		if m.InitiativeList[i].BaseName == "" {
+			// Extract base name by removing " N" suffix if present
+			name := m.InitiativeList[i].Name
+			// Simple approach: if BaseName is empty, use current Name as BaseName
+			m.InitiativeList[i].BaseName = name
+		}
+	}
+
+	// Count instances of each base name
+	nameCounts := make(map[string]int)
+	for _, entry := range m.InitiativeList {
+		nameCounts[entry.BaseName]++
+	}
+
+	// Track current instance number for each base name
+	instanceNumbers := make(map[string]int)
+
+	// Update all entries
+	for i := range m.InitiativeList {
+		baseName := m.InitiativeList[i].BaseName
+
+		// If there's more than one instance, add numbers
+		if nameCounts[baseName] > 1 {
+			instanceNumbers[baseName]++
+			m.InitiativeList[i].InstanceNum = instanceNumbers[baseName]
+			m.InitiativeList[i].Name = fmt.Sprintf("%s %d", baseName, instanceNumbers[baseName])
+		} else {
+			// Only one instance, no number needed
+			m.InitiativeList[i].InstanceNum = 0
+			m.InitiativeList[i].Name = baseName
+		}
+	}
+
+	return m
 }
