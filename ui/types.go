@@ -19,8 +19,11 @@ type Model struct {
 	DiceInput       string
 	DiceResult      string
 	DiceHistory     []string
+	DiceCommands    []string // Store original commands for history
 	LastDiceCommand string
 	InputMode       bool
+	DiceHistoryMode bool // When true, navigating dice history to select
+	HistoryIndex    int  // Selected index in history (-1 = none)
 	ScrollOffset    map[PanelType]int
 	// Spell search state
 	SpellSearchInput    string

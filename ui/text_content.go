@@ -72,6 +72,7 @@ var CommonNavigationKeys = []HelpKey{
 var DiceRollerHelp = []HelpKey{
 	{"Enter", "Start/confirm dice input"},
 	{"r", "Reroll last command"},
+	{"h", "Open history to select any roll"},
 	{"Examples:", ""},
 	{"  2d6", "Roll 2 six-sided dice"},
 	{"  1d20+5", "Roll d20 with +5 modifier"},
@@ -140,14 +141,17 @@ func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 // InlineHelpText contains the inline help text shown at the bottom of panels
 
 // DiceRollerInlineHelp returns inline help for dice roller panel
-func DiceRollerInlineHelp(inputMode bool, hasLastCommand bool) string {
+func DiceRollerInlineHelp(inputMode bool, hasLastCommand bool, historyMode bool) string {
+	if historyMode {
+		return "↑↓: select • Enter: re-roll • Esc: exit history • F1-F4: switch panels"
+	}
 	if inputMode {
 		return "Enter: roll • Esc: cancel • F1-F4: switch panels"
 	}
 	if hasLastCommand {
-		return "Enter: input dice • r: reroll • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+		return "Enter: input dice • r: reroll • h: history • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 	}
-	return "Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+	return "Enter: input dice • h: history • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }
 
 // InitiativeTrackerInlineHelp returns inline help for initiative tracker panel

@@ -33,6 +33,14 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
+	// Handle dice history navigation
+	if m.ActivePanel == DiceRoller && m.DiceHistoryMode && len(m.DiceHistory) > 0 {
+		if m.HistoryIndex < len(m.DiceHistory)-1 {
+			m.HistoryIndex++
+		}
+		return m, nil
+	}
+
 	// Handle spell suggestion navigation
 	if m.ActivePanel == Spells && m.SpellSearchMode && len(m.SpellSuggestions) > 0 {
 		if m.SuggestionIndex > 0 {
@@ -63,6 +71,14 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
 		if m.ActionPopupIndex < len(m.ActionPopupActions)-1 {
 			m.ActionPopupIndex++
+		}
+		return m, nil
+	}
+
+	// Handle dice history navigation
+	if m.ActivePanel == DiceRoller && m.DiceHistoryMode && len(m.DiceHistory) > 0 {
+		if m.HistoryIndex > 0 {
+			m.HistoryIndex--
 		}
 		return m, nil
 	}
