@@ -63,6 +63,24 @@ func (m Model) buildActionContent() string {
 	content.WriteString(title)
 	content.WriteString("\n\n")
 
+	// Show ActionNumber if available (attacks per round)
+	if len(m.ActionPopupActions) > 0 {
+		// Get the monster from initiative list to access ActionNumber
+		for _, entry := range m.InitiativeList {
+			if entry.MonsterData != nil && entry.MonsterData.Name == m.ActionPopupMonster {
+				if entry.MonsterData.ActionNumber > 0 {
+					attacksPerRound := lipgloss.NewStyle().
+						Foreground(lipgloss.Color("#FFD700")).
+						Bold(true).
+						Render(fmt.Sprintf("⚔️  Attacks per Round: %d", entry.MonsterData.ActionNumber))
+					content.WriteString(attacksPerRound)
+					content.WriteString("\n\n")
+				}
+				break
+			}
+		}
+	}
+
 	// Actions list
 	for i, action := range m.ActionPopupActions {
 		isSelected := i == m.ActionPopupIndex
