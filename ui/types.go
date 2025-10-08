@@ -39,6 +39,7 @@ type Model struct {
 	SelectedEntry       int
 	TempEntry           InitiativeEntry // Temporary storage while building entry
 	CurrentTurn         int             // Index of current turn in initiative order (-1 = no combat started)
+	RoundCounter        int             // Current combat round (0 = combat not started, 1+ = active rounds)
 	// Initiative edit state
 	InitiativeEditMode  bool
 	InitiativeEditType  string // "initiative", "hp", "delete"
@@ -152,6 +153,7 @@ type SaveState struct {
 	SavedAt        string                   `json:"saved_at"`
 	InitiativeList []SavedInitiativeEntry   `json:"initiative_list"`
 	CurrentTurn    int                      `json:"current_turn"`
+	RoundCounter   int                      `json:"round_counter"`
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence

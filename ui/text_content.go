@@ -86,6 +86,7 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"m", "Add monster to initiative"},
 	{"e", "Enter edit mode"},
 	{"n", "Next turn (advance initiative)"},
+	{"x", "Reset combat (clear turn & round)"},
 	{"", ""},
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},

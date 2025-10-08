@@ -187,6 +187,25 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // ========== TURN TRACKING HANDLERS ==========
 
+// handleResetCombat resets the combat turn and round counter
+func handleResetCombat(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// If in any input mode, pass through to default input handler
+	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
+		return handleDefaultInput(m, msg)
+	}
+
+	// Only works in initiative tracker panel when not in list mode
+	if m.ActivePanel != InitiativeTracker || m.InitiativeListMode {
+		return m, nil
+	}
+
+	// Reset combat state
+	m.CurrentTurn = -1
+	m.RoundCounter = 0
+
+	return m, nil
+}
+
 // handleNextTurn advances to the next turn in initiative order
 func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// If in any input mode, pass through to default input handler
@@ -204,12 +223,20 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// If combat hasn't started (CurrentTurn == -1), start at 0
+	// If combat hasn't started (CurrentTurn == -1), start at 0 and begin round 1
 	if m.CurrentTurn == -1 {
 		m.CurrentTurn = 0
+		m.RoundCounter = 1
 	} else {
-		// Advance to next turn, wrap around to 0 if at the end
-		m.CurrentTurn = (m.CurrentTurn + 1) % len(m.InitiativeList)
+		// Advance to next turn
+		nextTurn := (m.CurrentTurn + 1) % len(m.InitiativeList)
+
+		// If we wrapped around to 0, increment round counter
+		if nextTurn == 0 {
+			m.RoundCounter++
+		}
+
+		m.CurrentTurn = nextTurn
 	}
 
 	return m, nil

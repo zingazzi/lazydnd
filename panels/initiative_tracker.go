@@ -36,7 +36,7 @@ var (
 )
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int) string {
 	var contentLines []string
 
 	// Show different instructions based on mode
@@ -53,9 +53,32 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 	} else if listMode {
 		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete")
 	} else {
-		contentLines = append(contentLines, "Dungeon Master Panel")
-		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, 'e' to edit, 'n' for next turn")
+		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, 'e' to edit")
+		contentLines = append(contentLines, "Press 'n' for next turn, 'x' to reset combat")
 	}
+
+	// Show round counter and elapsed time if combat has started
+	if roundCounter > 0 {
+		totalSeconds := roundCounter * 6
+		minutes := totalSeconds / 60
+		seconds := totalSeconds % 60
+
+		var timeStr string
+		if minutes > 0 {
+			if seconds > 0 {
+				timeStr = fmt.Sprintf("%d minute%s %d second%s", minutes, pluralize(minutes), seconds, pluralize(seconds))
+			} else {
+				timeStr = fmt.Sprintf("%d minute%s", minutes, pluralize(minutes))
+			}
+		} else {
+			timeStr = fmt.Sprintf("%d second%s", seconds, pluralize(seconds))
+		}
+
+		roundInfo := fmt.Sprintf("⚔️  Round %d / %s", roundCounter, timeStr)
+		contentLines = append(contentLines, "")
+		contentLines = append(contentLines, roundInfo)
+	}
+
 	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, strings.Repeat("─", 40))
 	contentLines = append(contentLines, "")
@@ -343,4 +366,12 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 	}
 
 	return nil, fmt.Errorf("unknown input type")
+}
+
+// pluralize returns "s" if count is not 1, otherwise empty string
+func pluralize(count int) string {
+	if count == 1 {
+		return ""
+	}
+	return "s"
 }
