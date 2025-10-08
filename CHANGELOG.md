@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0
+- Reroll a specific dice
+- Minor fix
+- Show attacks x round
+- Add initiative turn tracker
+
 ## 2.0.0
 - **Major UI Overhaul**
   - Redesigned panel layout system for better space utilization
