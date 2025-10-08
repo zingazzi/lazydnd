@@ -173,8 +173,13 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleNextTurn advances to the next turn in initiative order
 func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	// Only works in initiative tracker panel when not in input/edit modes
-	if m.ActivePanel != InitiativeTracker || m.InitiativeInputMode || m.InitiativeEditMode || m.InitiativeListMode {
+	// If in any input mode, pass through to default input handler
+	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
+		return handleDefaultInput(m, msg)
+	}
+
+	// Only works in initiative tracker panel when not in list mode
+	if m.ActivePanel != InitiativeTracker || m.InitiativeListMode {
 		return m, nil
 	}
 
