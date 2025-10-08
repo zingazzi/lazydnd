@@ -42,9 +42,12 @@ func getDiceRollerContent(m Model) string {
 		m.DiceInput,
 		m.DiceResult,
 		m.DiceHistory,
+		m.DiceCommands,
 		m.LastDiceCommand,
 		m.InputMode,
 		m.ActivePanel == DiceRoller,
+		m.DiceHistoryMode,
+		m.HistoryIndex,
 	)
 }
 
@@ -60,6 +63,7 @@ func getInitiativeTrackerContent(m Model) string {
 		m.InitiativeListMode,
 		m.InitiativeEditMode,
 		m.InitiativeEditType,
+		m.CurrentTurn,
 	)
 }
 
@@ -112,7 +116,7 @@ func (m Model) getHelpText(panelType PanelType) string {
 
 // getDiceRollerHelpText gets help text for the dice roller panel
 func getDiceRollerHelpText(m Model) string {
-	text := DiceRollerInlineHelp(m.InputMode, m.LastDiceCommand != "")
+	text := DiceRollerInlineHelp(m.InputMode, m.LastDiceCommand != "", m.DiceHistoryMode)
 	return "\n" + HelpStyle.Render(text)
 }
 

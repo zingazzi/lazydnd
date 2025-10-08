@@ -28,8 +28,39 @@ var (
 )
 
 // GetDiceRollerContent returns the content for the dice roller panel
-func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, lastCommand string, inputMode, isActive bool) string {
-	content := "Press Enter to roll, Esc to clear input\nExamples: 1d20, 2d8+3d6, 1d8-2, 1d6-1d4"
+func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, diceCommands []string, lastCommand string, inputMode, isActive bool, historyMode bool, historyIndex int) string {
+	// Show different instructions based on mode
+	if historyMode {
+		content := "HISTORY MODE - Select a roll to repeat\nUse ↑↓ to navigate, Enter to re-roll, Esc to exit"
+		content += "\n\n" + strings.Repeat("─", 30)
+
+		// Show history with selection
+		if len(diceHistory) > 0 {
+			content += "\n\nSelect a roll to repeat:"
+			for i := len(diceHistory) - 1; i >= 0; i-- {
+				var marker string
+				if historyIndex == i {
+					marker = "► "
+				} else {
+					marker = "  "
+				}
+
+				// Show command if available, otherwise show result
+				displayText := diceHistory[i]
+				if i < len(diceCommands) && diceCommands[i] != "" {
+					displayText = diceCommands[i] + " → " + diceHistory[i]
+				}
+
+				content += "\n" + marker + displayText
+			}
+		} else {
+			content += "\n\nNo history available"
+		}
+
+		return content
+	}
+
+	content := "Press Enter to roll, 'h' for history, Esc to clear\nExamples: 1d20, 2d8+3d6, 1d8-2, 1d6-1d4"
 
 	content += "\n\n" + strings.Repeat("─", 30)
 

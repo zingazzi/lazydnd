@@ -58,8 +58,15 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	if m.ActivePanel == DiceRoller {
-		m.DiceInput = ""
-		m.InputMode = false
+		if m.DiceHistoryMode {
+			// Exit history mode
+			m.DiceHistoryMode = false
+			m.HistoryIndex = -1
+		} else {
+			// Clear input
+			m.DiceInput = ""
+			m.InputMode = false
+		}
 	} else if m.ActivePanel == InitiativeTracker {
 		if m.InitiativeEditMode {
 			// Exit edit mode
@@ -135,18 +142,35 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	if m.ActivePanel == DiceRoller {
-		if m.InputMode && m.DiceInput != "" {
+		if m.DiceHistoryMode && m.HistoryIndex >= 0 && m.HistoryIndex < len(m.DiceCommands) {
+			// Re-roll selected history command
+			command := m.DiceCommands[m.HistoryIndex]
+			result := panels.RollDice(command)
+			m.DiceResult = result
+			m.DiceHistory = append(m.DiceHistory, result)
+			m.DiceCommands = append(m.DiceCommands, command)
+			m.LastDiceCommand = command
+			if len(m.DiceHistory) > 15 {
+				m.DiceHistory = m.DiceHistory[1:]
+				m.DiceCommands = m.DiceCommands[1:]
+			}
+			// Exit history mode
+			m.DiceHistoryMode = false
+			m.HistoryIndex = -1
+		} else if m.InputMode && m.DiceInput != "" {
 			// Roll the dice
 			result := panels.RollDice(m.DiceInput)
 			m.DiceResult = result
 			m.DiceHistory = append(m.DiceHistory, result)
+			m.DiceCommands = append(m.DiceCommands, m.DiceInput)
 			m.LastDiceCommand = m.DiceInput
 			if len(m.DiceHistory) > 15 {
 				m.DiceHistory = m.DiceHistory[1:]
+				m.DiceCommands = m.DiceCommands[1:]
 			}
 			m.DiceInput = ""
 			m.InputMode = false
-		} else {
+		} else if !m.DiceHistoryMode {
 			m.InputMode = true
 		}
 	} else if m.ActivePanel == InitiativeTracker {

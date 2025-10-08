@@ -18,12 +18,14 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Reroll dice command
-	if m.ActivePanel == DiceRoller && !m.InputMode && m.LastDiceCommand != "" {
+	if m.ActivePanel == DiceRoller && !m.InputMode && !m.DiceHistoryMode && m.LastDiceCommand != "" {
 		result := panels.RollDice(m.LastDiceCommand)
 		m.DiceResult = result
 		m.DiceHistory = append(m.DiceHistory, result)
+		m.DiceCommands = append(m.DiceCommands, m.LastDiceCommand)
 		if len(m.DiceHistory) > 15 {
 			m.DiceHistory = m.DiceHistory[1:]
+			m.DiceCommands = m.DiceCommands[1:]
 		}
 	}
 
@@ -107,9 +109,23 @@ func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleH handles the 'h' key
 func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle dice input mode
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		m.DiceInput += "h"
+		return m, nil
+	}
+
 	// Handle search mode input
 	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
 		return handleSearchModeInput(m, "h"), nil
+	}
+
+	// Enter dice history mode in dice roller
+	if m.ActivePanel == DiceRoller && !m.InputMode && !m.DiceHistoryMode && len(m.DiceHistory) > 0 {
+		m.DiceHistoryMode = true
+		// Start at the most recent (last index)
+		m.HistoryIndex = len(m.DiceHistory) - 1
+		return m, nil
 	}
 
 	// Edit HP in list mode (only for monsters)

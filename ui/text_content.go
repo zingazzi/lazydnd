@@ -72,6 +72,7 @@ var CommonNavigationKeys = []HelpKey{
 var DiceRollerHelp = []HelpKey{
 	{"Enter", "Start/confirm dice input"},
 	{"r", "Reroll last command"},
+	{"h", "Open history to select any roll"},
 	{"Examples:", ""},
 	{"  2d6", "Roll 2 six-sided dice"},
 	{"  1d20+5", "Roll d20 with +5 modifier"},
@@ -84,6 +85,7 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"p", "Add player to initiative"},
 	{"m", "Add monster to initiative"},
 	{"e", "Enter edit mode"},
+	{"n", "Next turn (advance initiative)"},
 	{"", ""},
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},
@@ -139,14 +141,17 @@ func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 // InlineHelpText contains the inline help text shown at the bottom of panels
 
 // DiceRollerInlineHelp returns inline help for dice roller panel
-func DiceRollerInlineHelp(inputMode bool, hasLastCommand bool) string {
+func DiceRollerInlineHelp(inputMode bool, hasLastCommand bool, historyMode bool) string {
+	if historyMode {
+		return "↑↓: select • Enter: re-roll • Esc: exit history • F1-F4: switch panels"
+	}
 	if inputMode {
 		return "Enter: roll • Esc: cancel • F1-F4: switch panels"
 	}
 	if hasLastCommand {
-		return "Enter: input dice • r: reroll • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+		return "Enter: input dice • r: reroll • h: history • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 	}
-	return "Enter: input dice • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+	return "Enter: input dice • h: history • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }
 
 // InitiativeTrackerInlineHelp returns inline help for initiative tracker panel
@@ -160,7 +165,7 @@ func InitiativeTrackerInlineHelp(editMode, inputMode, listMode bool) string {
 	if listMode {
 		return "↑↓: select • i: init • h: HP • l: view • a: actions • c: copy • d: delete • Esc: exit"
 	}
-	return "p: add player • m: add monster • e: edit list • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+	return "p: add player • m: add monster • e: edit list • n: next turn • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }
 
 // SpellsInlineHelp returns inline help for spells panel
