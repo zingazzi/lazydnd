@@ -2,7 +2,7 @@
 
 A lazygit-inspired terminal UI for managing your D&D game sessions, built with Go and Bubble Tea.
 
-![LazyD&D Screenshot](screenshot.png)
+![LazyD&D Screenshot](screenshot/screenshot.png)
 
 ## Features
 
@@ -163,6 +163,8 @@ This creates executables in the `build/` directory for:
 
 #### ⚔️ Panel 2: Initiative Tracker
 
+![LazyD&D Attack](screenshot/attack.png)
+
 **Keybindings:**
 | Key | Action |
 |-----|--------|
@@ -241,6 +243,8 @@ When a monster is added to initiative from the Monster panel:
 ---
 
 ### Campaign Management Details
+
+![LazyD&D Save](screenshot/save.png)
 
 **Saving Your Campaign:**
 1. Press `Ctrl+S` to save

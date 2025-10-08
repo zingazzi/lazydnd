@@ -19,8 +19,11 @@ type Model struct {
 	DiceInput       string
 	DiceResult      string
 	DiceHistory     []string
+	DiceCommands    []string // Store original commands for history
 	LastDiceCommand string
 	InputMode       bool
+	DiceHistoryMode bool // When true, navigating dice history to select
+	HistoryIndex    int  // Selected index in history (-1 = none)
 	ScrollOffset    map[PanelType]int
 	// Spell search state
 	SpellSearchInput    string
@@ -35,6 +38,7 @@ type Model struct {
 	InitiativeInputType string // "player", "monster", "initiative"
 	SelectedEntry       int
 	TempEntry           InitiativeEntry // Temporary storage while building entry
+	CurrentTurn         int             // Index of current turn in initiative order (-1 = no combat started)
 	// Initiative edit state
 	InitiativeEditMode  bool
 	InitiativeEditType  string // "initiative", "hp", "delete"
@@ -147,6 +151,7 @@ type SaveState struct {
 	CampaignName   string                   `json:"campaign_name"`
 	SavedAt        string                   `json:"saved_at"`
 	InitiativeList []SavedInitiativeEntry   `json:"initiative_list"`
+	CurrentTurn    int                      `json:"current_turn"`
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence

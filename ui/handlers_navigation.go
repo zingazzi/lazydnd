@@ -2,8 +2,6 @@
 package ui
 
 import (
-	
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -31,6 +29,14 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
 		if m.ActionPopupIndex > 0 {
 			m.ActionPopupIndex--
+		}
+		return m, nil
+	}
+
+	// Handle dice history navigation
+	if m.ActivePanel == DiceRoller && m.DiceHistoryMode && len(m.DiceHistory) > 0 {
+		if m.HistoryIndex < len(m.DiceHistory)-1 {
+			m.HistoryIndex++
 		}
 		return m, nil
 	}
@@ -65,6 +71,14 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
 		if m.ActionPopupIndex < len(m.ActionPopupActions)-1 {
 			m.ActionPopupIndex++
+		}
+		return m, nil
+	}
+
+	// Handle dice history navigation
+	if m.ActivePanel == DiceRoller && m.DiceHistoryMode && len(m.DiceHistory) > 0 {
+		if m.HistoryIndex > 0 {
+			m.HistoryIndex--
 		}
 		return m, nil
 	}
@@ -168,5 +182,35 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else {
 		m.ActivePanel = Monsters
 	}
+	return m, nil
+}
+
+// ========== TURN TRACKING HANDLERS ==========
+
+// handleNextTurn advances to the next turn in initiative order
+func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// If in any input mode, pass through to default input handler
+	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
+		return handleDefaultInput(m, msg)
+	}
+
+	// Only works in initiative tracker panel when not in list mode
+	if m.ActivePanel != InitiativeTracker || m.InitiativeListMode {
+		return m, nil
+	}
+
+	// If there are no entries, do nothing
+	if len(m.InitiativeList) == 0 {
+		return m, nil
+	}
+
+	// If combat hasn't started (CurrentTurn == -1), start at 0
+	if m.CurrentTurn == -1 {
+		m.CurrentTurn = 0
+	} else {
+		// Advance to next turn, wrap around to 0 if at the end
+		m.CurrentTurn = (m.CurrentTurn + 1) % len(m.InitiativeList)
+	}
+
 	return m, nil
 }

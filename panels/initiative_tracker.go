@@ -36,7 +36,7 @@ var (
 )
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int) string {
 	var contentLines []string
 
 	// Show different instructions based on mode
@@ -54,7 +54,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete")
 	} else {
 		contentLines = append(contentLines, "Dungeon Master Panel")
-		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, 'e' to edit")
+		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, 'e' to edit, 'n' for next turn")
 	}
 	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, strings.Repeat("─", 40))
@@ -193,22 +193,31 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 				// Display sorted entries
 				for i, entry := range parsedEntries {
 					var line string
+					var turnMarker string
+
+					// Add turn marker if this is the current turn
+					if currentTurn == i {
+						turnMarker = "★ "
+					} else {
+						turnMarker = "  "
+					}
+
 					if entry.Type == "player" {
-						line = fmt.Sprintf("%2d. %s (Initiative: %d)", i+1, entry.Name, entry.Initiative)
+						line = fmt.Sprintf("%s%2d. %s (Initiative: %d)", turnMarker, i+1, entry.Name, entry.Initiative)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = playerStyle.Render(line)
 						}
 					} else if entry.Type == "monster" {
-						line = fmt.Sprintf("%2d. %s (Init: %d, HP: %s/%s, AC: %s)", i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC)
+						line = fmt.Sprintf("%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)", turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = monsterStyle.Render(line)
 						}
 					} else {
-						line = fmt.Sprintf("%2d. %s (Initiative: %d)", i+1, entry.Name, entry.Initiative)
+						line = fmt.Sprintf("%s%2d. %s (Initiative: %d)", turnMarker, i+1, entry.Name, entry.Initiative)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						}
