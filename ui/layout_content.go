@@ -64,6 +64,7 @@ func getInitiativeTrackerContent(m Model) string {
 		m.InitiativeEditMode,
 		m.InitiativeEditType,
 		m.CurrentTurn,
+		m.RoundCounter,
 	)
 }
 

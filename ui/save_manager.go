@@ -63,6 +63,7 @@ func SaveCampaign(m Model, campaignName string) error {
 		SavedAt:        time.Now().Format(time.RFC3339),
 		InitiativeList: savedEntries,
 		CurrentTurn:    m.CurrentTurn,
+		RoundCounter:   m.RoundCounter,
 	}
 
 	// Marshal to JSON
