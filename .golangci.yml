@@ -1,0 +1,55 @@
+# .golangci.yml
+# Configuration for golangci-lint
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - gofmt          # Check code formatting
+    - goimports      # Check import organization
+    - govet          # Vet examines Go source code
+    - errcheck       # Check for unchecked errors
+    - staticcheck    # Static analysis
+    - unused         # Check for unused code
+    - gosimple       # Simplify code
+    - ineffassign    # Detect ineffectual assignments
+    - misspell       # Check for misspelled words
+    - unconvert      # Remove unnecessary conversions
+    - dupl           # Find duplicated code
+    - goconst        # Find repeated strings that could be constants
+    - gocyclo        # Check cyclomatic complexity
+    - revive         # Fast, configurable, extensible linter
+    - gosec          # Security-focused linter
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15  # Flag functions with complexity > 15
+
+  dupl:
+    threshold: 100  # Flag duplicated code blocks
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3  # Flag strings repeated 3+ times
+
+  misspell:
+    locale: US
+
+  revive:
+    rules:
+      - name: exported
+        disabled: true  # Don't require comments on all exports yet
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - dupl
+        - gosec
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
