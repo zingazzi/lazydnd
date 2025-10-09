@@ -244,6 +244,61 @@ func validateDiceType(sides int) error {
 	return fmt.Errorf("invalid dice type: d%d (allowed: d4, d6, d8, d10, d12, d20, d100)", sides)
 }
 
+// evaluateExpressions evaluates a list of dice/number expressions with operators.
+// Returns the results array and formatted result strings, or an error.
+func evaluateExpressions(expressions []string, advantage, disadvantage bool) ([]int, []string, error) {
+	var results []int
+	var resultStrings []string
+
+	for _, expr := range expressions {
+		// Check if it's a dice expression or just a number
+		if strings.Contains(expr, "d") {
+			result := rollSingleDiceExpression(expr, advantage, disadvantage)
+			if result == -1 {
+				return nil, nil, fmt.Errorf("invalid dice expression: %s", expr)
+			}
+			results = append(results, result)
+			resultStrings = append(resultStrings, fmt.Sprintf("%d (%s)", result, expr))
+		} else {
+			// It's just a number
+			num, err := strconv.Atoi(expr)
+			if err != nil {
+				return nil, nil, fmt.Errorf("invalid number: %s", expr)
+			}
+			results = append(results, num)
+			resultStrings = append(resultStrings, expr)
+		}
+	}
+
+	return results, resultStrings, nil
+}
+
+// calculateTotal calculates the total from results array using the provided operators.
+// Ensures minimum value of 1 (D&D rule: no negative results).
+func calculateTotal(results []int, operators []string) int {
+	if len(results) == 0 {
+		return 1
+	}
+
+	total := results[0]
+	for i := 1; i < len(results); i++ {
+		if i-1 < len(operators) {
+			if operators[i-1] == "+" {
+				total += results[i]
+			} else if operators[i-1] == "-" {
+				total -= results[i]
+			}
+		}
+	}
+
+	// Ensure minimum value of 1 (D&D rule)
+	if total < 1 {
+		total = 1
+	}
+
+	return total
+}
+
 // parseComplexDice handles complex dice notation with single modifier (e.g., "2d6+3").
 // Supports advantage/disadvantage modifiers for d20 rolls.
 // Returns a formatted string with the roll result or an error message.
@@ -438,46 +493,14 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 		expressions = append(expressions, currentExpr)
 	}
 
-	// Roll each expression
-	var results []int
-	var resultStrings []string
-
-	for _, expr := range expressions {
-		// Check if it's a dice expression or just a number
-		if strings.Contains(expr, "d") {
-			result := rollSingleDiceExpression(expr, advantage, disadvantage)
-			if result == -1 {
-				return "Invalid dice expression: " + expr
-			}
-			results = append(results, result)
-			resultStrings = append(resultStrings, fmt.Sprintf("%d (%s)", result, expr))
-		} else {
-			// It's just a number
-			num, err := strconv.Atoi(expr)
-			if err != nil {
-				return "Invalid number: " + expr
-			}
-			results = append(results, num)
-			resultStrings = append(resultStrings, expr)
-		}
+	// Evaluate all expressions
+	results, resultStrings, err := evaluateExpressions(expressions, advantage, disadvantage)
+	if err != nil {
+		return err.Error()
 	}
 
 	// Calculate total
-	total := results[0]
-	for i := 1; i < len(results); i++ {
-		if i-1 < len(operators) {
-			if operators[i-1] == "+" {
-				total += results[i]
-			} else if operators[i-1] == "-" {
-				total -= results[i]
-			}
-		}
-	}
-
-	// Ensure minimum value of 1 (D&D rule: no negative results)
-	if total < 1 {
-		total = 1
-	}
+	total := calculateTotal(results, operators)
 
 	// Format result - Total first, then breakdown
 	resultStr := fmt.Sprintf("TOTAL: %d", total)
@@ -602,46 +625,14 @@ func rollComplexExpression(command string) string {
 		expressions = append(expressions, currentExpr)
 	}
 
-	// Roll each expression
-	var results []int
-	var resultStrings []string
-
-	for _, expr := range expressions {
-		// Check if it's a dice expression or just a number
-		if strings.Contains(expr, "d") {
-			result := rollSingleDiceExpression(expr, false, false)
-			if result == -1 {
-				return "Invalid: " + expr
-			}
-			results = append(results, result)
-			resultStrings = append(resultStrings, fmt.Sprintf("%d(%s)", result, expr))
-		} else {
-			// It's just a number
-			num, err := strconv.Atoi(expr)
-			if err != nil {
-				return "Invalid: " + expr
-			}
-			results = append(results, num)
-			resultStrings = append(resultStrings, expr)
-		}
+	// Evaluate all expressions (no advantage/disadvantage for comma-separated rolls)
+	results, resultStrings, err := evaluateExpressions(expressions, false, false)
+	if err != nil {
+		return "Invalid: " + err.Error()
 	}
 
 	// Calculate total
-	total := results[0]
-	for i := 1; i < len(results); i++ {
-		if i-1 < len(operators) {
-			if operators[i-1] == "+" {
-				total += results[i]
-			} else if operators[i-1] == "-" {
-				total -= results[i]
-			}
-		}
-	}
-
-	// Ensure minimum value of 1 (D&D rule: no negative results)
-	if total < 1 {
-		total = 1
-	}
+	total := calculateTotal(results, operators)
 
 	// Format result compactly for comma-separated display
 	breakdown := resultStrings[0]

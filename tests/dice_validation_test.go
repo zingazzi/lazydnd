@@ -86,7 +86,7 @@ func TestRollDiceInvalidInputs(t *testing.T) {
 		{
 			name:         "Negative dice",
 			command:      "-1d20",
-			wantContains: "Invalid",
+			wantContains: "invalid",
 		},
 		{
 			name:         "Empty command",
