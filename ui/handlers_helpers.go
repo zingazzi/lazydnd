@@ -10,6 +10,15 @@ import (
 
 // ========== INITIATIVE PROCESSING ==========
 
+// completeInitiativeEntry finishes an initiative entry and resets the input state
+func completeInitiativeEntry(m *Model) {
+	m.InitiativeList = append(m.InitiativeList, m.TempEntry)
+	m.InitiativeInputMode = false
+	m.InitiativeInputType = ""
+	m.InitiativeInput = ""
+	m.TempEntry = InitiativeEntry{} // Reset temp entry
+}
+
 // processInitiativeInput handles the multi-step process of adding players/monsters
 func processInitiativeInput(m Model) Model {
 	switch m.InitiativeInputType {
@@ -26,11 +35,7 @@ func processInitiativeInput(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "player_initiative"); err == nil {
 			// Complete player entry
 			m.TempEntry.Initiative = val.(int)
-			m.InitiativeList = append(m.InitiativeList, m.TempEntry)
-			m.InitiativeInputMode = false
-			m.InitiativeInputType = ""
-			m.InitiativeInput = ""
-			m.TempEntry = InitiativeEntry{} // Reset temp entry
+			completeInitiativeEntry(&m)
 		}
 
 	case "monster_name":
@@ -63,11 +68,7 @@ func processInitiativeInput(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "monster_initiative"); err == nil {
 			// Complete monster entry
 			m.TempEntry.Initiative = val.(int)
-			m.InitiativeList = append(m.InitiativeList, m.TempEntry)
-			m.InitiativeInputMode = false
-			m.InitiativeInputType = ""
-			m.InitiativeInput = ""
-			m.TempEntry = InitiativeEntry{} // Reset temp entry
+			completeInitiativeEntry(&m)
 		}
 	}
 

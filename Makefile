@@ -1,113 +1,92 @@
-# Makefile for LazyDnD
+# Makefile
+.PHONY: build test test-verbose test-coverage clean run help
 
-.PHONY: help build run clean docker-build docker-run docker-compose-up docker-compose-down docker-push test install
-
-# Default target
-help:
-	@echo "LazyDnD - Makefile Commands"
-	@echo ""
-	@echo "Native Build:"
-	@echo "  make build          - Build native binary"
-	@echo "  make run            - Run native binary"
-	@echo "  make clean          - Clean build artifacts"
-	@echo "  make install        - Install to /usr/local/bin"
-	@echo "  make test           - Run tests"
-	@echo ""
-	@echo "Cross-Platform Build:"
-	@echo "  make build-all      - Build for all platforms"
-	@echo ""
-	@echo "Docker:"
-	@echo "  make docker-build   - Build Docker image"
-	@echo "  make docker-run     - Run Docker container"
-	@echo "  make docker-compose-up   - Start with docker-compose"
-	@echo "  make docker-compose-down - Stop docker-compose"
-	@echo "  make docker-push    - Push to GHCR"
-	@echo ""
-
-# Native build
+# Build the application
 build:
 	@echo "Building LazyDnD..."
-	go build -ldflags "-s -w" -o lazydnd .
-	@echo "✓ Build complete: ./lazydnd"
+	@go build -o lazydnd
 
-# Run native binary
-run: build
-	./lazydnd
+# Run all tests
+test:
+	@echo "Running tests..."
+	@go test ./tests/...
+
+# Run tests with verbose output
+test-verbose:
+	@echo "Running tests (verbose)..."
+	@go test -v ./tests/...
+
+# Run tests with coverage
+test-coverage:
+	@echo "Running tests with coverage..."
+	@go test ./tests/... -cover
+	@echo ""
+	@echo "Detailed coverage report:"
+	@go test ./tests/... -coverprofile=coverage.out -coverpkg=./...
+	@go tool cover -func=coverage.out
+
+# Run tests and generate HTML coverage report
+test-coverage-html:
+	@echo "Generating HTML coverage report..."
+	@go test ./tests/... -coverprofile=coverage.out -coverpkg=./...
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
 
 # Clean build artifacts
 clean:
-	@echo "Cleaning build artifacts..."
-	rm -f lazydnd
-	rm -rf build/
-	@echo "✓ Clean complete"
+	@echo "Cleaning..."
+	@rm -f lazydnd
+	@rm -f coverage.out
+	@rm -f coverage.html
+	@rm -rf build/
 
-# Install to system
-install: build
-	@echo "Installing to /usr/local/bin..."
-	sudo mv lazydnd /usr/local/bin/
-	@echo "✓ Installed: /usr/local/bin/lazydnd"
-
-# Run tests
-test:
-	@echo "Running tests..."
-	go test ./...
-
-# Build for all platforms
-build-all:
-	@echo "Building for all platforms..."
-	./build.sh
-
-# Docker build
-docker-build:
-	@echo "Building Docker image..."
-	./docker-build.sh
-
-# Docker run
-docker-run:
-	@echo "Running Docker container..."
-	./docker-run.sh
-
-# Docker compose up
-docker-compose-up:
-	@echo "Starting with docker-compose..."
-	docker-compose up
-
-# Docker compose down
-docker-compose-down:
-	@echo "Stopping docker-compose..."
-	docker-compose down
-
-# Push to GHCR
-docker-push: docker-build
-	@echo "Pushing to GitHub Container Registry..."
-	@read -p "Enter version tag (e.g., v1.0.1): " VERSION; \
-	docker tag lazydnd:latest ghcr.io/zingazzi/lazydnd:$$VERSION && \
-	docker tag lazydnd:latest ghcr.io/zingazzi/lazydnd:latest && \
-	docker push ghcr.io/zingazzi/lazydnd:$$VERSION && \
-	docker push ghcr.io/zingazzi/lazydnd:latest
-	@echo "✓ Pushed to GHCR"
-
-# Development helpers
-dev:
-	@echo "Running in development mode..."
-	go run .
+# Run the application
+run: build
+	@./lazydnd
 
 # Format code
 fmt:
 	@echo "Formatting code..."
-	go fmt ./...
-	@echo "✓ Formatted"
+	@go fmt ./...
 
-# Lint code (requires golangci-lint)
+# Lint code (basic)
 lint:
 	@echo "Linting code..."
-	golangci-lint run
-	@echo "✓ Linted"
+	@go vet ./...
 
-# Update dependencies
-deps:
-	@echo "Updating dependencies..."
-	go mod tidy
-	go mod download
-	@echo "✓ Dependencies updated"
+# Advanced linting with golangci-lint (install: brew install golangci-lint)
+lint-advanced:
+	@echo "Running advanced linting..."
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run; \
+	else \
+		echo "golangci-lint not installed. Install with: brew install golangci-lint"; \
+		echo "Falling back to go vet..."; \
+		go vet ./...; \
+	fi
 
+# Run all quality checks
+check: fmt lint test
+
+# Full quality check (includes advanced linting)
+quality: fmt lint-advanced test-coverage
+	@echo ""
+	@echo "✓ All quality checks passed!"
+	@echo ""
+
+# Show help
+help:
+	@echo "Available targets:"
+	@echo "  build              - Build the application"
+	@echo "  test               - Run all tests"
+	@echo "  test-verbose       - Run tests with verbose output"
+	@echo "  test-coverage      - Run tests with coverage report"
+	@echo "  test-coverage-html - Generate HTML coverage report"
+	@echo "  clean              - Remove build artifacts"
+	@echo "  run                - Build and run the application"
+	@echo "  fmt                - Format code with gofmt"
+	@echo "  lint               - Lint code with go vet"
+	@echo "  lint-advanced      - Advanced linting with golangci-lint"
+	@echo "  check              - Run fmt, lint, and test"
+	@echo "  quality            - Full quality check (fmt, lint-advanced, test-coverage)"
+	@echo "  help               - Show this help message"

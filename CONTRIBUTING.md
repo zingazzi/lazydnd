@@ -55,9 +55,23 @@ go build -o lazydnd
 
 ### Running Tests
 
+All tests are located in the `tests/` directory. Run them using:
+
 ```bash
-go test ./...
+# Run all tests
+make test
+
+# Run with verbose output
+make test-verbose
+
+# Run with coverage report
+make test-coverage
+
+# Or use Go directly
+go test ./tests/...
 ```
+
+**Important**: All tests must pass before submitting a pull request.
 
 ## Project Structure
 
@@ -93,6 +107,7 @@ Use descriptive branch names:
 - Follow the existing code style
 - Add comments where the operation isn't clear
 - Include file path/name as a one-line comment at the top of new files
+- **Add or update tests** for your changes (see [Testing Guidelines](#testing-guidelines))
 - Test your changes thoroughly
 
 ### 3. Commit Your Changes
@@ -198,11 +213,13 @@ refactor: extract scroll logic into separate functions
 ## Pull Request Process
 
 1. **Update documentation** if you've changed functionality
-2. **Test thoroughly** - ensure the app runs without crashes
-3. **Keep PRs focused** - one feature or fix per PR
-4. **Describe your changes** clearly in the PR description
-5. **Link related issues** using keywords (e.g., "Fixes #123")
-6. **Be responsive** to feedback and requested changes
+2. **Add or update tests** for your changes
+3. **Ensure all tests pass** - run `make test` before submitting
+4. **Test thoroughly** - ensure the app runs without crashes
+5. **Keep PRs focused** - one feature or fix per PR
+6. **Describe your changes** clearly in the PR description
+7. **Link related issues** using keywords (e.g., "Fixes #123")
+8. **Be responsive** to feedback and requested changes
 
 ### PR Description Template
 
@@ -217,6 +234,11 @@ Brief description of what this PR does.
 - [ ] Refactoring
 
 ## Testing
+- [ ] All existing tests pass (`make test`)
+- [ ] Added new tests for new functionality
+- [ ] Manually tested the changes
+- [ ] Tested edge cases
+
 How did you test these changes?
 
 ## Related Issues
@@ -285,6 +307,99 @@ Other solutions you've thought about.
 **Additional context**
 Any other context or screenshots.
 ```
+
+## Testing Guidelines
+
+### Writing Tests
+
+All tests should be placed in the `tests/` directory and use the `tests` package:
+
+```go
+// tests/your_feature_test.go
+package tests
+
+import (
+    "testing"
+    "lazydnd/ui"
+    "lazydnd/panels"
+)
+
+func TestYourFeature(t *testing.T) {
+    // Your test code here
+}
+```
+
+### Test Requirements
+
+When contributing code, please ensure:
+
+1. **All existing tests pass** - Run `make test` before submitting
+2. **Add tests for new features** - New functionality should include tests
+3. **Add tests for bug fixes** - Add a test that would have caught the bug
+4. **Test edge cases** - Consider boundary conditions, empty inputs, invalid data
+5. **Use table-driven tests** - For multiple test cases of the same function
+
+### Example: Table-Driven Test
+
+```go
+func TestRollDice(t *testing.T) {
+    tests := []struct {
+        name         string
+        command      string
+        wantContains string
+        wantError    bool
+    }{
+        {
+            name:         "Simple d20 roll",
+            command:      "1d20",
+            wantContains: "d20:",
+            wantError:    false,
+        },
+        {
+            name:         "Invalid command",
+            command:      "invalid",
+            wantContains: "Invalid",
+            wantError:    true,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            result := panels.RollDice(tt.command)
+            if !strings.Contains(result, tt.wantContains) {
+                t.Errorf("got %q, want to contain %q", result, tt.wantContains)
+            }
+        })
+    }
+}
+```
+
+### Running Specific Tests
+
+```bash
+# Run all tests
+make test
+
+# Run with verbose output
+make test-verbose
+
+# Run specific test
+go test ./tests/... -run TestRollDice
+
+# Run with coverage
+make test-coverage
+```
+
+### Test Coverage
+
+- Current coverage: **8.6%** of statements
+- Goal: Aim for **70%+** coverage for new code
+- Focus on testing:
+  - Exported functions and public APIs
+  - Critical game logic (dice rolling, initiative, save/load)
+  - Edge cases and error conditions
+
+See [TESTING.md](./TESTING.md) for more detailed testing documentation.
 
 ## Development Tips
 

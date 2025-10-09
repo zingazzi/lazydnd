@@ -221,43 +221,35 @@ func RenderLoadPopup(m Model) string {
 	return popupStyle.Render(popup)
 }
 
-// RenderSaveSuccessMessage renders a temporary success message
-func RenderSaveSuccessMessage(campaignName string) string {
-	message := fmt.Sprintf("✓ Campaign '%s' saved successfully!", campaignName)
+// renderStatusMessage renders a styled message with icon and color
+func renderStatusMessage(message, icon, bgColor string) string {
+	fullMessage := fmt.Sprintf("%s %s", icon, message)
 
 	style := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#55AA55")).
+		Background(lipgloss.Color(bgColor)).
 		Padding(0, 2).
 		Bold(true)
 
-	return style.Render(message)
+	return style.Render(fullMessage)
+}
+
+// RenderSaveSuccessMessage renders a temporary success message
+func RenderSaveSuccessMessage(campaignName string) string {
+	message := fmt.Sprintf("Campaign '%s' saved successfully!", campaignName)
+	return renderStatusMessage(message, "✓", "#55AA55")
 }
 
 // RenderLoadSuccessMessage renders a temporary success message
 func RenderLoadSuccessMessage(campaignName string) string {
-	message := fmt.Sprintf("✓ Campaign '%s' loaded successfully!", campaignName)
-
-	style := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#55AA55")).
-		Padding(0, 2).
-		Bold(true)
-
-	return style.Render(message)
+	message := fmt.Sprintf("Campaign '%s' loaded successfully!", campaignName)
+	return renderStatusMessage(message, "✓", "#55AA55")
 }
 
 // RenderErrorMessage renders an error message
 func RenderErrorMessage(errorMsg string) string {
-	message := fmt.Sprintf("✗ Error: %s", errorMsg)
-
-	style := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#AA5555")).
-		Padding(0, 2).
-		Bold(true)
-
-	return style.Render(message)
+	message := fmt.Sprintf("Error: %s", errorMsg)
+	return renderStatusMessage(message, "✗", "#AA5555")
 }
 
 // RenderRenamePopup renders the rename campaign popup

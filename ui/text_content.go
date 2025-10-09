@@ -13,17 +13,17 @@ const (
 // ========== STATUS BAR TEXT ==========
 
 type StatusBarText struct {
-	ProjectName     string
-	TabKey          string
-	TabDesc         string
-	ArrowKeys       string
-	ArrowDesc       string
-	NumbersKey      string
-	NumbersDesc     string
-	HelpKey         string
-	HelpDesc        string
-	QuitKey         string
-	QuitDesc        string
+	ProjectName string
+	TabKey      string
+	TabDesc     string
+	ArrowKeys   string
+	ArrowDesc   string
+	NumbersKey  string
+	NumbersDesc string
+	HelpKey     string
+	HelpDesc    string
+	QuitKey     string
+	QuitDesc    string
 }
 
 var DefaultStatusBarText = StatusBarText{
