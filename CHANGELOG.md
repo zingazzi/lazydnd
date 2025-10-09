@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.0
+- Add quality code check (duplication and lint)
+- Add Tests
+- Saving throw and ability check for monsters
+
 ## 2.2.0
 - Add turn counter
 - Minor navigation fix

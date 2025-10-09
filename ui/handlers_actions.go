@@ -79,6 +79,27 @@ func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleS handles the 's' key
+func handleS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle search mode input first
+	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+		return handleSearchModeInput(m, "s"), nil
+	}
+
+	// Open saving throw popup in initiative tracker when a monster is selected
+	if m.ActivePanel == InitiativeTracker && !m.InputMode {
+		if m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+			entry := m.InitiativeList[m.SelectedEntry]
+			// Only works for monsters with full data
+			if entry.Type == "monster" && entry.MonsterData != nil {
+				m.ShowSavingThrowPopup = true
+			}
+		}
+	}
+
+	return m, nil
+}
+
 // handleI handles the 'i' key
 func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle dice input mode

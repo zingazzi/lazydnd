@@ -25,6 +25,11 @@ func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleUp handles up arrow key
 func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Disable navigation when saving throw popup is open
+	if m.ShowSavingThrowPopup {
+		return m, nil
+	}
+
 	// Handle action popup navigation first (highest priority)
 	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
 		if m.ActionPopupIndex > 0 {
@@ -69,6 +74,11 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleDown handles down arrow key
 func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Disable navigation when saving throw popup is open
+	if m.ShowSavingThrowPopup {
+		return m, nil
+	}
+
 	// Handle action popup navigation first (highest priority)
 	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 {
 		if m.ActionPopupIndex < len(m.ActionPopupActions)-1 {
