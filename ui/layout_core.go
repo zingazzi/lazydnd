@@ -71,6 +71,11 @@ func (m Model) View() string {
 		return m.renderRenamePopupOverlay(mainView)
 	}
 
+	// Show saving throw popup if active (takes priority over action popup)
+	if m.ShowSavingThrowPopup {
+		return m.renderSavingThrowPopupOverlay(mainView)
+	}
+
 	// Show action popup if active (takes priority over help popup)
 	if m.ShowActionPopup {
 		return m.renderActionPopupOverlay(mainView)

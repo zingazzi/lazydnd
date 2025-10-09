@@ -57,6 +57,8 @@ type Model struct {
 	ActionPopupActions []MonsterAction
 	ActionPopupIndex   int
 	ActionPopupMonster string // Name of the monster whose actions are shown
+	// Saving throw popup state
+	ShowSavingThrowPopup bool
 	// Save/Load state
 	ShowSavePopup       bool
 	ShowLoadPopup       bool

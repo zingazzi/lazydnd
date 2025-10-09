@@ -42,6 +42,12 @@ func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleEscape handles escape key presses
 func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Close saving throw popup if open
+	if m.ShowSavingThrowPopup {
+		m.ShowSavingThrowPopup = false
+		return m, nil
+	}
+
 	// Close action popup if open
 	if m.ShowActionPopup {
 		m.ShowActionPopup = false
@@ -102,7 +108,15 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleEnter handles enter key presses
 func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	// Handle action popup selection first (highest priority)
+	// Handle saving throw popup - reroll on Enter (highest priority)
+	if m.ShowSavingThrowPopup {
+		// Just keep the popup open - the RenderSavingThrowPopup function
+		// will generate new rolls each time it's called (random seed)
+		// We don't need to do anything, the next render will show new rolls
+		return m, nil
+	}
+
+	// Handle action popup selection first
 	if m.ShowActionPopup && len(m.ActionPopupActions) > 0 && m.ActionPopupIndex >= 0 && m.ActionPopupIndex < len(m.ActionPopupActions) {
 		selectedAction := m.ActionPopupActions[m.ActionPopupIndex]
 
