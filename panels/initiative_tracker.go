@@ -302,13 +302,24 @@ func extractField(entry, fieldName string) string {
 	return strings.TrimSpace(entry[start:end])
 }
 
-// RollInitiative rolls a d20 for initiative
+// RollInitiative rolls a standard d20 die for initiative order.
+// Returns a random integer between 1 and 20 (inclusive).
+// Used when adding monsters or players to the initiative tracker.
 func RollInitiative() int {
 	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(20) + 1
 }
 
-// ParseInput parses user input for different input types
+// ParseInput parses and validates user input based on the specified input type.
+//
+// Supported input types:
+//   - "player_name", "monster_name": Validates non-empty trimmed strings
+//   - "player_initiative", "monster_initiative": Parses positive integers or "r" to roll
+//   - "monster_hp": Parses positive integers for health points
+//   - "hp_change": Parses signed integers ("+5" or "-10") for HP modifications
+//
+// Returns the parsed value (string or int) or an error if validation fails.
+// For "monster_initiative" with input "r", automatically rolls a d20.
 func ParseInput(input string, inputType string) (interface{}, error) {
 	switch inputType {
 	case "player_name", "monster_name":
