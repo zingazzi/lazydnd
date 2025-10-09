@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.2.0
+- Add turn counter
+- Minor navigation fix
+
 ## 2.1.0
 - Reroll a specific dice
 - Minor fix
