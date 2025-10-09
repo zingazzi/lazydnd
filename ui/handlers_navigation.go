@@ -55,6 +55,8 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Navigate initiative list
 		if m.SelectedEntry > 0 {
 			m.SelectedEntry--
+			// Auto-scroll to keep selection visible
+			m = adjustScrollForSelection(m)
 		}
 	} else if !m.InputMode && !m.InitiativeInputMode {
 		// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
@@ -97,6 +99,8 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Navigate initiative list
 		if m.SelectedEntry < len(m.InitiativeList)-1 {
 			m.SelectedEntry++
+			// Auto-scroll to keep selection visible
+			m = adjustScrollForSelection(m)
 		}
 	} else if !m.InputMode && !m.InitiativeInputMode {
 		// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
@@ -185,6 +189,48 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	return m, nil
 }
 
+// ========== SCROLL HELPERS ==========
+
+// adjustScrollForSelection adjusts scroll offset to keep selected entry visible
+func adjustScrollForSelection(m Model) Model {
+	if m.ActivePanel != InitiativeTracker || !m.InitiativeListMode {
+		return m
+	}
+
+	// Header takes about 6-10 lines (instructions, round info, separator)
+	// Let's use a buffer to keep some context visible
+	headerOffset := 6
+	visibleEntries := 10 // How many entries can be shown at once
+
+	scrollOffset := m.ScrollOffset[InitiativeTracker]
+
+	// Calculate which entries should be visible based on current scroll
+	// The first visible entry in the list (after header)
+	firstVisibleEntry := 0
+	if scrollOffset > headerOffset {
+		firstVisibleEntry = scrollOffset - headerOffset
+	}
+
+	lastVisibleEntry := firstVisibleEntry + visibleEntries - 1
+
+	// If selected entry is above the visible area, scroll up
+	if m.SelectedEntry < firstVisibleEntry {
+		// Scroll so selected entry is at the top of the visible list
+		m.ScrollOffset[InitiativeTracker] = headerOffset + m.SelectedEntry
+		if m.ScrollOffset[InitiativeTracker] < 0 {
+			m.ScrollOffset[InitiativeTracker] = 0
+		}
+	}
+
+	// If selected entry is below the visible area, scroll down
+	if m.SelectedEntry > lastVisibleEntry {
+		// Scroll so selected entry is at the bottom of the visible list
+		m.ScrollOffset[InitiativeTracker] = headerOffset + m.SelectedEntry - visibleEntries + 1
+	}
+
+	return m
+}
+
 // ========== TURN TRACKING HANDLERS ==========
 
 // handleResetCombat resets the combat turn and round counter
@@ -194,8 +240,8 @@ func handleResetCombat(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleDefaultInput(m, msg)
 	}
 
-	// Only works in initiative tracker panel when not in list mode
-	if m.ActivePanel != InitiativeTracker || m.InitiativeListMode {
+	// Only works in initiative tracker panel (now works in both normal and list mode)
+	if m.ActivePanel != InitiativeTracker {
 		return m, nil
 	}
 
@@ -213,8 +259,8 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleDefaultInput(m, msg)
 	}
 
-	// Only works in initiative tracker panel when not in list mode
-	if m.ActivePanel != InitiativeTracker || m.InitiativeListMode {
+	// Only works in initiative tracker panel (now works in both normal and list mode)
+	if m.ActivePanel != InitiativeTracker {
 		return m, nil
 	}
 
