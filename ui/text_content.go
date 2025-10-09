@@ -84,8 +84,9 @@ var DiceRollerHelp = []HelpKey{
 var InitiativeTrackerHelp = []HelpKey{
 	{"p", "Add player to initiative"},
 	{"m", "Add monster to initiative"},
-	{"e", "Enter edit mode"},
-	{"n", "Next turn (advance initiative)"},
+	{"Enter", "Enter edit mode"},
+	{"n", "Next turn (works in all modes)"},
+	{"x", "Reset combat (works in all modes)"},
 	{"", ""},
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},

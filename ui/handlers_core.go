@@ -51,6 +51,7 @@ var keyHandlers = map[string]KeyHandler{
 	"l": handleL,
 	"c": handleC,
 	"n": handleNextTurn,
+	"x": handleResetCombat,
 
 	// Special handlers
 	"?": handleHelp,

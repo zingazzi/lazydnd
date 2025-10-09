@@ -73,13 +73,8 @@ func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "e"), nil
 	}
 
-	// Enter list edit mode in initiative tracker
-	if m.ActivePanel == InitiativeTracker && len(m.InitiativeList) > 0 {
-		m.InitiativeListMode = true
-		if m.SelectedEntry == -1 {
-			m.SelectedEntry = 0
-		}
-	}
+	// 'e' key no longer enters edit mode (now using Enter key)
+	// Keep the handler for typing 'e' in search modes
 
 	return m, nil
 }

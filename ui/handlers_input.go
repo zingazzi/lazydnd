@@ -180,6 +180,12 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		} else if m.InitiativeInputMode {
 			// Process initiative tracker input
 			m = processInitiativeInput(m)
+		} else if len(m.InitiativeList) > 0 {
+			// Enter list edit mode when there are entries
+			m.InitiativeListMode = true
+			if m.SelectedEntry == -1 {
+				m.SelectedEntry = 0
+			}
 		}
 	} else if m.ActivePanel == Spells {
 		if m.SpellSearchMode {

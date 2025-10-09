@@ -30,6 +30,7 @@ func InitialModel() Model {
 		SelectedEntry:          -1,
 		TempEntry:              InitiativeEntry{},
 		CurrentTurn:            -1,
+		RoundCounter:           0,
 		InitiativeEditMode:     false,
 		InitiativeEditType:     "",
 		InitiativeListMode:     false,
