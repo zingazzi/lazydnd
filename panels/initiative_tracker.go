@@ -53,7 +53,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 	} else if listMode {
 		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete")
 	} else {
-		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, 'e' to edit")
+		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, Enter to edit")
 		contentLines = append(contentLines, "Press 'n' for next turn, 'x' to reset combat")
 	}
 

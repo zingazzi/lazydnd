@@ -2,7 +2,6 @@
 package ui
 
 import (
-	
 	"fmt"
 	"lazydnd/panels"
 	"reflect"
@@ -131,7 +130,7 @@ func processInitiativeEdit(m Model) Model {
 		m.InitiativeEditMode = false
 		m.InitiativeEditType = ""
 
-		// Renumber instances after deletion
+		// Update display names after deletion (keeps instance numbers stable)
 		m = renumberMonsterInstances(m)
 	}
 
@@ -172,36 +171,40 @@ func findOriginalIndex(m Model, sortedIndex int) int {
 	return -1
 }
 
-// renumberMonsterInstances renumbers all monster instances based on duplicates
+// renumberMonsterInstances assigns instance numbers to monsters, keeping existing numbers stable
 func renumberMonsterInstances(m Model) Model {
-	// First pass: normalize all base names (strip existing numbers)
+	// First pass: normalize all base names
 	for i := range m.InitiativeList {
 		if m.InitiativeList[i].BaseName == "" {
-			// Extract base name by removing " N" suffix if present
-			name := m.InitiativeList[i].Name
-			// Simple approach: if BaseName is empty, use current Name as BaseName
-			m.InitiativeList[i].BaseName = name
+			// If BaseName is empty, use current Name as BaseName
+			m.InitiativeList[i].BaseName = m.InitiativeList[i].Name
 		}
 	}
 
-	// Count instances of each base name
+	// Count instances of each base name and find max instance number
 	nameCounts := make(map[string]int)
+	maxInstanceNum := make(map[string]int)
+
 	for _, entry := range m.InitiativeList {
 		nameCounts[entry.BaseName]++
+		if entry.InstanceNum > maxInstanceNum[entry.BaseName] {
+			maxInstanceNum[entry.BaseName] = entry.InstanceNum
+		}
 	}
 
-	// Track current instance number for each base name
-	instanceNumbers := make(map[string]int)
-
-	// Update all entries
+	// Assign instance numbers to entries that don't have one yet
 	for i := range m.InitiativeList {
 		baseName := m.InitiativeList[i].BaseName
 
-		// If there's more than one instance, add numbers
+		// If there's more than one instance of this monster
 		if nameCounts[baseName] > 1 {
-			instanceNumbers[baseName]++
-			m.InitiativeList[i].InstanceNum = instanceNumbers[baseName]
-			m.InitiativeList[i].Name = fmt.Sprintf("%s %d", baseName, instanceNumbers[baseName])
+			// If this entry doesn't have an instance number yet, assign the next available one
+			if m.InitiativeList[i].InstanceNum == 0 {
+				maxInstanceNum[baseName]++
+				m.InitiativeList[i].InstanceNum = maxInstanceNum[baseName]
+			}
+			// Update display name with instance number
+			m.InitiativeList[i].Name = fmt.Sprintf("%s %d", baseName, m.InitiativeList[i].InstanceNum)
 		} else {
 			// Only one instance, no number needed
 			m.InitiativeList[i].InstanceNum = 0
