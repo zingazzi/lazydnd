@@ -171,18 +171,24 @@ This creates executables in the `build/` directory for:
 | `p` | Add player to initiative |
 | `m` | Add monster manually (enter name, HP, AC, initiative) |
 | `Enter` | Enter edit mode (navigate entries with ↑↓) |
+| `n` | Next turn (advance initiative) |
+| `x` | Reset combat (reset turn and round counters) |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
+| `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
 | `d` | Delete selected entry (in edit mode) |
 | `l` | View linked monster details (if added from Monster panel) |
 | `a` | Show monster actions popup (if monster has actions) |
 | `c` | Copy/duplicate selected entry |
 
 **Features:**
+- ✅ **Turn Tracking**: Track current turn with visual indicator (★)
+- ✅ **Round Counter**: Automatic round tracking with time elapsed (6 seconds per round)
 - ✅ **Auto-Sort**: Entries sorted by initiative (highest first)
 - ✅ **Monster Linking**: Monsters added from Monster panel retain full data
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
+- ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Campaign Save**: All initiative data saved with campaign
@@ -190,6 +196,28 @@ This creates executables in the `build/` directory for:
 **Adding Monsters:**
 1. **Manual**: Press 'm' and enter details (no action support)
 2. **From Monster Panel**: Search monster, press 'a' to add with full stats and actions
+
+**Saving Throws & Skill Checks:**
+When a monster is added from the Monster panel, you can roll all saving throws and skill checks:
+1. Enter edit mode with `Enter`
+2. Select a monster with ↑↓
+3. Press `s` to open the saving throws popup
+
+The popup displays:
+- ✅ **All 6 Saving Throws**: STR, DEX, CON, INT, WIS, CHA with correct modifiers
+- ✅ **Proficiency Detection**: Automatically applies proficiency bonuses (marked with ⭐)
+- ✅ **Stealth Check**: If monster has Stealth skill
+- ✅ **Perception Check**: If monster has Perception skill
+- ✅ **Natural 20/1 Highlighting**: Critical successes (green) and failures (red)
+- ✅ **Reroll**: Press `Enter` to reroll all checks
+- ✅ **Close**: Press `Esc` to close popup
+
+**Example Use Cases:**
+- Fireball spell → Check DEX saves for all monsters
+- Hidden enemy → Roll Stealth check
+- Surprise round → Check Perception against Stealth
+- Hold Person spell → Check WIS save
+- Legendary Resistance → Roll and decide if used
 
 ---
 
