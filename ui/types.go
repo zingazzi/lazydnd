@@ -26,11 +26,11 @@ type Model struct {
 	HistoryIndex    int  // Selected index in history (-1 = none)
 	ScrollOffset    map[PanelType]int
 	// Spell search state
-	SpellSearchInput    string
-	SpellSearchMode     bool
-	SelectedSpell       *Spell
-	SpellSuggestions    []string
-	SuggestionIndex     int
+	SpellSearchInput string
+	SpellSearchMode  bool
+	SelectedSpell    *Spell
+	SpellSuggestions []string
+	SuggestionIndex  int
 	// Initiative tracker state
 	InitiativeList      []InitiativeEntry
 	InitiativeInput     string
@@ -41,14 +41,14 @@ type Model struct {
 	CurrentTurn         int             // Index of current turn in initiative order (-1 = no combat started)
 	RoundCounter        int             // Current combat round (0 = combat not started, 1+ = active rounds)
 	// Initiative edit state
-	InitiativeEditMode  bool
-	InitiativeEditType  string // "initiative", "hp", "delete"
-	InitiativeListMode  bool   // When true, navigating the list instead of adding entries
+	InitiativeEditMode bool
+	InitiativeEditType string // "initiative", "hp", "delete"
+	InitiativeListMode bool   // When true, navigating the list instead of adding entries
 	// Monster search state
-	MonsterSearchInput    string
-	MonsterSearchMode     bool
-	SelectedMonster       *Monster
-	MonsterSuggestions    []string
+	MonsterSearchInput     string
+	MonsterSearchMode      bool
+	SelectedMonster        *Monster
+	MonsterSuggestions     []string
 	MonsterSuggestionIndex int
 	// Help popup state
 	ShowHelpPopup bool
@@ -72,33 +72,33 @@ type Model struct {
 
 // InitiativeEntry represents a player or monster in the initiative tracker
 type InitiativeEntry struct {
-	Name         string
-	Type         string   // "player" or "monster"
-	Initiative   int
-	HP           int      // Only for monsters
-	MaxHP        int      // Only for monsters
-	AC           int      // Only for monsters
-	MonsterData  *Monster // Link to full monster data for actions
-	InstanceNum  int      // Instance number for duplicates (0 = no number shown)
-	BaseName     string   // Original name without number
-	MonsterName  string   // Original monster name for save/load persistence
+	Name        string
+	Type        string // "player" or "monster"
+	Initiative  int
+	HP          int      // Only for monsters
+	MaxHP       int      // Only for monsters
+	AC          int      // Only for monsters
+	MonsterData *Monster // Link to full monster data for actions
+	InstanceNum int      // Instance number for duplicates (0 = no number shown)
+	BaseName    string   // Original name without number
+	MonsterName string   // Original monster name for save/load persistence
 }
 
 // Spell represents a D&D spell
 type Spell struct {
-	Name            string   `json:"name"`
-	Level           int      `json:"level"`
-	School          string   `json:"school"`
-	Classes         []string `json:"classes"`
-	ActionType      string   `json:"actionType"`
-	Concentration   bool     `json:"concentration"`
-	Ritual          bool     `json:"ritual"`
-	Range           string   `json:"range"`
-	Components      []string `json:"components"`
-	Material        string   `json:"material,omitempty"`
-	Duration        string   `json:"duration"`
-	Description     string   `json:"description"`
-	CantripUpgrade  string   `json:"cantripUpgrade,omitempty"`
+	Name           string   `json:"name"`
+	Level          int      `json:"level"`
+	School         string   `json:"school"`
+	Classes        []string `json:"classes"`
+	ActionType     string   `json:"actionType"`
+	Concentration  bool     `json:"concentration"`
+	Ritual         bool     `json:"ritual"`
+	Range          string   `json:"range"`
+	Components     []string `json:"components"`
+	Material       string   `json:"material,omitempty"`
+	Duration       string   `json:"duration"`
+	Description    string   `json:"description"`
+	CantripUpgrade string   `json:"cantripUpgrade,omitempty"`
 }
 
 // MonsterAction represents a single action a monster can take
@@ -149,11 +149,11 @@ type Monster struct {
 
 // SaveState represents a saved campaign state
 type SaveState struct {
-	CampaignName   string                   `json:"campaign_name"`
-	SavedAt        string                   `json:"saved_at"`
-	InitiativeList []SavedInitiativeEntry   `json:"initiative_list"`
-	CurrentTurn    int                      `json:"current_turn"`
-	RoundCounter   int                      `json:"round_counter"`
+	CampaignName   string                 `json:"campaign_name"`
+	SavedAt        string                 `json:"saved_at"`
+	InitiativeList []SavedInitiativeEntry `json:"initiative_list"`
+	CurrentTurn    int                    `json:"current_turn"`
+	RoundCounter   int                    `json:"round_counter"`
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence

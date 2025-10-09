@@ -10,19 +10,19 @@ import (
 
 // Spell represents a D&D spell (duplicate from ui package for panels use)
 type Spell struct {
-	Name            string   `json:"name"`
-	Level           int      `json:"level"`
-	School          string   `json:"school"`
-	Classes         []string `json:"classes"`
-	ActionType      string   `json:"actionType"`
-	Concentration   bool     `json:"concentration"`
-	Ritual          bool     `json:"ritual"`
-	Range           string   `json:"range"`
-	Components      []string `json:"components"`
-	Material        string   `json:"material,omitempty"`
-	Duration        string   `json:"duration"`
-	Description     string   `json:"description"`
-	CantripUpgrade  string   `json:"cantripUpgrade,omitempty"`
+	Name           string   `json:"name"`
+	Level          int      `json:"level"`
+	School         string   `json:"school"`
+	Classes        []string `json:"classes"`
+	ActionType     string   `json:"actionType"`
+	Concentration  bool     `json:"concentration"`
+	Ritual         bool     `json:"ritual"`
+	Range          string   `json:"range"`
+	Components     []string `json:"components"`
+	Material       string   `json:"material,omitempty"`
+	Duration       string   `json:"duration"`
+	Description    string   `json:"description"`
+	CantripUpgrade string   `json:"cantripUpgrade,omitempty"`
 }
 
 var spellDatabase []Spell

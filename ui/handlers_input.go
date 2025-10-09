@@ -196,19 +196,19 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				if foundSpell != nil {
 					// Convert panels.Spell to Spell
 					m.SelectedSpell = &Spell{
-						Name:            foundSpell.Name,
-						Level:           foundSpell.Level,
-						School:          foundSpell.School,
-						Classes:         foundSpell.Classes,
-						ActionType:      foundSpell.ActionType,
-						Concentration:   foundSpell.Concentration,
-						Ritual:          foundSpell.Ritual,
-						Range:           foundSpell.Range,
-						Components:      foundSpell.Components,
-						Material:        foundSpell.Material,
-						Duration:        foundSpell.Duration,
-						Description:     foundSpell.Description,
-						CantripUpgrade:  foundSpell.CantripUpgrade,
+						Name:           foundSpell.Name,
+						Level:          foundSpell.Level,
+						School:         foundSpell.School,
+						Classes:        foundSpell.Classes,
+						ActionType:     foundSpell.ActionType,
+						Concentration:  foundSpell.Concentration,
+						Ritual:         foundSpell.Ritual,
+						Range:          foundSpell.Range,
+						Components:     foundSpell.Components,
+						Material:       foundSpell.Material,
+						Duration:       foundSpell.Duration,
+						Description:    foundSpell.Description,
+						CantripUpgrade: foundSpell.CantripUpgrade,
 					}
 				}
 				m.SpellSearchInput = selectedSpellName
@@ -335,8 +335,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle text input for dice commands
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		// Allow alphanumeric characters and common symbols for dice notation
-		if len(key) == 1 && (
-			(key >= "a" && key <= "z") ||
+		if len(key) == 1 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
 			key == "+" || key == "-" || key == "d" || key == " " || key == ",") {
@@ -344,8 +343,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {
 		// Handle text input for initiative tracker (both input and edit modes)
-		if len(key) == 1 && (
-			(key >= "a" && key <= "z") ||
+		if len(key) == 1 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
 			key == " " || key == "'" || key == "-" || key == "." || key == "_" || key == "+") {
@@ -353,8 +351,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	} else if m.SpellSearchMode && m.ActivePanel == Spells {
 		// Handle text input for spell search
-		if len(key) == 1 && (
-			(key >= "a" && key <= "z") ||
+		if len(key) == 1 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			key == "'" || key == "-" || key == " ") {
 			m.SpellSearchInput += key
@@ -368,8 +365,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 		// Handle text input for monster search
-		if len(key) == 1 && (
-			(key >= "a" && key <= "z") ||
+		if len(key) == 1 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			key == "'" || key == "-" || key == " ") {
 			m.MonsterSearchInput += key

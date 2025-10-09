@@ -170,7 +170,7 @@ This creates executables in the `build/` directory for:
 |-----|--------|
 | `p` | Add player to initiative |
 | `m` | Add monster manually (enter name, HP, AC, initiative) |
-| `e` | Enter edit mode (navigate entries with ↑↓) |
+| `Enter` | Enter edit mode (navigate entries with ↑↓) |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
 | `d` | Delete selected entry (in edit mode) |
