@@ -13,7 +13,7 @@ import (
 // handleR handles the 'r' key
 func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "r"), nil
 	}
 
@@ -30,7 +30,7 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleP handles the 'p' key
 func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "p"), nil
 	}
 
@@ -47,7 +47,7 @@ func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleM handles the 'm' key
 func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "m"), nil
 	}
 
@@ -64,7 +64,7 @@ func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleE handles the 'e' key
 func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "e"), nil
 	}
 
@@ -77,7 +77,7 @@ func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleS handles the 's' key
 func handleS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input first
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "s"), nil
 	}
 
@@ -104,7 +104,7 @@ func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Handle search mode input
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "i"), nil
 	}
 
@@ -127,7 +127,7 @@ func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Handle search mode input
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "h"), nil
 	}
 
@@ -161,7 +161,7 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Handle search mode input
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "a"), nil
 	}
 
@@ -222,7 +222,7 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Handle search mode input
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "d"), nil
 	}
 
@@ -238,7 +238,7 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleL handles the 'l' key
 func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "l"), nil
 	}
 
@@ -257,7 +257,7 @@ func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleC handles the 'c' key
 func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle search mode input
-	if m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode {
+	if m.isInInputMode() {
 		return handleSearchModeInput(m, "c"), nil
 	}
 

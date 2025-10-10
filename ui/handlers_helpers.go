@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+// ========== INPUT MODE HELPERS ==========
+
+// isInInputMode returns true if any input mode is active
+func (m Model) isInInputMode() bool {
+	return m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode
+}
+
 // ========== INITIATIVE PROCESSING ==========
 
 // completeInitiativeEntry finishes an initiative entry and resets the input state
