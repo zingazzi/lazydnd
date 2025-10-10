@@ -2,6 +2,7 @@
 package tests
 
 import (
+	"lazydnd/config"
 	"lazydnd/panels"
 	"strings"
 	"testing"
@@ -43,7 +44,8 @@ func TestRollDiceWithModifiers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := panels.RollDice(tt.command)
+			cfg := config.Default()
+			result := panels.RollDice(tt.command, cfg)
 
 			if tt.wantError && !strings.Contains(result, "Invalid") {
 				t.Errorf("Expected error for command %q, got %q", tt.command, result)
@@ -107,7 +109,8 @@ func TestRollDiceInvalidInputs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := panels.RollDice(tt.command)
+			cfg := config.Default()
+			result := panels.RollDice(tt.command, cfg)
 
 			if !strings.Contains(result, tt.wantContains) {
 				t.Errorf("RollDice(%q) = %q, want to contain %q", tt.command, result, tt.wantContains)
@@ -142,7 +145,8 @@ func TestRollDiceComplexExpressions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := panels.RollDice(tt.command)
+			cfg := config.Default()
+			result := panels.RollDice(tt.command, cfg)
 
 			if !strings.Contains(result, tt.wantContains) {
 				t.Errorf("RollDice(%q) = %q, want to contain %q", tt.command, result, tt.wantContains)
@@ -182,7 +186,8 @@ func TestRollDiceMultipleRolls(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := panels.RollDice(tt.command)
+			cfg := config.Default()
+			result := panels.RollDice(tt.command, cfg)
 
 			// Count number of "|" separators
 			separators := strings.Count(result, "|")
@@ -229,7 +234,8 @@ func TestRollDiceAdvantageDisadvantage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := panels.RollDice(tt.command)
+			cfg := config.Default()
+			result := panels.RollDice(tt.command, cfg)
 
 			if !strings.Contains(result, tt.wantContains) {
 				t.Errorf("RollDice(%q) = %q, want to contain %q", tt.command, result, tt.wantContains)
@@ -244,7 +250,8 @@ func TestRollDiceStandardDiceTypes(t *testing.T) {
 
 	for _, diceType := range diceTypes {
 		t.Run(diceType, func(t *testing.T) {
-			result := panels.RollDice("1" + diceType)
+			cfg := config.Default()
+			result := panels.RollDice("1"+diceType, cfg)
 
 			// Should not be an error
 			if strings.Contains(result, "Invalid") {

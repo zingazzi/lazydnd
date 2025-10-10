@@ -8,6 +8,7 @@ package ui
 const (
 	AppName      = "LazyDnD"
 	AppNameEmoji = "🎲 LazyDnD"
+	AppVersion   = "v2.4.0"
 )
 
 // ========== STATUS BAR TEXT ==========

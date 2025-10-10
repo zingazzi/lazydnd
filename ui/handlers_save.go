@@ -96,7 +96,6 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.CurrentCampaignFile = sanitizeFilename(campaignName) + ".json"
 		m.CurrentCampaignName = campaignName
 		m.LastAutoSave = "Just now"
-		m.AutoSaveEnabled = true
 
 		// Close popup
 		m.ShowSavePopup = false
@@ -151,7 +150,6 @@ func handleLoadPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.CurrentCampaignFile = selectedFile
 		m.CurrentCampaignName = saveState.CampaignName
 		m.LastAutoSave = "Loaded"
-		m.AutoSaveEnabled = true
 		m.CurrentTurn = saveState.CurrentTurn
 		m.RoundCounter = saveState.RoundCounter
 

@@ -1,6 +1,8 @@
 // ui/types.go
 package ui
 
+import "lazydnd/config"
+
 // PanelType represents the different panel types
 type PanelType int
 
@@ -13,6 +15,11 @@ const (
 
 // Model represents the main application state
 type Model struct {
+	// Configuration
+	Config *config.Config
+	Styles *Styles
+
+	// Panel state
 	ActivePanel     PanelType
 	Width           int
 	Height          int
@@ -69,7 +76,6 @@ type Model struct {
 	CampaignList        []string
 	CampaignListIndex   int
 	LastAutoSave        string
-	AutoSaveEnabled     bool
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
