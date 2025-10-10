@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## 2.4.0
+- **Version Display**
+  - Added version number (v2.4.1) to status bar next to LazyDnD name
+  - Added `--version` command-line flag to display version without launching app
+  - Version centrally managed in `ui/text_content.go`
+
+- **Configuration System Improvements**
+  - Theme colors are now fully dynamic and applied throughout the UI
+  - Active/inactive panel borders use configured colors
+  - Status bar uses primary color from config
+  - Help popup uses primary and highlight colors
+  - All text highlights respect theme configuration
+  - Auto-save now uses configured interval and enabled flag
+  - Dice roller now respects `history_size` and `minimum_value` config
+  - Removed deprecated `AutoSaveEnabled` model field
+  - Removed `default_advantage` config option (not applicable)
+
+- **Code Quality Improvements**
+  - Reduced code duplication in UI handlers
+  - Added `isInInputMode()` helper to eliminate 11 duplicate checks
+  - Added `addToHistory()` helper for consistent dice history management
+  - Updated all tests to use new config-based RollDice signature
+  - All tests passing ✅
+
+  **Add Custom Monster**
+  - Now you can add your custom monster in a json file
+
 ## 2.3.0
 - Add quality code check (duplication and lint)
 - Add Tests
