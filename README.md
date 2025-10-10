@@ -104,6 +104,31 @@ This creates executables in the `build/` directory for:
 - macOS (amd64, arm64)
 - Windows (amd64)
 
+## Configuration
+
+LazyDnD uses a configuration file at `~/.config/lazydnd/config.json` that allows you to customize:
+
+- **Theme colors** - Primary, border, highlight, error, and success colors
+- **Save directory** - Custom location for campaign saves
+- **Auto-save settings** - Enable/disable and interval
+- **Dice roller** - History size, minimum value, show individual rolls
+- **Initiative tracker** - Auto-sort, show HP/AC, round counter
+- **Display** - Help hints, compact mode, line wrapping
+- **Backups** - Enable/disable, location, maximum backups
+
+**Example: Custom save location**
+```json
+{
+  "paths": {
+    "save_directory": "~/Documents/DnD/LazyDnD",
+    "backup_enabled": true,
+    "max_backups": 15
+  }
+}
+```
+
+See [CONFIGURATION.md](CONFIGURATION.md) for complete configuration documentation and examples.
+
 ## Usage
 
 ### Global Navigation & Controls

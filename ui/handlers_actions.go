@@ -19,14 +19,9 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Reroll dice command
 	if m.ActivePanel == DiceRoller && !m.InputMode && !m.DiceHistoryMode && m.LastDiceCommand != "" {
-		result := panels.RollDice(m.LastDiceCommand)
+		result := panels.RollDice(m.LastDiceCommand, m.Config)
 		m.DiceResult = result
-		m.DiceHistory = append(m.DiceHistory, result)
-		m.DiceCommands = append(m.DiceCommands, m.LastDiceCommand)
-		if len(m.DiceHistory) > 15 {
-			m.DiceHistory = m.DiceHistory[1:]
-			m.DiceCommands = m.DiceCommands[1:]
-		}
+		m.addToHistory(result, m.LastDiceCommand)
 	}
 
 	return m, nil

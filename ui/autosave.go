@@ -14,15 +14,17 @@ var (
 // handleAutoSave performs autosave if conditions are met
 func handleAutoSave(m Model) Model {
 	// Only autosave if:
-	// 1. AutoSave is enabled
+	// 1. AutoSave is enabled in config
 	// 2. A campaign is loaded
-	// 3. At least 5 minutes have passed since last autosave
-	if !m.AutoSaveEnabled || m.CurrentCampaignName == "" {
+	// 3. Interval time has passed since last autosave
+	if !m.Config.AutoSave.Enabled || m.CurrentCampaignName == "" {
 		return m
 	}
 
 	now := time.Now()
-	if now.Sub(lastAutoSaveTime) < 5*time.Minute {
+	interval := time.Duration(m.Config.AutoSave.IntervalMinutes) * time.Minute
+
+	if now.Sub(lastAutoSaveTime) < interval {
 		// Update time display
 		elapsed := now.Sub(lastAutoSaveTime)
 		minutes := int(elapsed.Minutes())

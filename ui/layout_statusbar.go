@@ -19,23 +19,23 @@ func (m Model) renderStatusBar() string {
 			projectNameText += " (💾 " + m.LastAutoSave + ")"
 		}
 	}
-	projectName := StatusBarTextStyle.Render(projectNameText)
+	projectName := m.Styles.StatusBarTextStyle.Render(projectNameText)
 
 	// Navigation hints
-	tabKey := StatusBarKeyStyle.Render(text.TabKey)
-	tabText := StatusBarTextStyle.Render(text.TabDesc)
+	tabKey := m.Styles.StatusBarKeyStyle.Render(text.TabKey)
+	tabText := m.Styles.StatusBarTextStyle.Render(text.TabDesc)
 
-	arrowKeys := StatusBarKeyStyle.Render(text.ArrowKeys)
-	arrowText := StatusBarTextStyle.Render(text.ArrowDesc)
+	arrowKeys := m.Styles.StatusBarKeyStyle.Render(text.ArrowKeys)
+	arrowText := m.Styles.StatusBarTextStyle.Render(text.ArrowDesc)
 
-	numbersKey := StatusBarKeyStyle.Render(text.NumbersKey)
-	numbersText := StatusBarTextStyle.Render(text.NumbersDesc)
+	numbersKey := m.Styles.StatusBarKeyStyle.Render(text.NumbersKey)
+	numbersText := m.Styles.StatusBarTextStyle.Render(text.NumbersDesc)
 
-	helpKey := StatusBarKeyStyle.Render(text.HelpKey)
-	helpText := StatusBarTextStyle.Render(text.HelpDesc)
+	helpKey := m.Styles.StatusBarKeyStyle.Render(text.HelpKey)
+	helpText := m.Styles.StatusBarTextStyle.Render(text.HelpDesc)
 
-	quitKey := StatusBarKeyStyle.Render(text.QuitKey)
-	quitText := StatusBarTextStyle.Render(text.QuitDesc)
+	quitKey := m.Styles.StatusBarKeyStyle.Render(text.QuitKey)
+	quitText := m.Styles.StatusBarTextStyle.Render(text.QuitDesc)
 
 	// Build the status bar content
 	leftSection := lipgloss.JoinHorizontal(
@@ -90,7 +90,7 @@ func (m Model) renderStatusBar() string {
 	)
 
 	// Apply full-width background style
-	statusBar := StatusBarStyle.
+	statusBar := m.Styles.StatusBarStyle.
 		Width(m.Width).
 		Render(statusBarContent)
 

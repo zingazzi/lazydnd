@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2.4.1
+- **Configuration System Improvements**
+  - Theme colors are now fully dynamic and applied throughout the UI
+  - Active/inactive panel borders use configured colors
+  - Status bar uses primary color from config
+  - Help popup uses primary and highlight colors
+  - All text highlights respect theme configuration
+  - Auto-save now uses configured interval and enabled flag
+  - Dice roller now respects `history_size` and `minimum_value` config
+  - Removed deprecated `AutoSaveEnabled` model field
+  - Removed `default_advantage` config option (not applicable)
+  - Updated documentation with detailed color usage examples
+  - Added CONFIG_STATUS.md tracking implementation status
+
+## 2.4.0
+- **Configuration System**
+  - Add JSON configuration file support in ~/.config/lazydnd/
+  - Theme customization (colors)
+  - Auto-save settings
+  - Dice roller preferences
+  - Initiative tracker settings
+  - Display options (panel size, animations)
+  - Path configuration (save directory, backup settings)
+  - Configuration validation and auto-creation
+
 ## 2.3.0
 - Add quality code check (duplication and lint)
 - Add Tests

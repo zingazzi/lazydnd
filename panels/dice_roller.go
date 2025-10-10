@@ -3,6 +3,7 @@ package panels
 
 import (
 	"fmt"
+	"lazydnd/config"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -15,6 +16,12 @@ import (
 const (
 	MaxDicePerRoll = 100 // Maximum number of dice that can be rolled at once
 	MinDiceValue   = 1   // Minimum value for dice count and sides
+)
+
+// Package-level config holder (set by RollDice function)
+var (
+	currentMinValue       = 1
+	currentShowIndividual = true
 )
 
 // ValidDiceTypes defines the standard D&D dice types
@@ -139,9 +146,21 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, di
 //
 // Returns a formatted string with the roll result, or an error message if the command is invalid.
 // All results include the dice notation and breakdown of individual rolls where applicable.
-func RollDice(command string) string {
+func RollDice(command string, cfg *config.Config) string {
 	rand.Seed(time.Now().UnixNano())
 	command = strings.TrimSpace(strings.ToLower(command))
+
+	// Update package-level config values
+	if cfg != nil {
+		currentMinValue = cfg.DiceRoller.MinimumValue
+		if currentMinValue < 0 {
+			currentMinValue = 1
+		}
+		currentShowIndividual = cfg.DiceRoller.ShowIndividual
+	} else {
+		currentMinValue = 1
+		currentShowIndividual = true
+	}
 
 	// Check for comma-separated rolls (e.g., "2d8, 3d6")
 	if strings.Contains(command, ",") {
@@ -291,9 +310,9 @@ func calculateTotal(results []int, operators []string) int {
 		}
 	}
 
-	// Ensure minimum value of 1 (D&D rule)
-	if total < 1 {
-		total = 1
+	// Ensure minimum value (configurable, D&D standard is 1)
+	if total < currentMinValue {
+		total = currentMinValue
 	}
 
 	return total
@@ -433,9 +452,9 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 
 		finalTotal := total + modifier
 
-		// Ensure minimum value of 1 (D&D rule: no negative results)
-		if finalTotal < 1 {
-			finalTotal = 1
+		// Ensure minimum value (configurable, D&D standard is 1)
+		if finalTotal < currentMinValue {
+			finalTotal = currentMinValue
 		}
 
 		// Format result - Total first, then breakdown
