@@ -2,6 +2,7 @@
 package tests
 
 import (
+	"lazydnd/config"
 	"lazydnd/panels"
 	"strings"
 	"testing"
@@ -67,7 +68,8 @@ func TestRollDice(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := panels.RollDice(tt.command)
+			cfg := config.Default()
+			result := panels.RollDice(tt.command, cfg)
 
 			if !strings.Contains(result, tt.wantContains) {
 				t.Errorf("RollDice(%q) = %q, want to contain %q", tt.command, result, tt.wantContains)
@@ -108,7 +110,8 @@ func TestRollDiceResults(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Run multiple times to check randomness
 			for i := 0; i < 10; i++ {
-				result := panels.RollDice(tt.command)
+				cfg := config.Default()
+				result := panels.RollDice(tt.command, cfg)
 
 				// Extract the rolled value (this is a simplified check)
 				if !strings.Contains(result, ":") {

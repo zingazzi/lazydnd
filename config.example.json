@@ -1,0 +1,40 @@
+{
+  "theme": {
+    "primary_color": "#7D56F4",
+    "border_color": "#444444",
+    "highlight_color": "#00FF00",
+    "error_color": "#FF0000",
+    "success_color": "#00FF00"
+  },
+  "auto_save": {
+    "enabled": true,
+    "interval_minutes": 5
+  },
+  "dice_roller": {
+    "history_size": 15,
+    "show_individual": true,
+    "minimum_value": 1
+  },
+  "initiative_tracker": {
+    "auto_sort": true,
+    "show_hp": true,
+    "show_ac": true,
+    "highlight_active": true,
+    "round_counter": true
+  },
+  "display": {
+    "show_help_hints": true,
+    "compact_mode": false,
+    "animate_transitions": false,
+    "line_wrap": true,
+    "max_line_length": 50
+  },
+  "paths": {
+    "save_directory": "",
+    "config_directory": "",
+    "backup_enabled": true,
+    "backup_directory": "",
+    "max_backups": 10
+  }
+}
+

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -57,20 +58,116 @@ type Monster struct {
 
 var monsters []Monster
 
-// LoadMonsters loads monsters from the JSON file
+// getCustomMonstersDir returns the path to the custom monsters directory
+func getCustomMonstersDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(homeDir, ".config", "lazydnd", "custom_monsters"), nil
+}
+
+// loadMonstersFromFile loads monsters from a specific JSON file
+func loadMonstersFromFile(filePath string) ([]Monster, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s: %w", filePath, err)
+	}
+
+	var loadedMonsters []Monster
+	err = json.Unmarshal(data, &loadedMonsters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", filePath, err)
+	}
+
+	return loadedMonsters, nil
+}
+
+// loadCustomMonsters loads all custom monster files from the custom directory
+func loadCustomMonsters() ([]Monster, error) {
+	customDir, err := getCustomMonstersDir()
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if directory exists
+	if _, err := os.Stat(customDir); os.IsNotExist(err) {
+		return []Monster{}, nil // No custom monsters directory, return empty list
+	}
+
+	// Read all JSON files from the directory
+	files, err := filepath.Glob(filepath.Join(customDir, "*.json"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list custom monster files: %w", err)
+	}
+
+	var customMonsters []Monster
+	for _, file := range files {
+		fileMonsters, err := loadMonstersFromFile(file)
+		if err != nil {
+			// Log error but continue loading other files
+			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+			continue
+		}
+		customMonsters = append(customMonsters, fileMonsters...)
+	}
+
+	return customMonsters, nil
+}
+
+// mergeMonsters merges custom monsters with default monsters
+// Custom monsters with the same name override default monsters
+func mergeMonsters(defaultMonsters, customMonsters []Monster) []Monster {
+	// Create a map for quick lookup
+	monsterMap := make(map[string]Monster)
+
+	// Add default monsters
+	for _, monster := range defaultMonsters {
+		monsterMap[strings.ToLower(monster.Name)] = monster
+	}
+
+	// Override with custom monsters
+	for _, monster := range customMonsters {
+		monsterMap[strings.ToLower(monster.Name)] = monster
+	}
+
+	// Convert map back to slice
+	merged := make([]Monster, 0, len(monsterMap))
+	for _, monster := range monsterMap {
+		merged = append(merged, monster)
+	}
+
+	return merged
+}
+
+// LoadMonsters loads monsters from the default JSON file and custom monster files
 func LoadMonsters() error {
 	if len(monsters) > 0 {
 		return nil // Already loaded
 	}
 
-	data, err := os.ReadFile("assets/monsters.json")
+	// Load default monsters
+	defaultMonsters, err := loadMonstersFromFile("assets/monsters.json")
 	if err != nil {
-		return fmt.Errorf("failed to read monsters.json: %w", err)
+		return err
 	}
 
-	err = json.Unmarshal(data, &monsters)
+	// Load custom monsters
+	customMonsters, err := loadCustomMonsters()
 	if err != nil {
-		return fmt.Errorf("failed to parse monsters.json: %w", err)
+		// Log warning but don't fail - custom monsters are optional
+		fmt.Fprintf(os.Stderr, "Warning: failed to load custom monsters: %v\n", err)
+		monsters = defaultMonsters
+		return nil
+	}
+
+	// Merge default and custom monsters
+	monsters = mergeMonsters(defaultMonsters, customMonsters)
+
+	// Print info about loaded monsters
+	if len(customMonsters) > 0 {
+		fmt.Fprintf(os.Stderr, "Loaded %d default monsters and %d custom monsters\n",
+			len(defaultMonsters), len(customMonsters))
 	}
 
 	return nil

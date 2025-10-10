@@ -109,7 +109,7 @@ var helpTextProviders = map[PanelType]HelpTextProvider{
 func (m Model) getHelpText(panelType PanelType) string {
 	provider, exists := helpTextProviders[panelType]
 	if !exists {
-		return "\n" + HelpStyle.Render(DefaultInlineHelp())
+		return "\n" + m.Styles.HelpStyle.Render(DefaultInlineHelp())
 	}
 
 	return provider(m)
@@ -118,23 +118,23 @@ func (m Model) getHelpText(panelType PanelType) string {
 // getDiceRollerHelpText gets help text for the dice roller panel
 func getDiceRollerHelpText(m Model) string {
 	text := DiceRollerInlineHelp(m.InputMode, m.LastDiceCommand != "", m.DiceHistoryMode)
-	return "\n" + HelpStyle.Render(text)
+	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 
 // getInitiativeTrackerHelpText gets help text for the initiative tracker panel
 func getInitiativeTrackerHelpText(m Model) string {
 	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode)
-	return "\n" + HelpStyle.Render(text)
+	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 
 // getSpellsHelpText gets help text for the spells panel
 func getSpellsHelpText(m Model) string {
 	text := SpellsInlineHelp(m.SpellSearchMode)
-	return "\n" + HelpStyle.Render(text)
+	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 
 // getMonstersHelpText gets help text for the monsters panel
 func getMonstersHelpText(m Model) string {
 	text := MonstersInlineHelp(m.MonsterSearchMode)
-	return "\n" + HelpStyle.Render(text)
+	return "\n" + m.Styles.HelpStyle.Render(text)
 }

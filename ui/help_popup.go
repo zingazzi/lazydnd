@@ -15,7 +15,7 @@ func (m Model) renderHelpPopupOverlay(mainView string) string {
 	helpContent := m.buildHelpContent()
 
 	// Create the popup
-	popup := HelpPopupStyle.Render(helpContent)
+	popup := m.Styles.HelpPopupStyle.Render(helpContent)
 
 	// Place popup centered over the main view
 	return lipgloss.Place(
@@ -34,7 +34,7 @@ func (m Model) buildHelpContent() string {
 	var content strings.Builder
 
 	// Title
-	title := HelpPopupTitleStyle.Render(HelpPopupTitle)
+	title := m.Styles.HelpPopupTitleStyle.Render(HelpPopupTitle)
 	content.WriteString(title)
 	content.WriteString("\n\n")
 
@@ -46,7 +46,7 @@ func (m Model) buildHelpContent() string {
 
 	// Footer
 	content.WriteString("\n")
-	footer := HelpPopupDescStyle.Render(HelpPopupFooter)
+	footer := m.Styles.HelpPopupDescStyle.Render(HelpPopupFooter)
 	content.WriteString(footer)
 
 	return content.String()
@@ -56,7 +56,7 @@ func (m Model) buildHelpContent() string {
 func (m Model) renderCommonNavigationSection() string {
 	var content strings.Builder
 
-	sectionTitle := HelpPopupSectionStyle.Render("Common Navigation:")
+	sectionTitle := m.Styles.HelpPopupSectionStyle.Render("Common Navigation:")
 	content.WriteString(sectionTitle)
 	content.WriteString("\n")
 
@@ -71,7 +71,7 @@ func (m Model) renderCommonNavigationSection() string {
 func (m Model) renderPanelSpecificSection() string {
 	var content strings.Builder
 
-	sectionTitle := HelpPopupSectionStyle.Render(
+	sectionTitle := m.Styles.HelpPopupSectionStyle.Render(
 		fmt.Sprintf("\n%s Panel Keys:", PanelNames[m.ActivePanel]),
 	)
 	content.WriteString(sectionTitle)
@@ -87,7 +87,7 @@ func (m Model) renderPanelSpecificSection() string {
 
 // formatHelpLine formats a single help line with key and description
 func (m Model) formatHelpLine(key, description string) string {
-	keyPart := HelpPopupKeyStyle.Render(key)
-	descPart := HelpPopupDescStyle.Render(description)
+	keyPart := m.Styles.HelpPopupKeyStyle.Render(key)
+	descPart := m.Styles.HelpPopupDescStyle.Render(description)
 	return keyPart + " " + descPart + "\n"
 }

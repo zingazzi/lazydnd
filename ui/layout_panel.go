@@ -31,29 +31,23 @@ func (m Model) renderSinglePanel(panelType PanelType, dimensions PanelDimensions
 // stylePanel applies styling to a panel
 func (m Model) stylePanel(content string, panelType PanelType, dimensions PanelDimensions, panelNumber int) string {
 	title := fmt.Sprintf(" %d. %s ", panelNumber, PanelNames[panelNumber-1])
-	titleBar := PanelTitleStyle.Render(title)
+	titleBar := m.Styles.PanelTitleStyle.Render(title)
 
-	borderColor := m.getBorderColor(panelType)
-	panelStyle := m.createPanelStyle(borderColor, dimensions)
+	panelStyle := m.getPanelStyle(panelType, dimensions)
 
 	panelContent := titleBar + "\n" + content
 	return panelStyle.Render(panelContent)
 }
 
-// getBorderColor returns the appropriate border color for a panel
-func (m Model) getBorderColor(panelType PanelType) string {
+// getPanelStyle returns the appropriate style for a panel based on whether it's active
+func (m Model) getPanelStyle(panelType PanelType, dimensions PanelDimensions) lipgloss.Style {
+	var baseStyle lipgloss.Style
 	if panelType == m.ActivePanel {
-		return "#7D56F4"
+		baseStyle = m.Styles.ActivePanelStyle
+	} else {
+		baseStyle = m.Styles.InactivePanelStyle
 	}
-	return "#444444"
-}
 
-// createPanelStyle creates the lipgloss style for a panel
-func (m Model) createPanelStyle(borderColor string, dimensions PanelDimensions) lipgloss.Style {
-	return lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(borderColor)).
-		Padding(1, 2).
-		Width(dimensions.Width).
-		Height(dimensions.Height)
+	// Apply dimensions
+	return baseStyle.Width(dimensions.Width).Height(dimensions.Height)
 }

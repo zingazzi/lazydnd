@@ -104,7 +104,40 @@ This creates executables in the `build/` directory for:
 - macOS (amd64, arm64)
 - Windows (amd64)
 
+## Configuration
+
+LazyDnD uses a configuration file at `~/.config/lazydnd/config.json` that allows you to customize:
+
+- **Theme colors** - Primary, border, highlight, error, and success colors
+- **Save directory** - Custom location for campaign saves
+- **Auto-save settings** - Enable/disable and interval
+- **Dice roller** - History size, minimum value, show individual rolls
+- **Initiative tracker** - Auto-sort, show HP/AC, round counter
+- **Display** - Help hints, compact mode, line wrapping
+- **Backups** - Enable/disable, location, maximum backups
+
+**Example: Custom save location**
+```json
+{
+  "paths": {
+    "save_directory": "~/Documents/DnD/LazyDnD",
+    "backup_enabled": true,
+    "max_backups": 15
+  }
+}
+```
+
+See [CONFIGURATION.md](CONFIGURATION.md) for complete configuration documentation and examples.
+
 ## Usage
+
+### Command Line Options
+
+```bash
+lazydnd          # Start the application
+lazydnd --version # Print version number and exit
+lazydnd --help    # Show available options
+```
 
 ### Global Navigation & Controls
 
@@ -267,6 +300,67 @@ When a monster is added to initiative from the Monster panel:
 - Press 'a' in Initiative Tracker to see action list
 - Select action to automatically roll damage in Dice Roller
 - Actions include: attack bonus, reach/range, damage dice, damage type, save DCs
+
+**Custom Monsters:**
+You can add your own custom monsters or override existing ones:
+
+1. Create the custom monsters directory:
+   ```bash
+   mkdir -p ~/.config/lazydnd/custom_monsters
+   ```
+
+2. Add JSON files with the same structure as `assets/monsters.json`:
+   ```bash
+   # Create your custom monster file
+   nano ~/.config/lazydnd/custom_monsters/my_monsters.json
+   ```
+
+3. LazyDND automatically loads all `.json` files from this directory on startup
+
+**Custom Monster File Format:**
+```json
+[
+  {
+    "name": "My Custom Monster",
+    "meta": "Large beast, neutral",
+    "Armor Class": "15 (Natural Armor)",
+    "Hit Points": "68 (8d10 + 24)",
+    "Speed": "40 ft.",
+    "STR": "18",
+    "STR_mod": "(+4)",
+    "DEX": "14",
+    "DEX_mod": "(+2)",
+    "CON": "16",
+    "CON_mod": "(+3)",
+    "INT": "3",
+    "INT_mod": "(-4)",
+    "WIS": "12",
+    "WIS_mod": "(+1)",
+    "CHA": "7",
+    "CHA_mod": "(-2)",
+    "Challenge": "3 (700 XP)",
+    "Actions": "<p><em><strong>Bite.</strong></em> <em>Melee Weapon Attack:</em> +6 to hit, reach 5 ft., one target. <em>Hit:</em> 13 (2d8 + 4) piercing damage.</p>",
+    "ActionNumber": 1,
+    "ActionList": [
+      {
+        "name": "Bite",
+        "type": "melee",
+        "description": "Bite. Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 13 (2d8 + 4) piercing damage.",
+        "roll": "+6",
+        "reach": "5ft",
+        "damage": "2d8 + 4",
+        "damage_type": "piercing"
+      }
+    ]
+  }
+]
+```
+
+**Notes:**
+- Custom monsters with the same name as default monsters will override them
+- Multiple JSON files can be placed in the directory
+- Invalid JSON files will be skipped with a warning
+- Example custom monsters are available at `~/.config/lazydnd/custom_monsters/example_custom_monsters.json` after first run
 
 ---
 

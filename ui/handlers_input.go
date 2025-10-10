@@ -137,13 +137,10 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		// Execute the dice roll if we have a command
 		if diceCommand != "" {
-			result := panels.RollDice(diceCommand)
+			result := panels.RollDice(diceCommand, m.Config)
 			m.DiceResult = result
-			m.DiceHistory = append(m.DiceHistory, result)
 			m.LastDiceCommand = diceCommand
-			if len(m.DiceHistory) > 15 {
-				m.DiceHistory = m.DiceHistory[1:]
-			}
+			m.addToHistory(result, diceCommand)
 		}
 
 		// Close the popup
@@ -159,29 +156,19 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		if m.DiceHistoryMode && m.HistoryIndex >= 0 && m.HistoryIndex < len(m.DiceCommands) {
 			// Re-roll selected history command
 			command := m.DiceCommands[m.HistoryIndex]
-			result := panels.RollDice(command)
+			result := panels.RollDice(command, m.Config)
 			m.DiceResult = result
-			m.DiceHistory = append(m.DiceHistory, result)
-			m.DiceCommands = append(m.DiceCommands, command)
 			m.LastDiceCommand = command
-			if len(m.DiceHistory) > 15 {
-				m.DiceHistory = m.DiceHistory[1:]
-				m.DiceCommands = m.DiceCommands[1:]
-			}
+			m.addToHistory(result, command)
 			// Exit history mode
 			m.DiceHistoryMode = false
 			m.HistoryIndex = -1
 		} else if m.InputMode && m.DiceInput != "" {
 			// Roll the dice
-			result := panels.RollDice(m.DiceInput)
+			result := panels.RollDice(m.DiceInput, m.Config)
 			m.DiceResult = result
-			m.DiceHistory = append(m.DiceHistory, result)
-			m.DiceCommands = append(m.DiceCommands, m.DiceInput)
 			m.LastDiceCommand = m.DiceInput
-			if len(m.DiceHistory) > 15 {
-				m.DiceHistory = m.DiceHistory[1:]
-				m.DiceCommands = m.DiceCommands[1:]
-			}
+			m.addToHistory(result, m.DiceInput)
 			m.DiceInput = ""
 			m.InputMode = false
 		} else if !m.DiceHistoryMode {
