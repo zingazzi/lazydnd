@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 2.4.0
+## 2.4.1
 - **Version Display**
   - Added version number (v2.4.1) to status bar next to LazyDnD name
   - Added `--version` command-line flag to display version without launching app
@@ -26,6 +26,8 @@
 
   **Add Custom Monster**
   - Now you can add your custom monster in a json file
+
+  - Update release script
 
 ## 2.3.0
 - Add quality code check (duplication and lint)

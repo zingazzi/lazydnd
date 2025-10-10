@@ -27,6 +27,21 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: Update version in code
+        run: |
+          chmod +x scripts/update_version.sh
+          scripts/update_version.sh
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          chmod +x scripts/extract_changelog.sh
+          CHANGELOG=$(scripts/extract_changelog.sh "${{ steps.get_version.outputs.VERSION }}")
+          # Use multiline output for GitHub Actions
+          echo "CONTENT<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Build binaries
         run: |
           mkdir -p build
@@ -67,6 +82,10 @@ jobs:
             build/checksums.txt
           body: |
             ## LazyDnD ${{ steps.get_version.outputs.VERSION }}
+
+            ${{ steps.changelog.outputs.CONTENT }}
+
+            ---
 
             ### Installation
 
