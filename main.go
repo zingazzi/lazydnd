@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -12,6 +13,16 @@ import (
 )
 
 func main() {
+	// Parse command-line flags
+	versionFlag := flag.Bool("version", false, "Print version and exit")
+	flag.Parse()
+
+	// Handle version flag
+	if *versionFlag {
+		fmt.Println("LazyDnD " + ui.AppVersion)
+		os.Exit(0)
+	}
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {

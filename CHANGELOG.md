@@ -1,9 +1,5 @@
 # CHANGELOG
 
-## 2.4.1
-- **Configuration System Improvements**
-
-
 ## 2.3.0
 - Add quality code check (duplication and lint)
 - Add Tests

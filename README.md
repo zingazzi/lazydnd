@@ -131,6 +131,14 @@ See [CONFIGURATION.md](CONFIGURATION.md) for complete configuration documentatio
 
 ## Usage
 
+### Command Line Options
+
+```bash
+lazydnd          # Start the application
+lazydnd --version # Print version number and exit
+lazydnd --help    # Show available options
+```
+
 ### Global Navigation & Controls
 
 #### Panel Navigation

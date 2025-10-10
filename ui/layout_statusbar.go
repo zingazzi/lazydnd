@@ -11,8 +11,8 @@ import (
 func (m Model) renderStatusBar() string {
 	text := DefaultStatusBarText
 
-	// Project name with campaign info
-	projectNameText := text.ProjectName
+	// Project name with version and campaign info
+	projectNameText := text.ProjectName + " " + AppVersion
 	if m.CurrentCampaignName != "" {
 		projectNameText += " | 📁 " + m.CurrentCampaignName
 		if m.LastAutoSave != "" {
