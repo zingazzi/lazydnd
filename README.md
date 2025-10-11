@@ -208,6 +208,7 @@ lazydnd --help    # Show available options
 | `x` | Reset combat (reset turn and round counters) |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
+| `o` | Manage conditions (add/remove status effects in edit mode) |
 | `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
 | `d` | Delete selected entry (in edit mode) |
 | `l` | View linked monster details (if added from Monster panel) |
@@ -218,6 +219,7 @@ lazydnd --help    # Show available options
 - ✅ **Turn Tracking**: Track current turn with visual indicator (★)
 - ✅ **Round Counter**: Automatic round tracking with time elapsed (6 seconds per round)
 - ✅ **Auto-Sort**: Entries sorted by initiative (highest first)
+- ✅ **Conditions Tracker**: Add/remove status effects (Poisoned, Stunned, etc.) with duration tracking
 - ✅ **Monster Linking**: Monsters added from Monster panel retain full data
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
@@ -226,6 +228,33 @@ lazydnd --help    # Show available options
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
+
+**Conditions Tracker:**
+Track status effects (Poisoned, Stunned, Paralyzed, etc.) on any creature:
+1. **Conditions show inline in initiative list** with emoji icons (e.g., "Goblin 1 (HP: 7/7, AC: 13) 🤢😱")
+2. Hover/select to see full details: names and remaining rounds
+3. Press `Enter` to enter edit mode, navigate to an entry with `↑↓`
+4. Press `o` to open conditions manager
+5. View detailed list with duration countdown (e.g., "🤢 Poisoned (3 rounds)")
+6. Press `a` to add a new condition
+7. Select from list of 15 common D&D conditions using `↑↓` (or choose "Custom condition..." for your own)
+8. Press `Enter` to confirm selection
+9. Enter duration in rounds (or 0 for indefinite)
+10. Press `Enter` to apply
+11. Press `d` to remove a condition from the list
+12. Conditions automatically expire after duration ends and disappear from the list
+
+**Multi-Target Conditions:**
+Apply conditions to multiple creatures at once (e.g., Fear spell affecting 3 enemies):
+1. Press `t` to enter multi-target mode
+2. Use `Space` to select multiple targets
+3. Press `o` to open condition manager (shows "X targets selected")
+4. Press `a` to add condition
+5. Select condition and duration
+6. Condition applies to all selected targets simultaneously!
+
+**Common Conditions with Emojis:**
+🤢 Poisoned • 😵 Stunned/Paralyzed/Incapacitated/Unconscious • 😱 Frightened • 😍 Charmed • 👻 Invisible • 🤕 Prone • 🔗 Grappled/Restrained • 🙈 Blinded • 🙉 Deafened • 🔮 Others
 
 **Multi-Target Damage/Healing:**
 Perfect for area spells (Fireball, Thunderwave) and mass healing:

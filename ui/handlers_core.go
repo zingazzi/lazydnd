@@ -55,6 +55,7 @@ var keyHandlers = map[string]KeyHandler{
 	"x": handleResetCombat,
 	"v": handleV,
 	"t": handleT,
+	"o": handleO,
 
 	// Special handlers
 	"?": handleHelp,
@@ -77,6 +78,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle multi-target popup input (highest priority)
 	if m.ShowMultiTargetPopup {
 		return handleMultiTargetPopupInput(m, msg)
+	}
+
+	// Handle condition popup input
+	if m.ShowConditionPopup {
+		return handleConditionPopupInput(m, msg)
 	}
 
 	// Handle save popup input

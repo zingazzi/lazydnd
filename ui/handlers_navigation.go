@@ -287,11 +287,13 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Advance to next turn
 		nextTurn := (m.CurrentTurn + 1) % len(m.InitiativeList)
 
-		// If we wrapped around to 0, increment round counter and update spell durations
+		// If we wrapped around to 0, increment round counter and update spell/condition durations
 		if nextTurn == 0 {
 			m.RoundCounter++
 			// Update spell durations (decrement by 1 round)
 			m, _ = UpdateSpellDurations(m)
+			// Update condition durations (decrement by 1 round)
+			m = UpdateConditionDurations(m)
 		}
 
 		m.CurrentTurn = nextTurn

@@ -53,6 +53,13 @@ func InitialModel() Model {
 		MultiTargetType:        "damage",
 		MultiTargetSaveMode:    false,
 		TargetSaveResults:      make(map[int]string),
+		ShowConditionPopup:       false,
+		ConditionPopupMode:       "",
+		ConditionInput:           "",
+		ConditionDurationInput:   "",
+		ConditionInputStep:       0,
+		SelectedConditionIdx:     0,
+		SelectedConditionNameIdx: 0,
 		ShowHelpPopup:          false,
 	}
 }
@@ -93,6 +100,11 @@ func (m Model) View() string {
 	// Show multi-target popup if active (takes priority over other popups)
 	if m.ShowMultiTargetPopup {
 		return renderMultiTargetPopupOverlay(m, mainView)
+	}
+
+	// Show condition popup if active (takes priority over other popups)
+	if m.ShowConditionPopup {
+		return renderConditionPopupOverlay(m, mainView)
 	}
 
 	// Show saving throw popup if active (takes priority over action popup)

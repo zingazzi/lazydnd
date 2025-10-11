@@ -169,7 +169,7 @@ func InitiativeTrackerInlineHelp(editMode, inputMode, listMode, multiTargetMode 
 		return "Enter: confirm • Esc: cancel • F1-F4: switch panels"
 	}
 	if listMode {
-		return "↑↓: select • i: init • h: HP • s: saves • l: view • a: actions • c: copy • d: delete • t: multi-target • Esc: exit"
+		return "↑↓: select • i: init • h: HP • o: conditions • s: saves • l: view • a: actions • c: copy • d: delete • t: multi-target • Esc: exit"
 	}
 	return "p: add player • m: add monster • e: edit list • n: next turn • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }

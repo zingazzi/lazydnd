@@ -82,6 +82,15 @@ type Model struct {
 	ActionPopupMonster string // Name of the monster whose actions are shown
 	// Saving throw popup state
 	ShowSavingThrowPopup bool
+	// Condition management state
+	ShowConditionPopup     bool
+	ConditionPopupMode     string // "list" to view/remove, "add" to add new
+	ConditionInput         string // Input for condition name (if custom)
+	ConditionDurationInput string // Input for duration
+	ConditionInputStep     int    // 0 = select from list, 1 = duration, 2 = custom name (if needed)
+	SelectedConditionIdx   int    // Selected condition index for removal
+	SelectedConditionNameIdx int  // Selected condition name from list when adding
+
 	// Save/Load state
 	ShowSavePopup       bool
 	ShowLoadPopup       bool
@@ -92,6 +101,14 @@ type Model struct {
 	CampaignList        []string
 	CampaignListIndex   int
 	LastAutoSave        string
+}
+
+// Condition represents a status effect on a creature
+type Condition struct {
+	Name        string `json:"name"`
+	RoundsLeft  int    `json:"rounds_left"`  // Duration in rounds (0 = indefinite/until removed)
+	TotalRounds int    `json:"total_rounds"` // Original duration for display
+	Description string `json:"description"`  // Optional description
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
@@ -106,6 +123,7 @@ type InitiativeEntry struct {
 	InstanceNum int      // Instance number for duplicates (0 = no number shown)
 	BaseName    string   // Original name without number
 	MonsterName string   // Original monster name for save/load persistence
+	Conditions  []Condition // Active conditions on this creature
 }
 
 // Spell represents a D&D spell
