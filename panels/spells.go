@@ -28,8 +28,8 @@ var (
 )
 
 // GetSpellsContent returns the content for the spells panel
-func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool) string {
-	return RenderSearchContent(SearchContentConfig{
+func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool, showCastPrompt bool) string {
+	content := RenderSearchContent(SearchContentConfig{
 		Title:           "Search D&D 5e Spells",
 		ItemType:        "spell",
 		SearchInput:     searchInput,
@@ -44,6 +44,13 @@ func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions
 		FormatFunc:      FormatSelectedSpell,
 		ShowAddPrompt:   false,
 	})
+
+	// Add cast spell prompt if a spell is selected
+	if selectedSpell != nil && !searchMode && showCastPrompt {
+		content += "\n\n💫 Press 'c' to cast this spell"
+	}
+
+	return content
 }
 
 // FormatSelectedSpell formats the selected spell for display

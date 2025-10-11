@@ -226,6 +226,11 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "d"), nil
 	}
 
+	// Delete active spell in active spell list mode
+	if m.ActivePanel == Spells && m.ActiveSpellListMode {
+		return handleDeleteActiveSpell(m)
+	}
+
 	// Delete entry in list mode
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		m.InitiativeEditMode = true
@@ -261,6 +266,11 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "c"), nil
 	}
 
+	// Cast spell in Spells panel
+	if m.ActivePanel == Spells && !m.ActiveSpellListMode {
+		return handleCastSpell(m)
+	}
+
 	// Duplicate entry in list mode
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		// Duplicate the selected entry
@@ -291,7 +301,30 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 			// Renumber all instances of this monster
 			m = renumberMonsterInstances(m)
+
+			// Keep selection valid after renumbering
+			if m.SelectedEntry >= len(m.InitiativeList) {
+				m.SelectedEntry = len(m.InitiativeList) - 1
+			}
+			if m.SelectedEntry < 0 && len(m.InitiativeList) > 0 {
+				m.SelectedEntry = 0
+			}
 		}
+	}
+
+	return m, nil
+}
+
+// handleV handles the 'v' key
+func handleV(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle search mode input
+	if m.isInInputMode() {
+		return handleSearchModeInput(m, "v"), nil
+	}
+
+	// View active spells in Spells panel
+	if m.ActivePanel == Spells {
+		return handleViewActiveSpells(m)
 	}
 
 	return m, nil

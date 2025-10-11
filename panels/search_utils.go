@@ -2,6 +2,7 @@
 package panels
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -50,16 +51,55 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 		contentLines = append(contentLines, cfg.InputStyle.Render(prompt))
 		contentLines = append(contentLines, "")
 
-		// Show suggestions
+		// Show suggestions with scrolling window
 		if len(cfg.Suggestions) > 0 {
 			contentLines = append(contentLines, "Suggestions:")
-			for i, suggestion := range cfg.Suggestions {
+
+			// Show a scrolling window of suggestions (max 8 visible at a time)
+			maxVisible := 8
+			totalSuggestions := len(cfg.Suggestions)
+
+			// Calculate which suggestions to show
+			startIdx := 0
+			endIdx := totalSuggestions
+
+			if totalSuggestions > maxVisible {
+				// Center the selected item in the window when possible
+				startIdx = cfg.SuggestionIndex - (maxVisible / 2)
+				if startIdx < 0 {
+					startIdx = 0
+				}
+				endIdx = startIdx + maxVisible
+				if endIdx > totalSuggestions {
+					endIdx = totalSuggestions
+					startIdx = endIdx - maxVisible
+					if startIdx < 0 {
+						startIdx = 0
+					}
+				}
+			}
+
+			// Show scroll indicator at top if there are more items above
+			if startIdx > 0 {
+				contentLines = append(contentLines, cfg.SuggestionStyle.Render("  ⬆ "+strings.Repeat("─", 10)+" ("+formatSuggestionCount(startIdx)+" more above)"))
+			}
+
+			// Show the visible window of suggestions
+			for i := startIdx; i < endIdx; i++ {
+				suggestion := cfg.Suggestions[i]
 				if i == cfg.SuggestionIndex {
 					contentLines = append(contentLines, cfg.SelectedStyle.Render("► "+suggestion))
 				} else {
 					contentLines = append(contentLines, cfg.SuggestionStyle.Render("  "+suggestion))
 				}
 			}
+
+			// Show scroll indicator at bottom if there are more items below
+			if endIdx < totalSuggestions {
+				remaining := totalSuggestions - endIdx
+				contentLines = append(contentLines, cfg.SuggestionStyle.Render("  ⬇ "+strings.Repeat("─", 10)+" ("+formatSuggestionCount(remaining)+" more below)"))
+			}
+
 			contentLines = append(contentLines, "")
 		}
 	}
@@ -123,4 +163,12 @@ func ExtractNameFromInterface(item interface{}) string {
 	}
 
 	return GetFieldString(v, "Name")
+}
+
+// formatSuggestionCount formats the count for suggestion scroll indicators
+func formatSuggestionCount(count int) string {
+	if count == 1 {
+		return "1 item"
+	}
+	return fmt.Sprintf("%d items", count)
 }

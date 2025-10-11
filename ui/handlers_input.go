@@ -74,7 +74,14 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.InputMode = false
 		}
 	} else if m.ActivePanel == InitiativeTracker {
-		if m.InitiativeEditMode {
+		if m.MultiTargetMode {
+			// Exit multi-target mode
+			m.MultiTargetMode = false
+			m.SelectedTargets = make(map[int]bool)
+			m.ShowMultiTargetPopup = false
+			m.MultiTargetInput = ""
+			m.TargetSaveResults = make(map[int]string)
+		} else if m.InitiativeEditMode {
 			// Exit edit mode
 			m.InitiativeEditMode = false
 			m.InitiativeEditType = ""
@@ -90,10 +97,16 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.InitiativeInputType = ""
 		}
 	} else if m.ActivePanel == Spells {
-		m.SpellSearchInput = ""
-		m.SpellSearchMode = false
-		m.SpellSuggestions = []string{}
-		m.SuggestionIndex = -1
+		if m.ActiveSpellListMode {
+			// Exit active spell list mode
+			m.ActiveSpellListMode = false
+			m.ActiveSpellIndex = -1
+		} else {
+			m.SpellSearchInput = ""
+			m.SpellSearchMode = false
+			m.SpellSuggestions = []string{}
+			m.SuggestionIndex = -1
+		}
 	} else if m.ActivePanel == Monsters {
 		m.MonsterSearchInput = ""
 		m.MonsterSearchMode = false
@@ -108,6 +121,11 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleEnter handles enter key presses
 func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Multi-target mode: open popup to input damage/healing
+	if m.MultiTargetMode && m.ActivePanel == InitiativeTracker && !m.ShowMultiTargetPopup {
+		return handleMultiTargetApply(m)
+	}
+
 	// Handle saving throw popup - reroll on Enter (highest priority)
 	if m.ShowSavingThrowPopup {
 		// Just keep the popup open - the RenderSavingThrowPopup function
@@ -309,6 +327,16 @@ func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleSpace handles space key presses
 func handleSpace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Debug: log when space is pressed
+	_ = msg // Keep msg parameter even if unused
+
+	// IMPORTANT: Multi-target mode must return the modified model
+	// Multi-target mode: toggle selection of current entry (HIGHEST PRIORITY)
+	if m.MultiTargetMode {
+		newModel, cmd := handleMultiTargetSpace(m)
+		return newModel, cmd
+	}
+
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += " "
 	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {

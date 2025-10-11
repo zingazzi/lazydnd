@@ -37,7 +37,7 @@ var keyHandlers = map[string]KeyHandler{
 	"esc":       handleEscape,
 	"backspace": handleBackspace,
 	"ctrl+h":    handleBackspace,
-	"space":     handleSpace,
+	" ":         handleSpace, // Space key is represented as " " not "space"
 
 	// Letter handlers
 	"r": handleR,
@@ -53,6 +53,8 @@ var keyHandlers = map[string]KeyHandler{
 	"s": handleS,
 	"n": handleNextTurn,
 	"x": handleResetCombat,
+	"v": handleV,
+	"t": handleT,
 
 	// Special handlers
 	"?": handleHelp,
@@ -67,6 +69,16 @@ var keyHandlers = map[string]KeyHandler{
 func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	key := msg.String()
 
+	// Handle cast spell popup input (highest priority)
+	if m.ShowCastSpellPrompt && m.CastSpellInputMode {
+		return handleCastSpellInput(m, msg)
+	}
+
+	// Handle multi-target popup input (highest priority)
+	if m.ShowMultiTargetPopup {
+		return handleMultiTargetPopupInput(m, msg)
+	}
+
 	// Handle save popup input
 	if m.ShowSavePopup {
 		return handleSavePopupInput(m, msg)
@@ -80,6 +92,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle rename popup input
 	if m.ShowRenamePopup {
 		return handleRenamePopupInput(m, msg)
+	}
+
+	// Handle active spell list navigation
+	if m.ActiveSpellListMode && (key == "up" || key == "down") {
+		return handleActiveSpellNavigation(m, key)
 	}
 
 	// Check if we have a specific handler for this key

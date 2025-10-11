@@ -39,6 +39,20 @@ func InitialModel() Model {
 		SelectedMonster:        nil,
 		MonsterSuggestions:     []string{},
 		MonsterSuggestionIndex: -1,
+		ActiveSpells:           []ActiveSpell{},
+		ActiveSpellIndex:       -1,
+		ActiveSpellListMode:    false,
+		ShowCastSpellPrompt:    false,
+		CastSpellInput:         "",
+		CastSpellInputMode:     false,
+		SpellToCast:            nil,
+		MultiTargetMode:        false,
+		SelectedTargets:        make(map[int]bool),
+		ShowMultiTargetPopup:   false,
+		MultiTargetInput:       "",
+		MultiTargetType:        "damage",
+		MultiTargetSaveMode:    false,
+		TargetSaveResults:      make(map[int]string),
 		ShowHelpPopup:          false,
 	}
 }
@@ -69,6 +83,16 @@ func (m Model) View() string {
 	// Show rename popup if active (highest priority)
 	if m.ShowRenamePopup {
 		return m.renderRenamePopupOverlay(mainView)
+	}
+
+	// Show cast spell popup if active (takes priority over other popups)
+	if m.ShowCastSpellPrompt {
+		return renderCastSpellPopupOverlay(m, mainView)
+	}
+
+	// Show multi-target popup if active (takes priority over other popups)
+	if m.ShowMultiTargetPopup {
+		return renderMultiTargetPopupOverlay(m, mainView)
 	}
 
 	// Show saving throw popup if active (takes priority over action popup)
