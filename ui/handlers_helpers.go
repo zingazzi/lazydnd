@@ -228,7 +228,7 @@ func renumberMonsterInstances(m Model) Model {
 // addToSpellSearch adds a character to spell search input and updates suggestions
 func addToSpellSearch(m Model, char string) Model {
 	m.SpellSearchInput += char
-	m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+	m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput, "")
 	if len(m.SpellSuggestions) > 0 {
 		m.SuggestionIndex = 0
 	} else {
@@ -240,7 +240,7 @@ func addToSpellSearch(m Model, char string) Model {
 // addToMonsterSearch adds a character to monster search input and updates suggestions
 func addToMonsterSearch(m Model, char string) Model {
 	m.MonsterSearchInput += char
-	m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+	m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput, m.MonsterCRFilter)
 	if len(m.MonsterSuggestions) > 0 {
 		m.MonsterSuggestionIndex = 0
 	} else {

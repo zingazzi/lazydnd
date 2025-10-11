@@ -8,11 +8,12 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 🎲 **Dice Roller Panel** - Roll any dice with simple commands (2d6, 1d20+5, etc.)
 ⚔️ **Initiative Tracker Panel** - Manage combat initiative for players and monsters
-✨ **Spells Panel** - Search and browse D&D 5e spells with autocomplete
-🐲 **Monsters Panel** - Search and view detailed monster stat blocks with actions
+✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
+🐲 **Monsters Panel** - Search and view detailed monster stat blocks with fuzzy search
 💾 **Campaign Save/Load** - Save your game state and resume later
 🔄 **Auto-Save** - Automatic saving every 5 minutes
 🔗 **Monster Integration** - Link monsters to initiative with full action support
+⚡ **Instant Transitions** - Lightning-fast panel switching with zero latency
 
 ## Installation
 
@@ -134,10 +135,42 @@ See [CONFIGURATION.md](CONFIGURATION.md) for complete configuration documentatio
 ### Command Line Options
 
 ```bash
-lazydnd          # Start the application
+lazydnd           # Start the application
 lazydnd --version # Print version number and exit
+lazydnd --debug   # Enable debug logging to ~/.config/lazydnd/debug.log
 lazydnd --help    # Show available options
 ```
+
+**Debug Mode:**
+When enabled with `--debug`, the application logs all events to `~/.config/lazydnd/debug.log` including:
+- Key presses and handlers
+- Multi-target operations
+- Condition additions/removals
+- Spell tracking events
+- State changes
+
+Useful for troubleshooting issues. You can view the log in real-time with: `tail -f ~/.config/lazydnd/debug.log`
+
+**Fuzzy Search:**
+Both Monsters and Spells panels now use intelligent fuzzy search that:
+- Handles typos and misspellings (e.g., "frbl" finds "Fireball")
+- Matches partial names in any order (e.g., "drag red" finds "Adult Red Dragon")
+- Automatically sorts results by match quality
+- More forgiving than exact substring matching
+- Just start typing to see suggestions!
+
+**CR Filter (Monsters Only):**
+Browse monsters by Challenge Rating with autocomplete:
+1. Press `f` in the Monsters panel to open CR filter
+2. Type a CR value as you type, monsters matching that CR appear instantly:
+   - **Exact**: `5` → shows all CR 5 monsters
+   - **Range**: `0-5` → shows CR 0 through 5
+   - **Minimum**: `10+` → shows CR 10 and above
+   - **Fractional**: `1/4`, `1/2`, `0.5` all work!
+3. Use `↑↓` arrow keys to navigate the list
+4. Press `Enter` to select a monster and view its full details
+5. Press `Esc` to cancel and go back
+6. Perfect for finding level-appropriate encounters quickly!
 
 ### Global Navigation & Controls
 
@@ -188,7 +221,8 @@ lazydnd --help    # Show available options
 
 **Features:**
 - ✅ Minimum value of 1 (D&D rule)
-- ✅ Available dice: d4, d6, d8, d10, d12, d20, d100
+- ✅ Standard D&D dice: d4, d6, d8, d10, d12, d20, d100
+- ✅ Zocchi's dice: d3, d5, d7, d14, d16, d24, d30
 - ✅ Roll history displayed
 - ✅ Quick reroll with 'r' key
 
@@ -208,6 +242,7 @@ lazydnd --help    # Show available options
 | `x` | Reset combat (reset turn and round counters) |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
+| `o` | Manage conditions (add/remove status effects in edit mode) |
 | `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
 | `d` | Delete selected entry (in edit mode) |
 | `l` | View linked monster details (if added from Monster panel) |
@@ -218,6 +253,7 @@ lazydnd --help    # Show available options
 - ✅ **Turn Tracking**: Track current turn with visual indicator (★)
 - ✅ **Round Counter**: Automatic round tracking with time elapsed (6 seconds per round)
 - ✅ **Auto-Sort**: Entries sorted by initiative (highest first)
+- ✅ **Conditions Tracker**: Add/remove status effects (Poisoned, Stunned, etc.) with duration tracking
 - ✅ **Monster Linking**: Monsters added from Monster panel retain full data
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
@@ -226,6 +262,33 @@ lazydnd --help    # Show available options
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
+
+**Conditions Tracker:**
+Track status effects (Poisoned, Stunned, Paralyzed, etc.) on any creature:
+1. **Conditions show inline in initiative list** with emoji icons (e.g., "Goblin 1 (HP: 7/7, AC: 13) 🤢😱")
+2. Hover/select to see full details: names and remaining rounds
+3. Press `Enter` to enter edit mode, navigate to an entry with `↑↓`
+4. Press `o` to open conditions manager
+5. View detailed list with duration countdown (e.g., "🤢 Poisoned (3 rounds)")
+6. Press `a` to add a new condition
+7. Select from list of 15 common D&D conditions using `↑↓` (or choose "Custom condition..." for your own)
+8. Press `Enter` to confirm selection
+9. Enter duration in rounds (or 0 for indefinite)
+10. Press `Enter` to apply
+11. Press `d` to remove a condition from the list
+12. Conditions automatically expire after duration ends and disappear from the list
+
+**Multi-Target Conditions:**
+Apply conditions to multiple creatures at once (e.g., Fear spell affecting 3 enemies):
+1. Press `t` to enter multi-target mode
+2. Use `Space` to select multiple targets
+3. Press `o` to open condition manager (shows "X targets selected")
+4. Press `a` to add condition
+5. Select condition and duration
+6. Condition applies to all selected targets simultaneously!
+
+**Common Conditions with Emojis:**
+🤢 Poisoned • 😵 Stunned/Paralyzed/Incapacitated/Unconscious • 😱 Frightened • 😍 Charmed • 👻 Invisible • 🤕 Prone • 🔗 Grappled/Restrained • 🙈 Blinded • 🙉 Deafened • 🔮 Others
 
 **Multi-Target Damage/Healing:**
 Perfect for area spells (Fireball, Thunderwave) and mass healing:

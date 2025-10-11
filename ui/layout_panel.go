@@ -48,6 +48,6 @@ func (m Model) getPanelStyle(panelType PanelType, dimensions PanelDimensions) li
 		baseStyle = m.Styles.InactivePanelStyle
 	}
 
-	// Apply dimensions
+	// Apply fixed dimensions to prevent resize
 	return baseStyle.Width(dimensions.Width).Height(dimensions.Height)
 }

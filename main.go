@@ -13,14 +13,27 @@ import (
 )
 
 func main() {
+	// Initialize debug logger
+	if err := ui.InitDebugLogger(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Could not initialize debug logger: %v\n", err)
+	}
+	defer ui.CloseDebugLogger()
+
 	// Parse command-line flags
 	versionFlag := flag.Bool("version", false, "Print version and exit")
+	debugFlag := flag.Bool("debug", false, "Enable debug logging to ~/.config/lazydnd/debug.log")
 	flag.Parse()
 
 	// Handle version flag
 	if *versionFlag {
 		fmt.Println("LazyDnD " + ui.AppVersion)
 		os.Exit(0)
+	}
+
+	// Enable debug mode if flag is set
+	if *debugFlag {
+		ui.EnableDebugMode()
+		fmt.Println("🐛 Debug mode enabled - Logging to ~/.config/lazydnd/debug.log")
 	}
 
 	// Load configuration
