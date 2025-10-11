@@ -24,8 +24,10 @@ var (
 	currentShowIndividual = true
 )
 
-// ValidDiceTypes defines the standard D&D dice types
-var ValidDiceTypes = []int{4, 6, 8, 10, 12, 20, 100}
+// ValidDiceTypes defines the standard D&D dice types plus Zocchi's dice
+// Standard D&D: d4, d6, d8, d10, d12, d20, d100
+// Zocchi's dice: d3, d5, d7, d14, d16, d24, d30
+var ValidDiceTypes = []int{3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 30, 100}
 
 var (
 	inputStyle = lipgloss.NewStyle().
@@ -260,7 +262,7 @@ func validateDiceType(sides int) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("invalid dice type: d%d (allowed: d4, d6, d8, d10, d12, d20, d100)", sides)
+	return fmt.Errorf("invalid dice type: d%d (allowed: d3, d4, d5, d6, d7, d8, d10, d12, d14, d16, d20, d24, d30, d100)", sides)
 }
 
 // evaluateExpressions evaluates a list of dice/number expressions with operators.

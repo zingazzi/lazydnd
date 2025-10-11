@@ -66,8 +66,8 @@ func TestRollDiceInvalidInputs(t *testing.T) {
 		wantContains string
 	}{
 		{
-			name:         "Invalid dice type d7",
-			command:      "1d7",
+			name:         "Invalid dice type d9",
+			command:      "1d9",
 			wantContains: "invalid",
 		},
 		{
@@ -244,9 +244,9 @@ func TestRollDiceAdvantageDisadvantage(t *testing.T) {
 	}
 }
 
-// TestRollDiceStandardDiceTypes tests all standard D&D dice
+// TestRollDiceStandardDiceTypes tests all standard D&D dice plus Zocchi's dice
 func TestRollDiceStandardDiceTypes(t *testing.T) {
-	diceTypes := []string{"d4", "d6", "d8", "d10", "d12", "d20", "d100"}
+	diceTypes := []string{"d3", "d4", "d5", "d6", "d7", "d8", "d10", "d12", "d14", "d16", "d20", "d24", "d30", "d100"}
 
 	for _, diceType := range diceTypes {
 		t.Run(diceType, func(t *testing.T) {

@@ -199,7 +199,8 @@ Useful for troubleshooting issues. You can view the log in real-time with: `tail
 
 **Features:**
 - ✅ Minimum value of 1 (D&D rule)
-- ✅ Available dice: d4, d6, d8, d10, d12, d20, d100
+- ✅ Standard D&D dice: d4, d6, d8, d10, d12, d20, d100
+- ✅ Zocchi's dice: d3, d5, d7, d14, d16, d24, d30
 - ✅ Roll history displayed
 - ✅ Quick reroll with 'r' key
 
