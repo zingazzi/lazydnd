@@ -1,5 +1,53 @@
 # CHANGELOG
 
+## 2.6.0
+- **CR Filter for Monsters (Autocomplete Style)**
+  - Browse monsters by Challenge Rating with live autocomplete
+  - Press `f` in Monsters panel to open CR filter
+  - Type CR value and monster list appears instantly
+  - Supports multiple filter formats:
+    - Exact: `5` → shows all CR 5 monsters
+    - Range: `0-5` → shows CR 0 through 5
+    - Minimum: `10+` → shows CR 10 and above
+  - Handles fractional CRs: `1/4`, `1/2`, `0.5`
+  - Navigate with `↑↓` arrows, select with `Enter`
+  - Works just like the name search autocomplete
+  - Parses CR from full strings like "5 (1,800 XP)"
+  - Perfect for quickly finding level-appropriate encounters!
+
+- **Fuzzy Search for Monsters and Spells**
+  - Implemented intelligent fuzzy search using `github.com/sahilm/fuzzy`
+  - Handles typos and partial matches (e.g., "frbl" finds "Fireball")
+  - Results automatically sorted by match quality
+  - Works in both Monsters and Spells panels
+  - More forgiving search - no need for exact spelling
+  - Examples:
+    - "drag red" → finds "Adult Red Dragon"
+    - "mgc msl" → finds "Magic Missile"
+    - "phn wp" → finds "Phantom Weapon"
+
+- **Rendering Fixes**
+  - Fixed text wrapping in monster panel to prevent text overflow (60 → 35 chars)
+  - Fixed separator lines to match panel width (40 → 35 chars)
+  - Completely refactored search rendering to prevent overlap
+  - Search mode and details mode are now mutually exclusive
+  - Early return pattern ensures clean UI without any overlap
+  - Prevents graphic glitches and text overlapping in all panels
+  - All text now properly fits within panel boundaries
+
+- **Debug Logging**
+  - Added `--debug` flag to enable debug logging
+  - Logs saved to `~/.config/lazydnd/debug.log`
+  - Real-time logging of key events, state changes, and operations
+  - Logs include: key presses, multi-target operations, condition management, spell tracking
+  - Useful for troubleshooting and development
+  - Example: `lazydnd --debug`
+
+- **Zocchi's Dice Support**
+  - Added support for Zocchi's dice: d3, d5, d7, d14, d16, d24, d30
+  - All dice types work with standard notation (e.g., `2d7+3`, `1d30`, `3d5-1`)
+  - Dice roller now supports 14 different dice types total
+
 ## 2.5.0
 - **Multi-Target Damage/Healing System**
   - Select multiple targets in Initiative Tracker for simultaneous damage/healing
