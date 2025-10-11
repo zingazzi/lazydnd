@@ -98,6 +98,9 @@ type Model struct {
 	SaveInput           string
 	CurrentCampaignFile string
 	CurrentCampaignName string
+
+	// Debug mode
+	DebugMode bool
 	CampaignList        []string
 	CampaignListIndex   int
 	LastAutoSave        string

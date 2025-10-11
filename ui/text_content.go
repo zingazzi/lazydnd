@@ -123,6 +123,12 @@ var MonstersHelp = []HelpKey{
 	{"  Backspace", "Delete character"},
 }
 
+// DebugHelp defines help keys for the debug panel
+var DebugHelp = []HelpKey{
+	{"F12", "Toggle debug mode"},
+	{"Tab", "Switch panels"},
+}
+
 // GetPanelHelpKeys returns the help keys for a specific panel
 func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 	switch panelType {

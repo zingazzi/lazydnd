@@ -2,6 +2,7 @@
 package ui
 
 import (
+	"fmt"
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,6 +10,8 @@ import (
 
 // handleO handles the 'o' key to open condition management (cOnditions)
 func handleO(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	LogKeyPress("o", "Open condition manager")
+	
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "o"), nil
@@ -16,19 +19,24 @@ func handleO(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Only work in Initiative Tracker with list mode active
 	if m.ActivePanel != InitiativeTracker || !m.InitiativeListMode {
+		DebugLog("handleO: Blocked - ActivePanel=%d, InitiativeListMode=%v", m.ActivePanel, m.InitiativeListMode)
 		return m, nil
 	}
 
 	// If in multi-target mode, check if any targets are selected
 	if m.MultiTargetMode {
 		if len(m.SelectedTargets) == 0 {
+			DebugLog("handleO: Blocked - Multi-target mode with no targets selected")
 			return m, nil
 		}
+		LogCondition("Open popup", fmt.Sprintf("Multi-target mode: %d targets", len(m.SelectedTargets)))
 	} else {
 		// Single target mode - need a selected entry
 		if m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
+			DebugLog("handleO: Blocked - Invalid SelectedEntry=%d", m.SelectedEntry)
 			return m, nil
 		}
+		LogCondition("Open popup", fmt.Sprintf("Single target: %s", m.InitiativeList[m.SelectedEntry].Name))
 	}
 
 	// Open condition popup in list mode
@@ -172,17 +180,20 @@ func handleConditionPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Apply to all selected targets in multi-target mode, or single target
 			if m.MultiTargetMode {
 				// Apply to all selected targets
+				LogCondition("Apply", fmt.Sprintf("Multi-target: %s (duration: %d rounds) to %d targets", newCondition.Name, duration, len(m.SelectedTargets)))
 				for idx := range m.SelectedTargets {
 					if idx >= 0 && idx < len(m.InitiativeList) {
 						m.InitiativeList[idx].Conditions = append(
 							m.InitiativeList[idx].Conditions,
 							newCondition,
 						)
+						DebugLog("  - Applied to: %s (index %d)", m.InitiativeList[idx].Name, idx)
 					}
 				}
 			} else {
 				// Apply to single selected entry
 				if m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+					LogCondition("Apply", fmt.Sprintf("%s (duration: %d rounds) to %s", newCondition.Name, duration, m.InitiativeList[m.SelectedEntry].Name))
 					m.InitiativeList[m.SelectedEntry].Conditions = append(
 						m.InitiativeList[m.SelectedEntry].Conditions,
 						newCondition,

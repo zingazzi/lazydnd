@@ -141,6 +141,10 @@ func (m Model) getHelpText(panelType PanelType) string {
 	return provider(m)
 }
 
+// getDebugContent gets content for the debug panel
+func getDebugContent(m Model) string {
+	return panels.GetDebugContent(m)
+}
 
 // getDiceRollerHelpText gets help text for the dice roller panel
 func getDiceRollerHelpText(m Model) string {

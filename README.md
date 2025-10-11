@@ -134,10 +134,21 @@ See [CONFIGURATION.md](CONFIGURATION.md) for complete configuration documentatio
 ### Command Line Options
 
 ```bash
-lazydnd          # Start the application
+lazydnd           # Start the application
 lazydnd --version # Print version number and exit
+lazydnd --debug   # Enable debug logging to ~/.config/lazydnd/debug.log
 lazydnd --help    # Show available options
 ```
+
+**Debug Mode:**
+When enabled with `--debug`, the application logs all events to `~/.config/lazydnd/debug.log` including:
+- Key presses and handlers
+- Multi-target operations
+- Condition additions/removals
+- Spell tracking events
+- State changes
+
+Useful for troubleshooting issues. You can view the log in real-time with: `tail -f ~/.config/lazydnd/debug.log`
 
 ### Global Navigation & Controls
 
