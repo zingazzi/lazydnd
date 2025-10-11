@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 2.5.0
+- **Multi-Target Damage/Healing System**
+  - Select multiple targets in Initiative Tracker for simultaneous damage/healing
+  - Press 't' to enter multi-target mode
+  - Use Space to select/deselect targets (checkboxes appear)
+  - Press Enter to apply damage or healing to all selected targets
+  - Optional save mode: targets can succeed/fail saves for half damage
+  - Toggle between damage and healing modes with 'h'
+  - Visual feedback with checkboxes and counters
+  - Works great for area spells like Fireball, mass healing, etc.
+
+- **Spell Tracking System**
+  - Cast spells and track their durations during combat
+  - Active spell list showing all ongoing spell effects
+  - Automatic duration countdown integrated with initiative tracker
+  - Manual spell deletion capability
+  - Duration parsing for rounds, minutes, hours, and days
+  - Concentration spells marked with (C)
+  - Active spells saved with campaign state
+  - Human-readable time remaining display
+  - Instantaneous spells not tracked
+  - Press 'c' to cast spell, 'v' to view active spells, 'd' to delete
+
 ## 2.4.1
 - **Version Display**
   - Added version number (v2.4.1) to status bar next to LazyDnD name
