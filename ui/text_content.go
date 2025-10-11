@@ -175,17 +175,26 @@ func InitiativeTrackerInlineHelp(editMode, inputMode, listMode, multiTargetMode 
 }
 
 // SpellsInlineHelp returns inline help for spells panel
-func SpellsInlineHelp(searchMode bool, activeSpellMode bool, hasSelectedSpell bool) string {
-	if searchMode {
+func SpellsInlineHelp(m Model) string {
+	if m.CastSpellInputMode {
+		return "Type caster name • Enter: confirm • Esc: cancel"
+	}
+	if m.SpellLevelFilterMode {
+		return "Type level (0-9, 1-3, 5+) • ↑↓: navigate • Enter: select • Esc: cancel"
+	}
+	if m.SpellSearchMode {
 		return "Enter: select spell • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch"
 	}
-	if activeSpellMode {
-		return "d: delete spell • v: back to spells • ↑↓: navigate • Esc: exit • F1-F4: switch"
+	if m.ActiveSpellListMode {
+		return "↑↓: select spell • d: delete spell • Esc: back to spells • F1-F4: switch panels"
 	}
-	if hasSelectedSpell {
-		return "c: cast spell • v: view active spells • Enter: search • ↑↓: scroll • F1-F4: switch"
+	if m.SelectedSpell != nil {
+		return "c: Cast Spell • Enter: Search • f: Filter by Level • Esc: Back • v: View Active • 1-4/F1-F4: Switch"
 	}
-	return "Enter: search spells • v: view active spells • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
+	if len(m.ActiveSpells) > 0 {
+		return "Enter: search spell • f: filter by level • v: view active spells • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit"
+	}
+	return "Enter: search spell • f: filter by level • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit"
 }
 
 // MonstersInlineHelp returns inline help for monsters panel

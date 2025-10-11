@@ -28,7 +28,27 @@ var (
 )
 
 // GetSpellsContent returns the content for the spells panel
-func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool, showCastPrompt bool) string {
+func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions []string, suggestionIndex int, searchMode, isActive bool, showCastPrompt bool, levelFilter string, levelFilterMode bool) string {
+	// If in level filter mode, use level filter as the "search" input
+	if levelFilterMode {
+		return RenderSearchContent(SearchContentConfig{
+			Title:           "Filter by Spell Level",
+			ItemType:        "spell",
+			SearchInput:     levelFilter,
+			SelectedItem:    nil, // Never show selected item in level filter mode
+			Suggestions:     suggestions,
+			SuggestionIndex: suggestionIndex,
+			SearchMode:      true, // Show as search mode
+			IsActive:        isActive,
+			InputStyle:      spellInputStyle,
+			SuggestionStyle: spellSuggestionStyle,
+			SelectedStyle:   selectedSpellSuggestionStyle,
+			FormatFunc:      FormatSelectedSpell,
+			ShowAddPrompt:   false,
+		})
+	}
+
+	// Regular search mode
 	content := RenderSearchContent(SearchContentConfig{
 		Title:           "Search D&D 5e Spells",
 		ItemType:        "spell",

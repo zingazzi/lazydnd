@@ -88,6 +88,8 @@ func getSpellsContent(m Model) string {
 		m.SpellSearchMode,
 		m.ActivePanel == Spells,
 		!m.CastSpellInputMode,
+		m.SpellLevelFilter,
+		m.SpellLevelFilterMode,
 	)
 
 	// If there are active spells, add a note
@@ -157,7 +159,7 @@ func getInitiativeTrackerHelpText(m Model) string {
 
 // getSpellsHelpText gets help text for the spells panel
 func getSpellsHelpText(m Model) string {
-	text := SpellsInlineHelp(m.SpellSearchMode, m.ActiveSpellListMode, m.SelectedSpell != nil)
+	text := SpellsInlineHelp(m)
 	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 

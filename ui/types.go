@@ -67,6 +67,9 @@ type Model struct {
 	MonsterSuggestionIndex int
 	MonsterCRFilter        string // CR filter (e.g., "5", "0-3", "10+")
 	MonsterCRFilterMode    bool   // True when editing CR filter
+	// Spell search state
+	SpellLevelFilter     string // Spell level filter (e.g., "0", "1-3", "5+")
+	SpellLevelFilterMode bool   // True when editing spell level filter
 	// Active spells state
 	ActiveSpells        []ActiveSpell
 	ActiveSpellIndex    int  // Selected spell in active spells list

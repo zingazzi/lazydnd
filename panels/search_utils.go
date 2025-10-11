@@ -49,6 +49,8 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 		label := "Search"
 		if strings.Contains(cfg.Title, "Challenge Rating") {
 			label = "CR"
+		} else if strings.Contains(cfg.Title, "Spell Level") {
+			label = "Level"
 		}
 
 		contentLines = append(contentLines, cfg.InputStyle.Render(label+": "+prompt))

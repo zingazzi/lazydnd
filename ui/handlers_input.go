@@ -19,7 +19,7 @@ func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Add 'q' to spell search input
 		m.SpellSearchInput += "q"
 		// Update suggestions
-		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput, "")
 		if len(m.SpellSuggestions) > 0 {
 			m.SuggestionIndex = 0
 		} else {
@@ -305,7 +305,7 @@ func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.SpellSearchMode && len(m.SpellSearchInput) > 0 {
 		m.SpellSearchInput = m.SpellSearchInput[:len(m.SpellSearchInput)-1]
 		// Update suggestions
-		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput, "")
 		if len(m.SpellSuggestions) > 0 {
 			m.SuggestionIndex = 0
 		} else {
@@ -344,7 +344,7 @@ func handleSpace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.SpellSearchMode && m.ActivePanel == Spells {
 		m.SpellSearchInput += " "
 		// Update suggestions
-		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+		m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput, "")
 		if len(m.SpellSuggestions) > 0 {
 			m.SuggestionIndex = 0
 		} else {
@@ -385,7 +385,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			key == "'" || key == "-" || key == " ") {
 			m.SpellSearchInput += key
 			// Update suggestions
-			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput)
+			m.SpellSuggestions = panels.SearchSpells(m.SpellSearchInput, "")
 			if len(m.SpellSuggestions) > 0 {
 				m.SuggestionIndex = 0
 			} else {

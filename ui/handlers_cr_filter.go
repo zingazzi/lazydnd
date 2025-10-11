@@ -7,9 +7,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// handleF toggles CR filter mode in monster panel
+// handleF toggles CR filter mode in monster panel OR level filter in spells panel
 func handleF(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	// Only in Monsters panel and not in other modes
+	// Handle search mode input first
+	if m.isInInputMode() {
+		return handleSearchModeInput(m, "f"), nil
+	}
+	
+	// Monster panel: CR filter
 	if m.ActivePanel == Monsters && !m.MonsterSearchMode && !m.MonsterCRFilterMode {
 		// Clear any selected monster and enter CR filter mode
 		m.SelectedMonster = nil
@@ -18,7 +23,21 @@ func handleF(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.MonsterSuggestions = []string{}
 		m.MonsterSuggestionIndex = -1
 		DebugLog("FILTER: Entering CR filter mode")
+		return m, nil
 	}
+	
+	// Spells panel: Level filter
+	if m.ActivePanel == Spells && !m.SpellSearchMode && !m.SpellLevelFilterMode && !m.ActiveSpellListMode && !m.CastSpellInputMode {
+		// Clear any selected spell and enter level filter mode
+		m.SelectedSpell = nil
+		m.SpellLevelFilterMode = true
+		m.SpellLevelFilter = ""
+		m.SpellSuggestions = []string{}
+		m.SuggestionIndex = -1
+		DebugLog("FILTER: Entering spell level filter mode")
+		return m, nil
+	}
+	
 	return m, nil
 }
 

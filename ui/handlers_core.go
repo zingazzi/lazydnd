@@ -110,6 +110,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.MonsterCRFilterMode {
 		return handleCRFilterInput(m, key)
 	}
+	
+	// Handle spell level filter input (when in spell level filter mode)
+	if m.SpellLevelFilterMode {
+		return handleSpellLevelFilterInput(m, key)
+	}
 
 	// Check if we have a specific handler for this key
 	if handler, exists := keyHandlers[key]; exists {

@@ -41,6 +41,8 @@ func InitialModel() Model {
 		MonsterSuggestionIndex:   -1,
 		MonsterCRFilter:          "",
 		MonsterCRFilterMode:      false,
+		SpellLevelFilter:         "",
+		SpellLevelFilterMode:     false,
 		ActiveSpells:             []ActiveSpell{},
 		ActiveSpellIndex:         -1,
 		ActiveSpellListMode:      false,

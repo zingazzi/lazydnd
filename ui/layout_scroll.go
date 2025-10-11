@@ -11,7 +11,7 @@ func (m Model) applyScrolling(content string, panelType PanelType, dimensions Pa
 	if panelType == Monsters && (m.MonsterSearchMode || m.MonsterCRFilterMode) {
 		return content // Search content already has its own scroll handling
 	}
-	if panelType == Spells && m.SpellSearchMode {
+	if panelType == Spells && (m.SpellSearchMode || m.SpellLevelFilterMode) {
 		return content // Search content already has its own scroll handling
 	}
 
