@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/sahilm/fuzzy"
 )
 
 // MonsterAction represents a single action a monster can take
@@ -183,16 +185,22 @@ func SearchMonsters(searchTerm string) []string {
 		return []string{}
 	}
 
-	var matches []string
-	searchLower := strings.ToLower(searchTerm)
-
+	// Build list of monster names for fuzzy search
+	monsterNames := make([]string, 0, len(monsters))
 	for _, monster := range monsters {
-		if strings.Contains(strings.ToLower(monster.Name), searchLower) {
-			matches = append(matches, monster.Name)
-			if len(matches) >= 10 { // Limit suggestions
-				break
-			}
+		monsterNames = append(monsterNames, monster.Name)
+	}
+
+	// Use fuzzy search to find matches
+	results := fuzzy.Find(searchTerm, monsterNames)
+
+	// Extract matched names (already sorted by score)
+	matches := make([]string, 0, 10)
+	for i, result := range results {
+		if i >= 10 { // Limit to 10 suggestions
+			break
 		}
+		matches = append(matches, result.Str)
 	}
 
 	return matches

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/sahilm/fuzzy"
 )
 
 // Spell represents a D&D spell (duplicate from ui package for panels use)
@@ -63,16 +65,16 @@ func SearchSpells(searchTerm string) []string {
 		return []string{}
 	}
 
-	searchLower := strings.ToLower(searchTerm)
-	var matches []string
+	// Use fuzzy search to find matches
+	results := fuzzy.Find(searchTerm, spellNames)
 
-	for _, spellName := range spellNames {
-		if strings.Contains(strings.ToLower(spellName), searchLower) {
-			matches = append(matches, spellName)
-			if len(matches) >= 10 { // Limit suggestions
-				break
-			}
+	// Extract matched names (already sorted by score)
+	matches := make([]string, 0, 10)
+	for i, result := range results {
+		if i >= 10 { // Limit to 10 suggestions
+			break
 		}
+		matches = append(matches, result.Str)
 	}
 
 	return matches

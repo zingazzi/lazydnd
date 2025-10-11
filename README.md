@@ -8,12 +8,12 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 🎲 **Dice Roller Panel** - Roll any dice with simple commands (2d6, 1d20+5, etc.)
 ⚔️ **Initiative Tracker Panel** - Manage combat initiative for players and monsters
-✨ **Spells Panel** - Search and browse D&D 5e spells with autocomplete
-🐲 **Monsters Panel** - Search and view detailed monster stat blocks with actions
+✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
+🐲 **Monsters Panel** - Search and view detailed monster stat blocks with fuzzy search
 💾 **Campaign Save/Load** - Save your game state and resume later
 🔄 **Auto-Save** - Automatic saving every 5 minutes
 🔗 **Monster Integration** - Link monsters to initiative with full action support
-✨ **Smooth Animations** - Beautiful slide transitions between panels (150ms, 60 FPS)
+⚡ **Instant Transitions** - Lightning-fast panel switching with zero latency
 
 ## Installation
 
@@ -150,6 +150,14 @@ When enabled with `--debug`, the application logs all events to `~/.config/lazyd
 - State changes
 
 Useful for troubleshooting issues. You can view the log in real-time with: `tail -f ~/.config/lazydnd/debug.log`
+
+**Fuzzy Search:**
+Both Monsters and Spells panels now use intelligent fuzzy search that:
+- Handles typos and misspellings (e.g., "frbl" finds "Fireball")
+- Matches partial names in any order (e.g., "drag red" finds "Adult Red Dragon")
+- Automatically sorts results by match quality
+- More forgiving than exact substring matching
+- Just start typing to see suggestions!
 
 ### Global Navigation & Controls
 

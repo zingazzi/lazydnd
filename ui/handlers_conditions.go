@@ -11,7 +11,7 @@ import (
 // handleO handles the 'o' key to open condition management (cOnditions)
 func handleO(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	LogKeyPress("o", "Open condition manager")
-	
+
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "o"), nil
@@ -160,58 +160,58 @@ func handleConditionPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 					m.ConditionInputStep = 2
 					m.ConditionInput = ""
 				}
-		} else if m.ConditionInputStep == 1 {
-			// Duration entered, apply condition
-			duration := 0
-			if m.ConditionDurationInput != "" {
-				duration, _ = strconv.Atoi(m.ConditionDurationInput)
-				if duration < 0 {
-					duration = 0
-				}
-			}
-
-			newCondition := Condition{
-				Name:        m.ConditionInput,
-				RoundsLeft:  duration,
-				TotalRounds: duration,
-				Description: "",
-			}
-
-			// Apply to all selected targets in multi-target mode, or single target
-			if m.MultiTargetMode {
-				// Apply to all selected targets
-				LogCondition("Apply", fmt.Sprintf("Multi-target: %s (duration: %d rounds) to %d targets", newCondition.Name, duration, len(m.SelectedTargets)))
-				for idx := range m.SelectedTargets {
-					if idx >= 0 && idx < len(m.InitiativeList) {
-						m.InitiativeList[idx].Conditions = append(
-							m.InitiativeList[idx].Conditions,
-							newCondition,
-						)
-						DebugLog("  - Applied to: %s (index %d)", m.InitiativeList[idx].Name, idx)
+			} else if m.ConditionInputStep == 1 {
+				// Duration entered, apply condition
+				duration := 0
+				if m.ConditionDurationInput != "" {
+					duration, _ = strconv.Atoi(m.ConditionDurationInput)
+					if duration < 0 {
+						duration = 0
 					}
 				}
-			} else {
-				// Apply to single selected entry
-				if m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-					LogCondition("Apply", fmt.Sprintf("%s (duration: %d rounds) to %s", newCondition.Name, duration, m.InitiativeList[m.SelectedEntry].Name))
-					m.InitiativeList[m.SelectedEntry].Conditions = append(
-						m.InitiativeList[m.SelectedEntry].Conditions,
-						newCondition,
-					)
+
+				newCondition := Condition{
+					Name:        m.ConditionInput,
+					RoundsLeft:  duration,
+					TotalRounds: duration,
+					Description: "",
 				}
-			}
 
-			// Reset and return to list mode
-			m.ConditionPopupMode = "list"
-			m.ConditionInput = ""
-			m.ConditionDurationInput = ""
-			m.ConditionInputStep = 0
-			m.SelectedConditionNameIdx = 0
+				// Apply to all selected targets in multi-target mode, or single target
+				if m.MultiTargetMode {
+					// Apply to all selected targets
+					LogCondition("Apply", fmt.Sprintf("Multi-target: %s (duration: %d rounds) to %d targets", newCondition.Name, duration, len(m.SelectedTargets)))
+					for idx := range m.SelectedTargets {
+						if idx >= 0 && idx < len(m.InitiativeList) {
+							m.InitiativeList[idx].Conditions = append(
+								m.InitiativeList[idx].Conditions,
+								newCondition,
+							)
+							DebugLog("  - Applied to: %s (index %d)", m.InitiativeList[idx].Name, idx)
+						}
+					}
+				} else {
+					// Apply to single selected entry
+					if m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+						LogCondition("Apply", fmt.Sprintf("%s (duration: %d rounds) to %s", newCondition.Name, duration, m.InitiativeList[m.SelectedEntry].Name))
+						m.InitiativeList[m.SelectedEntry].Conditions = append(
+							m.InitiativeList[m.SelectedEntry].Conditions,
+							newCondition,
+						)
+					}
+				}
 
-			// Set selected condition index based on mode
-			if !m.MultiTargetMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-				m.SelectedConditionIdx = len(m.InitiativeList[m.SelectedEntry].Conditions) - 1
-			}
+				// Reset and return to list mode
+				m.ConditionPopupMode = "list"
+				m.ConditionInput = ""
+				m.ConditionDurationInput = ""
+				m.ConditionInputStep = 0
+				m.SelectedConditionNameIdx = 0
+
+				// Set selected condition index based on mode
+				if !m.MultiTargetMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+					m.SelectedConditionIdx = len(m.InitiativeList[m.SelectedEntry].Conditions) - 1
+				}
 			} else if m.ConditionInputStep == 2 {
 				// Custom name entered, move to duration
 				if m.ConditionInput != "" {

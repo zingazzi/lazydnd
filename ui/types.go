@@ -66,13 +66,13 @@ type Model struct {
 	MonsterSuggestions     []string
 	MonsterSuggestionIndex int
 	// Active spells state
-	ActiveSpells          []ActiveSpell
-	ActiveSpellIndex      int  // Selected spell in active spells list
-	ActiveSpellListMode   bool // When true, navigating active spells list
-	ShowCastSpellPrompt   bool // Show prompt to enter caster name
-	CastSpellInput        string
-	CastSpellInputMode    bool
-	SpellToCast           *Spell // Spell waiting to be cast
+	ActiveSpells        []ActiveSpell
+	ActiveSpellIndex    int  // Selected spell in active spells list
+	ActiveSpellListMode bool // When true, navigating active spells list
+	ShowCastSpellPrompt bool // Show prompt to enter caster name
+	CastSpellInput      string
+	CastSpellInputMode  bool
+	SpellToCast         *Spell // Spell waiting to be cast
 	// Help popup state
 	ShowHelpPopup bool
 	// Action popup state
@@ -83,13 +83,13 @@ type Model struct {
 	// Saving throw popup state
 	ShowSavingThrowPopup bool
 	// Condition management state
-	ShowConditionPopup     bool
-	ConditionPopupMode     string // "list" to view/remove, "add" to add new
-	ConditionInput         string // Input for condition name (if custom)
-	ConditionDurationInput string // Input for duration
-	ConditionInputStep     int    // 0 = select from list, 1 = duration, 2 = custom name (if needed)
-	SelectedConditionIdx   int    // Selected condition index for removal
-	SelectedConditionNameIdx int  // Selected condition name from list when adding
+	ShowConditionPopup       bool
+	ConditionPopupMode       string // "list" to view/remove, "add" to add new
+	ConditionInput           string // Input for condition name (if custom)
+	ConditionDurationInput   string // Input for duration
+	ConditionInputStep       int    // 0 = select from list, 1 = duration, 2 = custom name (if needed)
+	SelectedConditionIdx     int    // Selected condition index for removal
+	SelectedConditionNameIdx int    // Selected condition name from list when adding
 
 	// Save/Load state
 	ShowSavePopup       bool
@@ -100,10 +100,10 @@ type Model struct {
 	CurrentCampaignName string
 
 	// Debug mode
-	DebugMode bool
-	CampaignList        []string
-	CampaignListIndex   int
-	LastAutoSave        string
+	DebugMode         bool
+	CampaignList      []string
+	CampaignListIndex int
+	LastAutoSave      string
 }
 
 // Condition represents a status effect on a creature
@@ -119,13 +119,13 @@ type InitiativeEntry struct {
 	Name        string
 	Type        string // "player" or "monster"
 	Initiative  int
-	HP          int      // Only for monsters
-	MaxHP       int      // Only for monsters
-	AC          int      // Only for monsters
-	MonsterData *Monster // Link to full monster data for actions
-	InstanceNum int      // Instance number for duplicates (0 = no number shown)
-	BaseName    string   // Original name without number
-	MonsterName string   // Original monster name for save/load persistence
+	HP          int         // Only for monsters
+	MaxHP       int         // Only for monsters
+	AC          int         // Only for monsters
+	MonsterData *Monster    // Link to full monster data for actions
+	InstanceNum int         // Instance number for duplicates (0 = no number shown)
+	BaseName    string      // Original name without number
+	MonsterName string      // Original monster name for save/load persistence
 	Conditions  []Condition // Active conditions on this creature
 }
 
@@ -150,10 +150,10 @@ type Spell struct {
 type ActiveSpell struct {
 	Name          string `json:"name"`
 	CasterName    string `json:"caster_name"`
-	RoundsLeft    int    `json:"rounds_left"`    // Duration in combat rounds (6 seconds each)
-	TotalRounds   int    `json:"total_rounds"`   // Original duration for display
+	RoundsLeft    int    `json:"rounds_left"`  // Duration in combat rounds (6 seconds each)
+	TotalRounds   int    `json:"total_rounds"` // Original duration for display
 	Concentration bool   `json:"concentration"`
-	StartRound    int    `json:"start_round"`    // Round when spell was cast
+	StartRound    int    `json:"start_round"` // Round when spell was cast
 }
 
 // MonsterAction represents a single action a monster can take

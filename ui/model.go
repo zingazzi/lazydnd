@@ -39,10 +39,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m = handleAutoSave(m)
 		// Schedule next tick
 		return m, tickCmd()
-
-	case AnimationTickMsg:
-		// Handle animation updates
-		return HandleAnimationTick(m)
 	}
 
 	return m, nil

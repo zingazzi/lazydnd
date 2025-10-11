@@ -141,7 +141,6 @@ func (m Model) getHelpText(panelType PanelType) string {
 	return provider(m)
 }
 
-
 // getDiceRollerHelpText gets help text for the dice roller panel
 func getDiceRollerHelpText(m Model) string {
 	text := DiceRollerInlineHelp(m.InputMode, m.LastDiceCommand != "", m.DiceHistoryMode)

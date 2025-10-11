@@ -89,48 +89,48 @@ func RenderConditionPopup(m Model) string {
 			} else {
 				content.WriteString("Active Conditions:\n\n")
 				for i, cond := range m.InitiativeList[m.SelectedEntry].Conditions {
-				var line string
-				var emoji string
+					var line string
+					var emoji string
 
-				// Choose emoji based on condition type
-				switch cond.Name {
-				case "Poisoned":
-					emoji = "🤢"
-				case "Stunned", "Paralyzed", "Incapacitated", "Unconscious":
-					emoji = "😵"
-				case "Frightened":
-					emoji = "😱"
-				case "Charmed":
-					emoji = "😍"
-				case "Invisible":
-					emoji = "👻"
-				case "Prone":
-					emoji = "🤕"
-				case "Grappled", "Restrained":
-					emoji = "🔗"
-				case "Blinded":
-					emoji = "🙈"
-				case "Deafened":
-					emoji = "🙉"
-				default:
-					emoji = "🔮"
-				}
+					// Choose emoji based on condition type
+					switch cond.Name {
+					case "Poisoned":
+						emoji = "🤢"
+					case "Stunned", "Paralyzed", "Incapacitated", "Unconscious":
+						emoji = "😵"
+					case "Frightened":
+						emoji = "😱"
+					case "Charmed":
+						emoji = "😍"
+					case "Invisible":
+						emoji = "👻"
+					case "Prone":
+						emoji = "🤕"
+					case "Grappled", "Restrained":
+						emoji = "🔗"
+					case "Blinded":
+						emoji = "🙈"
+					case "Deafened":
+						emoji = "🙉"
+					default:
+						emoji = "🔮"
+					}
 
-				if cond.RoundsLeft == 0 {
-					line = fmt.Sprintf("%s %s (Indefinite)", emoji, cond.Name)
-				} else if cond.RoundsLeft == 1 {
-					line = fmt.Sprintf("%s %s (1 round left)", emoji, cond.Name)
-				} else {
-					line = fmt.Sprintf("%s %s (%d rounds left)", emoji, cond.Name, cond.RoundsLeft)
-				}
+					if cond.RoundsLeft == 0 {
+						line = fmt.Sprintf("%s %s (Indefinite)", emoji, cond.Name)
+					} else if cond.RoundsLeft == 1 {
+						line = fmt.Sprintf("%s %s (1 round left)", emoji, cond.Name)
+					} else {
+						line = fmt.Sprintf("%s %s (%d rounds left)", emoji, cond.Name, cond.RoundsLeft)
+					}
 
-				if i == m.SelectedConditionIdx {
-					content.WriteString(selectedStyle.Render("► "+line) + "\n")
-				} else {
-					content.WriteString(conditionStyle.Render("  "+line) + "\n")
+					if i == m.SelectedConditionIdx {
+						content.WriteString(selectedStyle.Render("► "+line) + "\n")
+					} else {
+						content.WriteString(conditionStyle.Render("  "+line) + "\n")
+					}
 				}
-			}
-			content.WriteString("\n")
+				content.WriteString("\n")
 			}
 		}
 
