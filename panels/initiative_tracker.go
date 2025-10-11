@@ -36,11 +36,15 @@ var (
 )
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool) string {
 	var contentLines []string
 
 	// Show different instructions based on mode
-	if editMode {
+	if multiTargetMode {
+		selectedCount := len(selectedTargets)
+		contentLines = append(contentLines, fmt.Sprintf("🎯 MULTI-TARGET MODE - %d target(s) selected", selectedCount))
+		contentLines = append(contentLines, "Space: select/deselect • Enter: apply damage/healing • t: exit")
+	} else if editMode {
 		contentLines = append(contentLines, "EDIT MODE")
 		switch editType {
 		case "initiative":
@@ -51,7 +55,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 			contentLines = append(contentLines, "Press Enter to confirm deletion")
 		}
 	} else if listMode {
-		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete")
+		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete, t=multi-target")
 	} else {
 		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, Enter to edit")
 		contentLines = append(contentLines, "Press 'n' for next turn, 'x' to reset combat")
@@ -217,6 +221,18 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 				for i, entry := range parsedEntries {
 					var line string
 					var turnMarker string
+					var checkbox string
+
+					// Add checkbox for multi-target mode
+					if multiTargetMode {
+						if selectedTargets[i] {
+							checkbox = "[✓] "
+						} else {
+							checkbox = "[ ] "
+						}
+					} else {
+						checkbox = ""
+					}
 
 					// Add turn marker if this is the current turn
 					if currentTurn == i {
@@ -226,21 +242,21 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 
 					if entry.Type == "player" {
-						line = fmt.Sprintf("%s%2d. %s (Initiative: %d)", turnMarker, i+1, entry.Name, entry.Initiative)
+						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)", checkbox, turnMarker, i+1, entry.Name, entry.Initiative)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = playerStyle.Render(line)
 						}
 					} else if entry.Type == "monster" {
-						line = fmt.Sprintf("%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)", turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC)
+						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = monsterStyle.Render(line)
 						}
 					} else {
-						line = fmt.Sprintf("%s%2d. %s (Initiative: %d)", turnMarker, i+1, entry.Name, entry.Initiative)
+						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)", checkbox, turnMarker, i+1, entry.Name, entry.Initiative)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						}

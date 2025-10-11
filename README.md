@@ -224,7 +224,36 @@ lazydnd --help    # Show available options
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
+- ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
+
+**Multi-Target Damage/Healing:**
+Perfect for area spells (Fireball, Thunderwave) and mass healing:
+1. Enter edit mode with `Enter`
+2. Press `t` to enter multi-target mode
+3. Use `Space` to select/deselect targets (checkboxes appear: [✓])
+4. Press `Enter` to open the damage/healing popup
+5. Enter amount:
+   - Type `-28` for 28 damage (automatically sets damage mode)
+   - Type `+10` for 10 healing (automatically sets healing mode)
+   - Or type plain `28` and use `h` to toggle between damage/healing
+6. **Optional**: Press `x` to toggle save mode
+   - When save mode is ON, mark each target as success (`s`) or failure (`f`)
+   - Successful saves take half damage
+7. Press `Enter` to apply to all selected targets
+8. Press `Esc` or `t` to exit multi-target mode
+
+**Example: Fireball spell hitting 3 goblins**
+- Select all 3 goblins with Space
+- Enter `-28` (for 28 damage)
+- Enable save mode with `x`
+- Mark saves: Goblin 1 fails (f), Goblin 2 succeeds (s), Goblin 3 fails (f)
+- Apply: Goblin 1 takes 28 damage, Goblin 2 takes 14 damage, Goblin 3 takes 28 damage
+
+**Example: Mass Healing Word on 3 party members**
+- Select all 3 party members with Space
+- Enter `+7` (for 7 healing)
+- Apply: All 3 party members gain 7 HP
 
 **Adding Monsters:**
 1. **Manual**: Press 'm' and enter details (no action support)
@@ -263,7 +292,10 @@ The popup displays:
 | Type spell name | Real-time autocomplete suggestions |
 | `↑` `↓` | Navigate spell suggestions |
 | `Enter` | Select spell to view details |
-| `Esc` | Exit search mode |
+| `c` | Cast selected spell (track duration) |
+| `v` | View active spells |
+| `d` | Delete active spell (in active spell view) |
+| `Esc` | Exit search/active spell mode |
 
 **Features:**
 - ✅ **Complete D&D 5e Spell Database**
@@ -271,6 +303,31 @@ The popup displays:
 - ✅ **Full Details**: Level, school, casting time, range, components, duration, description
 - ✅ **Class Information**: Shows which classes can cast the spell
 - ✅ **Ritual & Concentration**: Clearly marked
+- ✅ **Spell Tracking**: Cast and track spell durations during combat
+- ✅ **Active Spell Management**: View and manage all active spells
+- ✅ **Auto Duration Countdown**: Spells automatically expire as combat rounds progress
+
+**Spell Tracking:**
+When you cast a spell with a duration:
+1. Search and select a spell with `Enter`
+2. Press `c` to cast the spell
+3. Enter the caster's name (e.g., "Gandalf", "Goblin 2")
+4. The spell is added to active spells with duration tracking
+
+**Active Spells:**
+- Press `v` to view all active spells
+- Shows spell name, caster, and time remaining
+- Duration automatically decrements each round (when using `n` in Initiative Tracker)
+- Press `d` to manually remove a spell
+- Concentration spells are marked with (C)
+- Active spells are saved with your campaign
+
+**Duration Tracking:**
+- Each combat round = 6 seconds
+- Supports: rounds, minutes, hours, days
+- Examples: "1 minute" = 10 rounds, "1 hour" = 600 rounds
+- Instantaneous spells are not tracked
+- Shows time in human-readable format (minutes, hours, etc.)
 
 ---
 

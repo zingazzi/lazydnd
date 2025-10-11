@@ -2,6 +2,7 @@
 package ui
 
 import (
+	"fmt"
 	"lazydnd/panels"
 )
 
@@ -65,19 +66,44 @@ func getInitiativeTrackerContent(m Model) string {
 		m.InitiativeEditType,
 		m.CurrentTurn,
 		m.RoundCounter,
+		m.MultiTargetMode,
+		m.SelectedTargets,
 	)
 }
 
 // getSpellsContent gets content for the spells panel
 func getSpellsContent(m Model) string {
-	return panels.GetSpellsContent(
+	// If showing active spells list
+	if m.ActiveSpellListMode {
+		content := FormatActiveSpells(m.ActiveSpells, m.ActiveSpellIndex, m.ActivePanel == Spells)
+		return content
+	}
+
+	// Normal spell search content
+	content := panels.GetSpellsContent(
 		m.SpellSearchInput,
 		m.SelectedSpell,
 		m.SpellSuggestions,
 		m.SuggestionIndex,
 		m.SpellSearchMode,
 		m.ActivePanel == Spells,
+		!m.CastSpellInputMode,
 	)
+
+	// If there are active spells, add a note
+	if len(m.ActiveSpells) > 0 && !m.SpellSearchMode && !m.CastSpellInputMode {
+		content += "\n\n📜 Press 'v' to view active spells (" + formatSpellCount(len(m.ActiveSpells)) + ")"
+	}
+
+	return content
+}
+
+// formatSpellCount formats the spell count
+func formatSpellCount(count int) string {
+	if count == 1 {
+		return "1 active spell"
+	}
+	return fmt.Sprintf("%d active spells", count)
 }
 
 // getMonstersContent gets content for the monsters panel
@@ -123,13 +149,13 @@ func getDiceRollerHelpText(m Model) string {
 
 // getInitiativeTrackerHelpText gets help text for the initiative tracker panel
 func getInitiativeTrackerHelpText(m Model) string {
-	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode)
+	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode, m.MultiTargetMode)
 	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 
 // getSpellsHelpText gets help text for the spells panel
 func getSpellsHelpText(m Model) string {
-	text := SpellsInlineHelp(m.SpellSearchMode)
+	text := SpellsInlineHelp(m.SpellSearchMode, m.ActiveSpellListMode, m.SelectedSpell != nil)
 	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 
