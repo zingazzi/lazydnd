@@ -29,7 +29,7 @@ func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Add 'q' to monster search input
 		m.MonsterSearchInput += "q"
 		// Update suggestions
-		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput, m.MonsterCRFilter)
 		if len(m.MonsterSuggestions) > 0 {
 			m.MonsterSuggestionIndex = 0
 		} else {
@@ -314,7 +314,7 @@ func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.MonsterSearchMode && len(m.MonsterSearchInput) > 0 {
 		m.MonsterSearchInput = m.MonsterSearchInput[:len(m.MonsterSearchInput)-1]
 		// Update suggestions
-		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+		m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput, m.MonsterCRFilter)
 		if len(m.MonsterSuggestions) > 0 {
 			m.MonsterSuggestionIndex = 0
 		} else {
@@ -399,7 +399,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			key == "'" || key == "-" || key == " ") {
 			m.MonsterSearchInput += key
 			// Update suggestions
-			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput)
+			m.MonsterSuggestions = panels.SearchMonsters(m.MonsterSearchInput, m.MonsterCRFilter)
 			if len(m.MonsterSuggestions) > 0 {
 				m.MonsterSuggestionIndex = 0
 			} else {

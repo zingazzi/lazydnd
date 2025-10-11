@@ -115,6 +115,8 @@ func getMonstersContent(m Model) string {
 		m.MonsterSuggestionIndex,
 		m.MonsterSearchMode,
 		m.ActivePanel == Monsters,
+		m.MonsterCRFilter,
+		m.MonsterCRFilterMode,
 	)
 }
 
@@ -161,6 +163,6 @@ func getSpellsHelpText(m Model) string {
 
 // getMonstersHelpText gets help text for the monsters panel
 func getMonstersHelpText(m Model) string {
-	text := MonstersInlineHelp(m.MonsterSearchMode)
+	text := MonstersInlineHelp(m)
 	return "\n" + m.Styles.HelpStyle.Render(text)
 }

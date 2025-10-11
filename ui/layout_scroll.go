@@ -7,6 +7,14 @@ import (
 
 // applyScrolling applies scrolling logic to panel content
 func (m Model) applyScrolling(content string, panelType PanelType, dimensions PanelDimensions) string {
+	// Skip panel-level scrolling for search/filter modes that handle their own scrolling
+	if panelType == Monsters && (m.MonsterSearchMode || m.MonsterCRFilterMode) {
+		return content // Search content already has its own scroll handling
+	}
+	if panelType == Spells && m.SpellSearchMode {
+		return content // Search content already has its own scroll handling
+	}
+
 	contentLines := strings.Split(content, "\n")
 	scrollOffset := m.ScrollOffset[panelType]
 

@@ -56,6 +56,7 @@ var keyHandlers = map[string]KeyHandler{
 	"v": handleV,
 	"t": handleT,
 	"o": handleO,
+	"f": handleF,
 
 	// Special handlers
 	"?": handleHelp,
@@ -103,6 +104,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle active spell list navigation
 	if m.ActiveSpellListMode && (key == "up" || key == "down") {
 		return handleActiveSpellNavigation(m, key)
+	}
+
+	// Handle CR filter input (when in CR filter mode)
+	if m.MonsterCRFilterMode {
+		return handleCRFilterInput(m, key)
 	}
 
 	// Check if we have a specific handler for this key

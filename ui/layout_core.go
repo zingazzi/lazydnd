@@ -39,6 +39,8 @@ func InitialModel() Model {
 		SelectedMonster:          nil,
 		MonsterSuggestions:       []string{},
 		MonsterSuggestionIndex:   -1,
+		MonsterCRFilter:          "",
+		MonsterCRFilterMode:      false,
 		ActiveSpells:             []ActiveSpell{},
 		ActiveSpellIndex:         -1,
 		ActiveSpellListMode:      false,

@@ -69,9 +69,9 @@ func SearchSpells(searchTerm string) []string {
 	results := fuzzy.Find(searchTerm, spellNames)
 
 	// Extract matched names (already sorted by score)
-	matches := make([]string, 0, 10)
+	matches := make([]string, 0, 50)
 	for i, result := range results {
-		if i >= 10 { // Limit to 10 suggestions
+		if i >= 50 { // Limit to 50 suggestions for better browsing
 			break
 		}
 		matches = append(matches, result.Str)

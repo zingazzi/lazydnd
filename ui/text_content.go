@@ -123,12 +123,6 @@ var MonstersHelp = []HelpKey{
 	{"  Backspace", "Delete character"},
 }
 
-// DebugHelp defines help keys for the debug panel
-var DebugHelp = []HelpKey{
-	{"F12", "Toggle debug mode"},
-	{"Tab", "Switch panels"},
-}
-
 // GetPanelHelpKeys returns the help keys for a specific panel
 func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 	switch panelType {
@@ -195,11 +189,17 @@ func SpellsInlineHelp(searchMode bool, activeSpellMode bool, hasSelectedSpell bo
 }
 
 // MonstersInlineHelp returns inline help for monsters panel
-func MonstersInlineHelp(searchMode bool) string {
-	if searchMode {
+func MonstersInlineHelp(m Model) string {
+	if m.MonsterCRFilterMode {
+		return "Type CR (0-5, 10+, or 5) • ↑↓: navigate • Enter: select • Esc: cancel"
+	}
+	if m.MonsterSearchMode {
 		return "Enter: select monster • ↑↓: navigate suggestions • Esc: cancel • F1-F4: switch"
 	}
-	return "Enter: search monsters • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit"
+	if m.SelectedMonster != nil {
+		return "a: Add to Initiative • Enter: Search • f: Filter by CR • Esc: Back"
+	}
+	return "Enter: search by name • f: filter by CR • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit"
 }
 
 // DefaultInlineHelp returns default inline help

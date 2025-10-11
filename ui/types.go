@@ -65,6 +65,8 @@ type Model struct {
 	SelectedMonster        *Monster
 	MonsterSuggestions     []string
 	MonsterSuggestionIndex int
+	MonsterCRFilter        string // CR filter (e.g., "5", "0-3", "10+")
+	MonsterCRFilterMode    bool   // True when editing CR filter
 	// Active spells state
 	ActiveSpells        []ActiveSpell
 	ActiveSpellIndex    int  // Selected spell in active spells list

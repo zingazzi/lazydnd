@@ -32,39 +32,54 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 
 	// SEARCH MODE: Show search interface
 	if cfg.SearchMode {
-		contentLines = append(contentLines, cfg.Title)
-		contentLines = append(contentLines, "Type to search, Esc to cancel")
-		contentLines = append(contentLines, "")
 		contentLines = append(contentLines, strings.Repeat("─", 35))
-		contentLines = append(contentLines, "")
+
+		// Build the input prompt
 		var prompt string
 		if cfg.IsActive {
-			prompt = "Search: " + cfg.SearchInput + "█"
+			prompt = cfg.SearchInput + "█"
 		} else {
-			prompt = "Search: " + cfg.SearchInput
+			prompt = cfg.SearchInput
 		}
-		contentLines = append(contentLines, cfg.InputStyle.Render(prompt))
-		contentLines = append(contentLines, "")
+		if prompt == "" || prompt == "█" {
+			prompt = " " // Show at least a space so the box isn't empty
+		}
+
+		// Determine label based on title
+		label := "Search"
+		if strings.Contains(cfg.Title, "Challenge Rating") {
+			label = "CR"
+		}
+
+		contentLines = append(contentLines, cfg.InputStyle.Render(label+": "+prompt))
+		contentLines = append(contentLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("↑↓ Enter Esc"))
 
 		// Show suggestions with scrolling window
 		if len(cfg.Suggestions) > 0 {
 			contentLines = append(contentLines, "Suggestions:")
 
-			// Show a scrolling window of suggestions (max 8 visible at a time)
-			maxVisible := 8
+			// Show a scrolling window of suggestions (max 8 visible to prevent panel stretching)
+			maxVisible := 5
 			totalSuggestions := len(cfg.Suggestions)
 
 			// Calculate which suggestions to show
 			startIdx := 0
 			endIdx := totalSuggestions
 
+			// Only apply scrolling if there are more suggestions than visible space
 			if totalSuggestions > maxVisible {
-				// Center the selected item in the window when possible
+				// Keep selected item visible, preferring to show it in the middle
 				startIdx = cfg.SuggestionIndex - (maxVisible / 2)
+
+				// Ensure we don't go below 0
 				if startIdx < 0 {
 					startIdx = 0
 				}
+
+				// Calculate end index
 				endIdx = startIdx + maxVisible
+
+				// If we've gone past the end, adjust both indices
 				if endIdx > totalSuggestions {
 					endIdx = totalSuggestions
 					startIdx = endIdx - maxVisible
@@ -75,8 +90,9 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 			}
 
 			// Show scroll indicator at top if there are more items above
-			if startIdx > 0 {
-				contentLines = append(contentLines, cfg.SuggestionStyle.Render("  ⬆ "+strings.Repeat("─", 10)+" ("+formatSuggestionCount(startIdx)+" more above)"))
+			if totalSuggestions > maxVisible && startIdx > 0 {
+				scrollText := fmt.Sprintf("  ⬆ %s (%s more above)", strings.Repeat("─", 8), formatSuggestionCount(startIdx))
+				contentLines = append(contentLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render(scrollText))
 			}
 
 			// Show the visible window of suggestions
@@ -90,9 +106,10 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 			}
 
 			// Show scroll indicator at bottom if there are more items below
-			if endIdx < totalSuggestions {
+			if totalSuggestions > maxVisible && endIdx < totalSuggestions {
 				remaining := totalSuggestions - endIdx
-				contentLines = append(contentLines, cfg.SuggestionStyle.Render("  ⬇ "+strings.Repeat("─", 10)+" ("+formatSuggestionCount(remaining)+" more below)"))
+				scrollText := fmt.Sprintf("  ⬇ %s (%s more below)", strings.Repeat("─", 8), formatSuggestionCount(remaining))
+				contentLines = append(contentLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render(scrollText))
 			}
 
 			contentLines = append(contentLines, "")

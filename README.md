@@ -159,6 +159,19 @@ Both Monsters and Spells panels now use intelligent fuzzy search that:
 - More forgiving than exact substring matching
 - Just start typing to see suggestions!
 
+**CR Filter (Monsters Only):**
+Browse monsters by Challenge Rating with autocomplete:
+1. Press `f` in the Monsters panel to open CR filter
+2. Type a CR value as you type, monsters matching that CR appear instantly:
+   - **Exact**: `5` → shows all CR 5 monsters
+   - **Range**: `0-5` → shows CR 0 through 5
+   - **Minimum**: `10+` → shows CR 10 and above
+   - **Fractional**: `1/4`, `1/2`, `0.5` all work!
+3. Use `↑↓` arrow keys to navigate the list
+4. Press `Enter` to select a monster and view its full details
+5. Press `Esc` to cancel and go back
+6. Perfect for finding level-appropriate encounters quickly!
+
 ### Global Navigation & Controls
 
 #### Panel Navigation
