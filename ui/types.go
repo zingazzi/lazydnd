@@ -51,6 +51,14 @@ type Model struct {
 	InitiativeEditMode bool
 	InitiativeEditType string // "initiative", "hp", "delete"
 	InitiativeListMode bool   // When true, navigating the list instead of adding entries
+	// Multi-target damage state
+	MultiTargetMode      bool           // When true, selecting multiple targets for damage/healing
+	SelectedTargets      map[int]bool   // Map of selected target indices
+	ShowMultiTargetPopup bool           // Show damage/healing input popup
+	MultiTargetInput     string         // Damage or healing amount input
+	MultiTargetType      string         // "damage" or "healing"
+	MultiTargetSaveMode  bool           // Whether to prompt for save success/failure
+	TargetSaveResults    map[int]string // "success", "failure", or "" for each target
 	// Monster search state
 	MonsterSearchInput     string
 	MonsterSearchMode      bool

@@ -301,6 +301,14 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 			// Renumber all instances of this monster
 			m = renumberMonsterInstances(m)
+
+			// Keep selection valid after renumbering
+			if m.SelectedEntry >= len(m.InitiativeList) {
+				m.SelectedEntry = len(m.InitiativeList) - 1
+			}
+			if m.SelectedEntry < 0 && len(m.InitiativeList) > 0 {
+				m.SelectedEntry = 0
+			}
 		}
 	}
 

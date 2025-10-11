@@ -66,6 +66,8 @@ func getInitiativeTrackerContent(m Model) string {
 		m.InitiativeEditType,
 		m.CurrentTurn,
 		m.RoundCounter,
+		m.MultiTargetMode,
+		m.SelectedTargets,
 	)
 }
 
@@ -147,7 +149,7 @@ func getDiceRollerHelpText(m Model) string {
 
 // getInitiativeTrackerHelpText gets help text for the initiative tracker panel
 func getInitiativeTrackerHelpText(m Model) string {
-	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode)
+	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode, m.MultiTargetMode)
 	return "\n" + m.Styles.HelpStyle.Render(text)
 }
 

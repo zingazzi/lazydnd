@@ -224,7 +224,36 @@ lazydnd --help    # Show available options
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
+- ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
+
+**Multi-Target Damage/Healing:**
+Perfect for area spells (Fireball, Thunderwave) and mass healing:
+1. Enter edit mode with `Enter`
+2. Press `t` to enter multi-target mode
+3. Use `Space` to select/deselect targets (checkboxes appear: [✓])
+4. Press `Enter` to open the damage/healing popup
+5. Enter amount:
+   - Type `-28` for 28 damage (automatically sets damage mode)
+   - Type `+10` for 10 healing (automatically sets healing mode)
+   - Or type plain `28` and use `h` to toggle between damage/healing
+6. **Optional**: Press `x` to toggle save mode
+   - When save mode is ON, mark each target as success (`s`) or failure (`f`)
+   - Successful saves take half damage
+7. Press `Enter` to apply to all selected targets
+8. Press `Esc` or `t` to exit multi-target mode
+
+**Example: Fireball spell hitting 3 goblins**
+- Select all 3 goblins with Space
+- Enter `-28` (for 28 damage)
+- Enable save mode with `x`
+- Mark saves: Goblin 1 fails (f), Goblin 2 succeeds (s), Goblin 3 fails (f)
+- Apply: Goblin 1 takes 28 damage, Goblin 2 takes 14 damage, Goblin 3 takes 28 damage
+
+**Example: Mass Healing Word on 3 party members**
+- Select all 3 party members with Space
+- Enter `+7` (for 7 healing)
+- Apply: All 3 party members gain 7 HP
 
 **Adding Monsters:**
 1. **Manual**: Press 'm' and enter details (no action support)

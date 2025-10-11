@@ -158,7 +158,10 @@ func DiceRollerInlineHelp(inputMode bool, hasLastCommand bool, historyMode bool)
 }
 
 // InitiativeTrackerInlineHelp returns inline help for initiative tracker panel
-func InitiativeTrackerInlineHelp(editMode, inputMode, listMode bool) string {
+func InitiativeTrackerInlineHelp(editMode, inputMode, listMode, multiTargetMode bool) string {
+	if multiTargetMode {
+		return "Space: select/deselect • Enter: apply damage/healing • t: exit multi-target • ↑↓: navigate"
+	}
 	if editMode {
 		return "Enter: confirm edit • Esc: cancel • F1-F4: switch panels"
 	}
@@ -166,7 +169,7 @@ func InitiativeTrackerInlineHelp(editMode, inputMode, listMode bool) string {
 		return "Enter: confirm • Esc: cancel • F1-F4: switch panels"
 	}
 	if listMode {
-		return "↑↓: select • i: init • h: HP • s: saves • l: view • a: actions • c: copy • d: delete • Esc: exit"
+		return "↑↓: select • i: init • h: HP • s: saves • l: view • a: actions • c: copy • d: delete • t: multi-target • Esc: exit"
 	}
 	return "p: add player • m: add monster • e: edit list • n: next turn • ↑↓: scroll • 1-4/F1-F4: switch • q: quit"
 }
