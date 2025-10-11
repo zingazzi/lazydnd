@@ -39,6 +39,13 @@ func InitialModel() Model {
 		SelectedMonster:        nil,
 		MonsterSuggestions:     []string{},
 		MonsterSuggestionIndex: -1,
+		ActiveSpells:           []ActiveSpell{},
+		ActiveSpellIndex:       -1,
+		ActiveSpellListMode:    false,
+		ShowCastSpellPrompt:    false,
+		CastSpellInput:         "",
+		CastSpellInputMode:     false,
+		SpellToCast:            nil,
 		ShowHelpPopup:          false,
 	}
 }
@@ -69,6 +76,11 @@ func (m Model) View() string {
 	// Show rename popup if active (highest priority)
 	if m.ShowRenamePopup {
 		return m.renderRenamePopupOverlay(mainView)
+	}
+
+	// Show cast spell popup if active (takes priority over other popups)
+	if m.ShowCastSpellPrompt {
+		return renderCastSpellPopupOverlay(m, mainView)
 	}
 
 	// Show saving throw popup if active (takes priority over action popup)

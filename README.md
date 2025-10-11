@@ -263,7 +263,10 @@ The popup displays:
 | Type spell name | Real-time autocomplete suggestions |
 | `↑` `↓` | Navigate spell suggestions |
 | `Enter` | Select spell to view details |
-| `Esc` | Exit search mode |
+| `c` | Cast selected spell (track duration) |
+| `v` | View active spells |
+| `d` | Delete active spell (in active spell view) |
+| `Esc` | Exit search/active spell mode |
 
 **Features:**
 - ✅ **Complete D&D 5e Spell Database**
@@ -271,6 +274,31 @@ The popup displays:
 - ✅ **Full Details**: Level, school, casting time, range, components, duration, description
 - ✅ **Class Information**: Shows which classes can cast the spell
 - ✅ **Ritual & Concentration**: Clearly marked
+- ✅ **Spell Tracking**: Cast and track spell durations during combat
+- ✅ **Active Spell Management**: View and manage all active spells
+- ✅ **Auto Duration Countdown**: Spells automatically expire as combat rounds progress
+
+**Spell Tracking:**
+When you cast a spell with a duration:
+1. Search and select a spell with `Enter`
+2. Press `c` to cast the spell
+3. Enter the caster's name (e.g., "Gandalf", "Goblin 2")
+4. The spell is added to active spells with duration tracking
+
+**Active Spells:**
+- Press `v` to view all active spells
+- Shows spell name, caster, and time remaining
+- Duration automatically decrements each round (when using `n` in Initiative Tracker)
+- Press `d` to manually remove a spell
+- Concentration spells are marked with (C)
+- Active spells are saved with your campaign
+
+**Duration Tracking:**
+- Each combat round = 6 seconds
+- Supports: rounds, minutes, hours, days
+- Examples: "1 minute" = 10 rounds, "1 hour" = 600 rounds
+- Instantaneous spells are not tracked
+- Shows time in human-readable format (minutes, hours, etc.)
 
 ---
 

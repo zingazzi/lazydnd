@@ -57,6 +57,14 @@ type Model struct {
 	SelectedMonster        *Monster
 	MonsterSuggestions     []string
 	MonsterSuggestionIndex int
+	// Active spells state
+	ActiveSpells          []ActiveSpell
+	ActiveSpellIndex      int  // Selected spell in active spells list
+	ActiveSpellListMode   bool // When true, navigating active spells list
+	ShowCastSpellPrompt   bool // Show prompt to enter caster name
+	CastSpellInput        string
+	CastSpellInputMode    bool
+	SpellToCast           *Spell // Spell waiting to be cast
 	// Help popup state
 	ShowHelpPopup bool
 	// Action popup state
@@ -107,6 +115,16 @@ type Spell struct {
 	Duration       string   `json:"duration"`
 	Description    string   `json:"description"`
 	CantripUpgrade string   `json:"cantripUpgrade,omitempty"`
+}
+
+// ActiveSpell represents a spell currently in effect
+type ActiveSpell struct {
+	Name          string `json:"name"`
+	CasterName    string `json:"caster_name"`
+	RoundsLeft    int    `json:"rounds_left"`    // Duration in combat rounds (6 seconds each)
+	TotalRounds   int    `json:"total_rounds"`   // Original duration for display
+	Concentration bool   `json:"concentration"`
+	StartRound    int    `json:"start_round"`    // Round when spell was cast
 }
 
 // MonsterAction represents a single action a monster can take
@@ -162,6 +180,7 @@ type SaveState struct {
 	InitiativeList []SavedInitiativeEntry `json:"initiative_list"`
 	CurrentTurn    int                    `json:"current_turn"`
 	RoundCounter   int                    `json:"round_counter"`
+	ActiveSpells   []ActiveSpell          `json:"active_spells"`
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence

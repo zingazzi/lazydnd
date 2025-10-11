@@ -152,6 +152,7 @@ func handleLoadPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.LastAutoSave = "Loaded"
 		m.CurrentTurn = saveState.CurrentTurn
 		m.RoundCounter = saveState.RoundCounter
+		m.ActiveSpells = saveState.ActiveSpells
 
 		// Reset initiative tracker state
 		m.InitiativeListMode = len(initiativeList) > 0

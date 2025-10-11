@@ -90,10 +90,16 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.InitiativeInputType = ""
 		}
 	} else if m.ActivePanel == Spells {
-		m.SpellSearchInput = ""
-		m.SpellSearchMode = false
-		m.SpellSuggestions = []string{}
-		m.SuggestionIndex = -1
+		if m.ActiveSpellListMode {
+			// Exit active spell list mode
+			m.ActiveSpellListMode = false
+			m.ActiveSpellIndex = -1
+		} else {
+			m.SpellSearchInput = ""
+			m.SpellSearchMode = false
+			m.SpellSuggestions = []string{}
+			m.SuggestionIndex = -1
+		}
 	} else if m.ActivePanel == Monsters {
 		m.MonsterSearchInput = ""
 		m.MonsterSearchMode = false
