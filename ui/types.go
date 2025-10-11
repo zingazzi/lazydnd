@@ -104,9 +104,6 @@ type Model struct {
 	CampaignList        []string
 	CampaignListIndex   int
 	LastAutoSave        string
-
-	// Animation state
-	Animation AnimationState
 }
 
 // Condition represents a status effect on a creature

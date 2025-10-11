@@ -10,8 +10,7 @@ import (
 // handleTab handles tab key navigation (forward)
 func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
-		targetPanel := (m.ActivePanel + 1) % 4
-		return m.StartPanelTransition(targetPanel)
+		m.ActivePanel = (m.ActivePanel + 1) % 4
 	}
 	return m, nil
 }
@@ -19,8 +18,7 @@ func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleShiftTab handles shift+tab key navigation (backward)
 func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
-		targetPanel := (m.ActivePanel - 1 + 4) % 4
-		return m.StartPanelTransition(targetPanel)
+		m.ActivePanel = (m.ActivePanel - 1 + 4) % 4
 	}
 	return m, nil
 }
@@ -126,25 +124,29 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleF1 switches to dice roller panel
 func handleF1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	m.InputMode = false
-	return m.StartPanelTransition(DiceRoller)
+	m.ActivePanel = DiceRoller
+	return m, nil
 }
 
 // handleF2 switches to initiative tracker panel
 func handleF2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	m.InputMode = false
-	return m.StartPanelTransition(InitiativeTracker)
+	m.ActivePanel = InitiativeTracker
+	return m, nil
 }
 
 // handleF3 switches to spells panel
 func handleF3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	m.InputMode = false
-	return m.StartPanelTransition(Spells)
+	m.ActivePanel = Spells
+	return m, nil
 }
 
 // handleF4 switches to monsters panel
 func handleF4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	m.InputMode = false
-	return m.StartPanelTransition(Monsters)
+	m.ActivePanel = Monsters
+	return m, nil
 }
 
 // ========== NUMBER KEY HANDLERS ==========
@@ -156,7 +158,7 @@ func handleNumber1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		m.InitiativeInput += "1"
 	} else {
-		return m.StartPanelTransition(DiceRoller)
+		m.ActivePanel = DiceRoller
 	}
 	return m, nil
 }
@@ -168,7 +170,7 @@ func handleNumber2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		m.InitiativeInput += "2"
 	} else {
-		return m.StartPanelTransition(InitiativeTracker)
+		m.ActivePanel = InitiativeTracker
 	}
 	return m, nil
 }
@@ -180,7 +182,7 @@ func handleNumber3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		m.InitiativeInput += "3"
 	} else {
-		return m.StartPanelTransition(Spells)
+		m.ActivePanel = Spells
 	}
 	return m, nil
 }
@@ -192,7 +194,7 @@ func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		m.InitiativeInput += "4"
 	} else {
-		return m.StartPanelTransition(Monsters)
+		m.ActivePanel = Monsters
 	}
 	return m, nil
 }

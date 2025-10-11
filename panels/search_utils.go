@@ -97,12 +97,12 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 
 			contentLines = append(contentLines, "")
 		}
-		
+
 		return strings.Join(contentLines, "\n")
 	}
 
 	// NOT IN SEARCH MODE: Show item details or default message
-	
+
 	// Header for non-search mode
 	contentLines = append(contentLines, cfg.Title)
 	contentLines = append(contentLines, "Press Enter to start searching")
