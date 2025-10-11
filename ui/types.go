@@ -65,14 +65,19 @@ type Model struct {
 	SelectedMonster        *Monster
 	MonsterSuggestions     []string
 	MonsterSuggestionIndex int
+	MonsterCRFilter        string // CR filter (e.g., "5", "0-3", "10+")
+	MonsterCRFilterMode    bool   // True when editing CR filter
+	// Spell search state
+	SpellLevelFilter     string // Spell level filter (e.g., "0", "1-3", "5+")
+	SpellLevelFilterMode bool   // True when editing spell level filter
 	// Active spells state
-	ActiveSpells          []ActiveSpell
-	ActiveSpellIndex      int  // Selected spell in active spells list
-	ActiveSpellListMode   bool // When true, navigating active spells list
-	ShowCastSpellPrompt   bool // Show prompt to enter caster name
-	CastSpellInput        string
-	CastSpellInputMode    bool
-	SpellToCast           *Spell // Spell waiting to be cast
+	ActiveSpells        []ActiveSpell
+	ActiveSpellIndex    int  // Selected spell in active spells list
+	ActiveSpellListMode bool // When true, navigating active spells list
+	ShowCastSpellPrompt bool // Show prompt to enter caster name
+	CastSpellInput      string
+	CastSpellInputMode  bool
+	SpellToCast         *Spell // Spell waiting to be cast
 	// Help popup state
 	ShowHelpPopup bool
 	// Action popup state
@@ -82,6 +87,15 @@ type Model struct {
 	ActionPopupMonster string // Name of the monster whose actions are shown
 	// Saving throw popup state
 	ShowSavingThrowPopup bool
+	// Condition management state
+	ShowConditionPopup       bool
+	ConditionPopupMode       string // "list" to view/remove, "add" to add new
+	ConditionInput           string // Input for condition name (if custom)
+	ConditionDurationInput   string // Input for duration
+	ConditionInputStep       int    // 0 = select from list, 1 = duration, 2 = custom name (if needed)
+	SelectedConditionIdx     int    // Selected condition index for removal
+	SelectedConditionNameIdx int    // Selected condition name from list when adding
+
 	// Save/Load state
 	ShowSavePopup       bool
 	ShowLoadPopup       bool
@@ -89,9 +103,20 @@ type Model struct {
 	SaveInput           string
 	CurrentCampaignFile string
 	CurrentCampaignName string
-	CampaignList        []string
-	CampaignListIndex   int
-	LastAutoSave        string
+
+	// Debug mode
+	DebugMode         bool
+	CampaignList      []string
+	CampaignListIndex int
+	LastAutoSave      string
+}
+
+// Condition represents a status effect on a creature
+type Condition struct {
+	Name        string `json:"name"`
+	RoundsLeft  int    `json:"rounds_left"`  // Duration in rounds (0 = indefinite/until removed)
+	TotalRounds int    `json:"total_rounds"` // Original duration for display
+	Description string `json:"description"`  // Optional description
 }
 
 // InitiativeEntry represents a player or monster in the initiative tracker
@@ -99,13 +124,14 @@ type InitiativeEntry struct {
 	Name        string
 	Type        string // "player" or "monster"
 	Initiative  int
-	HP          int      // Only for monsters
-	MaxHP       int      // Only for monsters
-	AC          int      // Only for monsters
-	MonsterData *Monster // Link to full monster data for actions
-	InstanceNum int      // Instance number for duplicates (0 = no number shown)
-	BaseName    string   // Original name without number
-	MonsterName string   // Original monster name for save/load persistence
+	HP          int         // Only for monsters
+	MaxHP       int         // Only for monsters
+	AC          int         // Only for monsters
+	MonsterData *Monster    // Link to full monster data for actions
+	InstanceNum int         // Instance number for duplicates (0 = no number shown)
+	BaseName    string      // Original name without number
+	MonsterName string      // Original monster name for save/load persistence
+	Conditions  []Condition // Active conditions on this creature
 }
 
 // Spell represents a D&D spell
@@ -129,10 +155,10 @@ type Spell struct {
 type ActiveSpell struct {
 	Name          string `json:"name"`
 	CasterName    string `json:"caster_name"`
-	RoundsLeft    int    `json:"rounds_left"`    // Duration in combat rounds (6 seconds each)
-	TotalRounds   int    `json:"total_rounds"`   // Original duration for display
+	RoundsLeft    int    `json:"rounds_left"`  // Duration in combat rounds (6 seconds each)
+	TotalRounds   int    `json:"total_rounds"` // Original duration for display
 	Concentration bool   `json:"concentration"`
-	StartRound    int    `json:"start_round"`    // Round when spell was cast
+	StartRound    int    `json:"start_round"` // Round when spell was cast
 }
 
 // MonsterAction represents a single action a monster can take

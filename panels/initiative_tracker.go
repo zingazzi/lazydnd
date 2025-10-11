@@ -84,7 +84,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 	}
 
 	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, strings.Repeat("─", 40))
+	contentLines = append(contentLines, strings.Repeat("─", 35))
 	contentLines = append(contentLines, "")
 
 	// Input field (when adding entries or editing)
@@ -146,6 +146,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 
 			if listStr != "" {
 				// Split entries - each entry is wrapped in {}
+				// Count braces carefully to handle nested structures like Conditions:[{...}]
 				var entries []string
 				depth := 0
 				start := 0
@@ -164,6 +165,14 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 				}
 
+				// Import ui package type for Conditions
+				type Condition struct {
+					Name        string
+					RoundsLeft  int
+					TotalRounds int
+					Description string
+				}
+
 				// Parse entries into a sortable structure
 				type ParsedEntry struct {
 					Name       string
@@ -173,12 +182,13 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					MaxHP      string
 					AC         string
 					RawEntry   string
+					Conditions []Condition
 				}
 
 				var parsedEntries []ParsedEntry
 
 				// Parse each entry
-				for _, entry := range entries {
+				for entryIdx, entry := range entries {
 					if strings.Contains(entry, "Name:") {
 						name := extractField(entry, "Name:")
 						entryType := extractField(entry, "Type:")
@@ -196,6 +206,75 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 						maxHP := extractField(entry, "MaxHP:")
 						ac := extractField(entry, "AC:")
 
+						// DEBUG: Print what we're about to parse
+						_ = entryIdx // Use the variable to avoid unused error
+
+						// Extract conditions if present
+						var conditions []Condition
+						if strings.Contains(entry, "Conditions:[") {
+							// Find the Conditions array in the string
+							condStart := strings.Index(entry, "Conditions:[")
+							if condStart != -1 {
+								// Find the matching closing bracket
+								condStr := entry[condStart+len("Conditions:"):]
+								depth := 0
+								endIdx := 0
+								for i, char := range condStr {
+									if char == '[' {
+										depth++
+									} else if char == ']' {
+										depth--
+										if depth == 0 {
+											endIdx = i
+											break
+										}
+									}
+								}
+
+								if endIdx > 0 {
+									// Extract the content between [ and ]
+									condArrayStr := condStr[1:endIdx]
+									if condArrayStr != "" {
+										// Split by condition entries {Name:... RoundsLeft:... TotalRounds:... Description:...}
+										condDepth := 0
+										condStart := 0
+										for i, char := range condArrayStr {
+											if char == '{' {
+												if condDepth == 0 {
+													condStart = i
+												}
+												condDepth++
+											} else if char == '}' {
+												condDepth--
+												if condDepth == 0 {
+													condEntryStr := condArrayStr[condStart : i+1]
+													// Parse individual condition
+													condName := extractField(condEntryStr, "Name:")
+													roundsLeftStr := extractField(condEntryStr, "RoundsLeft:")
+													totalRoundsStr := extractField(condEntryStr, "TotalRounds:")
+
+													roundsLeft := 0
+													totalRounds := 0
+													if roundsLeftStr != "" {
+														roundsLeft, _ = strconv.Atoi(roundsLeftStr)
+													}
+													if totalRoundsStr != "" {
+														totalRounds, _ = strconv.Atoi(totalRoundsStr)
+													}
+
+													conditions = append(conditions, Condition{
+														Name:        condName,
+														RoundsLeft:  roundsLeft,
+														TotalRounds: totalRounds,
+													})
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
 						parsedEntries = append(parsedEntries, ParsedEntry{
 							Name:       name,
 							Type:       entryType,
@@ -204,6 +283,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							MaxHP:      maxHP,
 							AC:         ac,
 							RawEntry:   entry,
+							Conditions: conditions,
 						})
 					}
 				}
@@ -222,6 +302,45 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					var line string
 					var turnMarker string
 					var checkbox string
+					var conditionIcons string
+
+					// Build condition icons string (compact display)
+					if len(entry.Conditions) > 0 {
+						var emojis []string
+						for _, cond := range entry.Conditions {
+							var emoji string
+							switch cond.Name {
+							case "Poisoned":
+								emoji = "🤢"
+							case "Stunned", "Paralyzed", "Incapacitated", "Unconscious":
+								emoji = "😵"
+							case "Frightened":
+								emoji = "😱"
+							case "Charmed":
+								emoji = "😍"
+							case "Invisible":
+								emoji = "👻"
+							case "Prone":
+								emoji = "🤕"
+							case "Grappled", "Restrained":
+								emoji = "🔗"
+							case "Blinded":
+								emoji = "🙈"
+							case "Deafened":
+								emoji = "🙉"
+							case "Petrified":
+								emoji = "🗿"
+							case "Exhausted":
+								emoji = "😫"
+							default:
+								emoji = "🔮"
+							}
+							emojis = append(emojis, emoji)
+						}
+						if len(emojis) > 0 {
+							conditionIcons = " " + strings.Join(emojis, "")
+						}
+					}
 
 					// Add checkbox for multi-target mode
 					if multiTargetMode {
@@ -242,21 +361,21 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 
 					if entry.Type == "player" {
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)", checkbox, turnMarker, i+1, entry.Name, entry.Initiative)
+						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = playerStyle.Render(line)
 						}
 					} else if entry.Type == "monster" {
-						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC)
+						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC, conditionIcons)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = monsterStyle.Render(line)
 						}
 					} else {
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)", checkbox, turnMarker, i+1, entry.Name, entry.Initiative)
+						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						}
@@ -292,10 +411,19 @@ func extractField(entry, fieldName string) string {
 	// For Name field, we need to handle spaces differently
 	if fieldName == "Name:" {
 		// Find the next field or end of struct
+		// Check if this is an InitiativeEntry or a Condition by looking for different fields
 		nextFieldStart := -1
-		fields := []string{" Type:", " Initiative:", " HP:", " MaxHP:", " AC:", "}"}
 
-		for _, field := range fields {
+		// Try initiative entry fields first
+		initiativeFields := []string{" Type:", " Initiative:", " HP:", " MaxHP:", " AC:", " MonsterData:", " InstanceNum:", " BaseName:", " MonsterName:", " Conditions:"}
+		// Try condition fields
+		conditionFields := []string{" RoundsLeft:", " TotalRounds:", " Description:"}
+
+		// Combine all possible next fields
+		allFields := append(initiativeFields, conditionFields...)
+		allFields = append(allFields, "}")
+
+		for _, field := range allFields {
 			if idx := strings.Index(entry[start:], field); idx != -1 {
 				if nextFieldStart == -1 || idx < nextFieldStart {
 					nextFieldStart = idx

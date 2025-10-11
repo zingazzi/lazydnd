@@ -55,6 +55,8 @@ var keyHandlers = map[string]KeyHandler{
 	"x": handleResetCombat,
 	"v": handleV,
 	"t": handleT,
+	"o": handleO,
+	"f": handleF,
 
 	// Special handlers
 	"?": handleHelp,
@@ -79,6 +81,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleMultiTargetPopupInput(m, msg)
 	}
 
+	// Handle condition popup input
+	if m.ShowConditionPopup {
+		return handleConditionPopupInput(m, msg)
+	}
+
 	// Handle save popup input
 	if m.ShowSavePopup {
 		return handleSavePopupInput(m, msg)
@@ -97,6 +104,16 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle active spell list navigation
 	if m.ActiveSpellListMode && (key == "up" || key == "down") {
 		return handleActiveSpellNavigation(m, key)
+	}
+
+	// Handle CR filter input (when in CR filter mode)
+	if m.MonsterCRFilterMode {
+		return handleCRFilterInput(m, key)
+	}
+	
+	// Handle spell level filter input (when in spell level filter mode)
+	if m.SpellLevelFilterMode {
+		return handleSpellLevelFilterInput(m, key)
 	}
 
 	// Check if we have a specific handler for this key

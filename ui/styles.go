@@ -53,36 +53,32 @@ func NewStyles(cfg *config.Config) *Styles {
 		ActivePanelStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color(primaryColor)).
-			Padding(1, 2),
+			Padding(0, 2),
 
 		InactivePanelStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color(borderColor)).
-			Padding(1, 2),
+			Padding(0, 2),
 
 		PanelTitleStyle: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#FAFAFA")).
 			Background(lipgloss.Color(primaryColor)).
-			Padding(0, 1).
-			Margin(0, 0, 1, 0),
+			Padding(0, 1),
 
 		InputStyle: lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color(primaryColor)).
-			Padding(0, 1).
-			Margin(1, 0),
+			Padding(0, 1),
 
 		DiceResultStyle: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color(highlightColor)).
 			Background(lipgloss.Color("#1A1A1A")).
-			Padding(0, 1).
-			Margin(1, 0),
+			Padding(0, 1),
 
 		HelpStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")).
-			Margin(1, 0, 0, 0),
+			Foreground(lipgloss.Color("#666666")),
 
 		StatusBarStyle: lipgloss.NewStyle().
 			Background(lipgloss.Color(primaryColor)).

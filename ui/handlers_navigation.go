@@ -123,29 +123,29 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleF1 switches to dice roller panel
 func handleF1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	m.ActivePanel = DiceRoller
 	m.InputMode = false
+	m.ActivePanel = DiceRoller
 	return m, nil
 }
 
 // handleF2 switches to initiative tracker panel
 func handleF2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	m.ActivePanel = InitiativeTracker
 	m.InputMode = false
+	m.ActivePanel = InitiativeTracker
 	return m, nil
 }
 
 // handleF3 switches to spells panel
 func handleF3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	m.ActivePanel = Spells
 	m.InputMode = false
+	m.ActivePanel = Spells
 	return m, nil
 }
 
 // handleF4 switches to monsters panel
 func handleF4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	m.ActivePanel = Monsters
 	m.InputMode = false
+	m.ActivePanel = Monsters
 	return m, nil
 }
 
@@ -287,11 +287,13 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Advance to next turn
 		nextTurn := (m.CurrentTurn + 1) % len(m.InitiativeList)
 
-		// If we wrapped around to 0, increment round counter and update spell durations
+		// If we wrapped around to 0, increment round counter and update spell/condition durations
 		if nextTurn == 0 {
 			m.RoundCounter++
 			// Update spell durations (decrement by 1 round)
 			m, _ = UpdateSpellDurations(m)
+			// Update condition durations (decrement by 1 round)
+			m = UpdateConditionDurations(m)
 		}
 
 		m.CurrentTurn = nextTurn

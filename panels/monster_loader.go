@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/sahilm/fuzzy"
 )
 
 // MonsterAction represents a single action a monster can take
@@ -173,26 +175,128 @@ func LoadMonsters() error {
 	return nil
 }
 
-// SearchMonsters returns monster names that match the search term
-func SearchMonsters(searchTerm string) []string {
+// parseCR converts CR string to a float64 for comparison
+// Handles fractions like "1/8", "1/4", "1/2" and integers
+func parseCR(crStr string) float64 {
+	crStr = strings.TrimSpace(crStr)
+
+	// Extract just the CR value (before any parentheses or XP info)
+	if idx := strings.Index(crStr, "("); idx > 0 {
+		crStr = strings.TrimSpace(crStr[:idx])
+	}
+
+	// Handle fractions
+	if strings.Contains(crStr, "/") {
+		parts := strings.Split(crStr, "/")
+		if len(parts) == 2 {
+			num, err1 := strconv.ParseFloat(parts[0], 64)
+			den, err2 := strconv.ParseFloat(parts[1], 64)
+			if err1 == nil && err2 == nil && den != 0 {
+				return num / den
+			}
+		}
+	}
+
+	// Handle regular numbers
+	cr, err := strconv.ParseFloat(crStr, 64)
+	if err != nil {
+		return -1 // Invalid CR
+	}
+	return cr
+}
+
+// matchesCRFilter checks if a monster's CR matches the filter
+// Filter formats: "5" (exactly 5), "0-5" (range), "10+" (10 and above)
+func matchesCRFilter(monsterCR string, filter string) bool {
+	if filter == "" {
+		return true // No filter
+	}
+
+	cr := parseCR(monsterCR)
+	if cr < 0 {
+		return false // Invalid CR
+	}
+
+	filter = strings.TrimSpace(filter)
+
+	// Handle "X+" format (e.g., "10+")
+	if strings.HasSuffix(filter, "+") {
+		minCR, err := strconv.ParseFloat(strings.TrimSuffix(filter, "+"), 64)
+		if err != nil {
+			return false
+		}
+		return cr >= minCR
+	}
+
+	// Handle "X-Y" format (e.g., "0-5")
+	if strings.Contains(filter, "-") {
+		parts := strings.Split(filter, "-")
+		if len(parts) == 2 {
+			minCR, err1 := strconv.ParseFloat(parts[0], 64)
+			maxCR, err2 := strconv.ParseFloat(parts[1], 64)
+			if err1 == nil && err2 == nil {
+				return cr >= minCR && cr <= maxCR
+			}
+		}
+	}
+
+	// Handle single value (e.g., "5")
+	targetCR, err := strconv.ParseFloat(filter, 64)
+	if err != nil {
+		return false
+	}
+	return cr == targetCR
+}
+
+// SearchMonsters returns monster names that match the search term and CR filter
+func SearchMonsters(searchTerm string, crFilter string) []string {
 	if err := LoadMonsters(); err != nil {
 		return []string{}
 	}
 
-	if searchTerm == "" {
+	if searchTerm == "" && crFilter == "" {
 		return []string{}
 	}
 
-	var matches []string
-	searchLower := strings.ToLower(searchTerm)
-
-	for _, monster := range monsters {
-		if strings.Contains(strings.ToLower(monster.Name), searchLower) {
-			matches = append(matches, monster.Name)
-			if len(matches) >= 10 { // Limit suggestions
-				break
+	// Filter by CR first if specified
+	filteredMonsters := monsters
+	if crFilter != "" {
+		filteredMonsters = make([]Monster, 0)
+		for _, monster := range monsters {
+			if matchesCRFilter(monster.Challenge, crFilter) {
+				filteredMonsters = append(filteredMonsters, monster)
 			}
 		}
+	}
+
+	// If no search term, return filtered monsters (limited to 50 for better browsing)
+	if searchTerm == "" {
+		matches := make([]string, 0, 50)
+		for i, monster := range filteredMonsters {
+			if i >= 50 {
+				break
+			}
+			matches = append(matches, monster.Name)
+		}
+		return matches
+	}
+
+	// Build list of filtered monster names for fuzzy search
+	monsterNames := make([]string, 0, len(filteredMonsters))
+	for _, monster := range filteredMonsters {
+		monsterNames = append(monsterNames, monster.Name)
+	}
+
+	// Use fuzzy search to find matches
+	results := fuzzy.Find(searchTerm, monsterNames)
+
+	// Extract matched names (already sorted by score)
+	matches := make([]string, 0, 50)
+	for i, result := range results {
+		if i >= 50 { // Limit to 50 suggestions for better browsing
+			break
+		}
+		matches = append(matches, result.Str)
 	}
 
 	return matches
@@ -260,7 +364,7 @@ func FormatMonster(monster *Monster) string {
 	if monster.Traits != "" {
 		lines = append(lines, "TRAITS:")
 		cleanTraits := cleanHTML(monster.Traits)
-		wrappedTraits := wrapText(cleanTraits, 60) // Wrap at 60 characters
+		wrappedTraits := wrapText(cleanTraits, 35) // Wrap at 35 characters to fit panel
 		lines = append(lines, wrappedTraits...)
 		lines = append(lines, "")
 	}
@@ -269,7 +373,7 @@ func FormatMonster(monster *Monster) string {
 	if monster.Actions != "" {
 		lines = append(lines, "ACTIONS:")
 		cleanActions := cleanHTML(monster.Actions)
-		wrappedActions := wrapText(cleanActions, 60) // Wrap at 60 characters
+		wrappedActions := wrapText(cleanActions, 35) // Wrap at 35 characters to fit panel
 		lines = append(lines, wrappedActions...)
 		lines = append(lines, "")
 	}
@@ -278,7 +382,7 @@ func FormatMonster(monster *Monster) string {
 	if monster.LegendaryActions != "" {
 		lines = append(lines, "LEGENDARY ACTIONS:")
 		cleanLegendary := cleanHTML(monster.LegendaryActions)
-		wrappedLegendary := wrapText(cleanLegendary, 60) // Wrap at 60 characters
+		wrappedLegendary := wrapText(cleanLegendary, 35) // Wrap at 35 characters to fit panel
 		lines = append(lines, wrappedLegendary...)
 	}
 

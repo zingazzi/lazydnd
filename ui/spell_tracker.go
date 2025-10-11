@@ -14,8 +14,8 @@ func ParseSpellDuration(duration string) (rounds int, isInstantaneous bool) {
 
 	// Check for instantaneous spells
 	if strings.Contains(duration, "instantaneous") ||
-	   strings.Contains(duration, "special") ||
-	   duration == "" {
+		strings.Contains(duration, "special") ||
+		duration == "" {
 		return 0, true
 	}
 

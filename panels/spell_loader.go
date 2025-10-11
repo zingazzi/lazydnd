@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+
+	"github.com/sahilm/fuzzy"
 )
 
 // Spell represents a D&D spell (duplicate from ui package for panels use)
@@ -53,26 +56,100 @@ func LoadSpells() error {
 	return nil
 }
 
-// SearchSpells returns spells matching the search term
-func SearchSpells(searchTerm string) []string {
+// matchesLevelFilter checks if a spell's level matches the filter
+// Filter formats: "0" (cantrips), "3" (exactly 3), "1-3" (range), "5+" (5 and above)
+func matchesLevelFilter(spell *Spell, filter string) bool {
+	if filter == "" {
+		return true // No filter
+	}
+	
+	filter = strings.TrimSpace(filter)
+	spellLevel := spell.Level
+	
+	// Handle "X+" format (e.g., "5+")
+	if strings.HasSuffix(filter, "+") {
+		minLevel, err := strconv.Atoi(strings.TrimSuffix(filter, "+"))
+		if err != nil {
+			return false
+		}
+		return spellLevel >= minLevel
+	}
+	
+	// Handle "X-Y" format (e.g., "1-3")
+	if strings.Contains(filter, "-") {
+		parts := strings.Split(filter, "-")
+		if len(parts) == 2 {
+			minLevel, err1 := strconv.Atoi(parts[0])
+			maxLevel, err2 := strconv.Atoi(parts[1])
+			if err1 == nil && err2 == nil {
+				return spellLevel >= minLevel && spellLevel <= maxLevel
+			}
+		}
+	}
+	
+	// Handle single value (e.g., "0" for cantrips, "3" for level 3)
+	targetLevel, err := strconv.Atoi(filter)
+	if err != nil {
+		return false
+	}
+	return spellLevel == targetLevel
+}
+
+// SearchSpells returns spells matching the search term and level filter
+func SearchSpells(searchTerm string, levelFilter string) []string {
 	if err := LoadSpells(); err != nil {
 		return []string{"Error loading spells"}
 	}
 
-	if searchTerm == "" {
+	if searchTerm == "" && levelFilter == "" {
 		return []string{}
 	}
 
-	searchLower := strings.ToLower(searchTerm)
-	var matches []string
-
-	for _, spellName := range spellNames {
-		if strings.Contains(strings.ToLower(spellName), searchLower) {
-			matches = append(matches, spellName)
-			if len(matches) >= 10 { // Limit suggestions
-				break
+	// Build list of all spells for filtering
+	allSpells := make([]*Spell, 0, len(spellDatabase))
+	for i := range spellDatabase {
+		allSpells = append(allSpells, &spellDatabase[i])
+	}
+	
+	// Filter by level first if specified
+	filteredSpells := allSpells
+	if levelFilter != "" {
+		filteredSpells = make([]*Spell, 0)
+		for _, spell := range allSpells {
+			if matchesLevelFilter(spell, levelFilter) {
+				filteredSpells = append(filteredSpells, spell)
 			}
 		}
+	}
+
+	// If no search term, return filtered spells (limited to 50)
+	if searchTerm == "" {
+		matches := make([]string, 0, 50)
+		for i, spell := range filteredSpells {
+			if i >= 50 {
+				break
+			}
+			matches = append(matches, spell.Name)
+		}
+		return matches
+	}
+
+	// Build list of filtered spell names for fuzzy search
+	filteredNames := make([]string, 0, len(filteredSpells))
+	for _, spell := range filteredSpells {
+		filteredNames = append(filteredNames, spell.Name)
+	}
+
+	// Use fuzzy search to find matches
+	results := fuzzy.Find(searchTerm, filteredNames)
+
+	// Extract matched names (already sorted by score)
+	matches := make([]string, 0, 50)
+	for i, result := range results {
+		if i >= 50 { // Limit to 50 suggestions for better browsing
+			break
+		}
+		matches = append(matches, result.Str)
 	}
 
 	return matches
