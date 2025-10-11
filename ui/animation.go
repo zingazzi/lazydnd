@@ -147,4 +147,3 @@ func HandleAnimationTick(m Model) (Model, tea.Cmd) {
 
 	return m, nil
 }
-

@@ -30,18 +30,13 @@ type SearchContentConfig struct {
 func RenderSearchContent(cfg SearchContentConfig) string {
 	var contentLines []string
 
-	// Header
-	contentLines = append(contentLines, cfg.Title)
-	contentLines = append(contentLines, "Press Enter to start searching")
-	if cfg.ShowAddPrompt {
-		contentLines = append(contentLines, "Press 'a' to add to initiative")
-	}
-	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, strings.Repeat("─", 40))
-	contentLines = append(contentLines, "")
-
-	// Search input
+	// SEARCH MODE: Show search interface
 	if cfg.SearchMode {
+		contentLines = append(contentLines, cfg.Title)
+		contentLines = append(contentLines, "Type to search, Esc to cancel")
+		contentLines = append(contentLines, "")
+		contentLines = append(contentLines, strings.Repeat("─", 35))
+		contentLines = append(contentLines, "")
 		var prompt string
 		if cfg.IsActive {
 			prompt = "Search: " + cfg.SearchInput + "█"
@@ -102,7 +97,21 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 
 			contentLines = append(contentLines, "")
 		}
+		
+		return strings.Join(contentLines, "\n")
 	}
+
+	// NOT IN SEARCH MODE: Show item details or default message
+	
+	// Header for non-search mode
+	contentLines = append(contentLines, cfg.Title)
+	contentLines = append(contentLines, "Press Enter to start searching")
+	if cfg.ShowAddPrompt {
+		contentLines = append(contentLines, "Press 'a' to add to initiative")
+	}
+	contentLines = append(contentLines, "")
+	contentLines = append(contentLines, strings.Repeat("─", 35))
+	contentLines = append(contentLines, "")
 
 	// Show selected item details
 	if cfg.SelectedItem != nil && cfg.FormatFunc != nil {
@@ -122,7 +131,7 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 				contentLines = append(contentLines, line)
 			}
 		}
-	} else if !cfg.SearchMode {
+	} else {
 		contentLines = append(contentLines, "No "+cfg.ItemType+" selected")
 		contentLines = append(contentLines, "")
 		contentLines = append(contentLines, "Press Enter to search for "+cfg.ItemType+"s")

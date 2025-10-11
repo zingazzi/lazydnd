@@ -260,7 +260,7 @@ func FormatMonster(monster *Monster) string {
 	if monster.Traits != "" {
 		lines = append(lines, "TRAITS:")
 		cleanTraits := cleanHTML(monster.Traits)
-		wrappedTraits := wrapText(cleanTraits, 60) // Wrap at 60 characters
+		wrappedTraits := wrapText(cleanTraits, 35) // Wrap at 35 characters to fit panel
 		lines = append(lines, wrappedTraits...)
 		lines = append(lines, "")
 	}
@@ -269,7 +269,7 @@ func FormatMonster(monster *Monster) string {
 	if monster.Actions != "" {
 		lines = append(lines, "ACTIONS:")
 		cleanActions := cleanHTML(monster.Actions)
-		wrappedActions := wrapText(cleanActions, 60) // Wrap at 60 characters
+		wrappedActions := wrapText(cleanActions, 35) // Wrap at 35 characters to fit panel
 		lines = append(lines, wrappedActions...)
 		lines = append(lines, "")
 	}
@@ -278,7 +278,7 @@ func FormatMonster(monster *Monster) string {
 	if monster.LegendaryActions != "" {
 		lines = append(lines, "LEGENDARY ACTIONS:")
 		cleanLegendary := cleanHTML(monster.LegendaryActions)
-		wrappedLegendary := wrapText(cleanLegendary, 60) // Wrap at 60 characters
+		wrappedLegendary := wrapText(cleanLegendary, 35) // Wrap at 35 characters to fit panel
 		lines = append(lines, wrappedLegendary...)
 	}
 

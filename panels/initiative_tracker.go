@@ -84,7 +84,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 	}
 
 	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, strings.Repeat("─", 40))
+	contentLines = append(contentLines, strings.Repeat("─", 35))
 	contentLines = append(contentLines, "")
 
 	// Input field (when adding entries or editing)
