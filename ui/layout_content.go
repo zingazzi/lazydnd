@@ -28,10 +28,8 @@ func (m Model) getPanelContent(panelType PanelType) string {
 
 	content := provider(m)
 
-	// Add help text for active panel
-	if panelType == m.ActivePanel {
-		content += m.getHelpText(panelType)
-	}
+	// Help text removed for cleaner interface
+	// Use ? key to view help popup
 
 	return content
 }

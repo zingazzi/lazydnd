@@ -24,40 +24,19 @@ func GetNotesContent(content string, editMode bool, searchMode bool, searchInput
 		lines = append(lines, "")
 		lines = append(lines, strings.Repeat("─", 35))
 		lines = append(lines, "")
-	} else if editMode {
+	} else 	if editMode {
 		lines = append(lines, "✏️  Edit Mode")
 		lines = append(lines, "")
-		lines = append(lines, "Press Enter to save, Esc to cancel")
-		lines = append(lines, "")
-		lines = append(lines, strings.Repeat("─", 35))
 		lines = append(lines, "")
 	} else {
 		lines = append(lines, "📝 Campaign Notes")
-		lines = append(lines, "")
-		lines = append(lines, "Press 'e' to edit, 'f' to search")
-		lines = append(lines, "")
-		lines = append(lines, strings.Repeat("─", 35))
 		lines = append(lines, "")
 	}
 
 	// Display notes content
 	if content == "" {
 		lines = append(lines, "")
-		lines = append(lines, "  No notes yet. Press 'e' to start writing!")
-		lines = append(lines, "")
-		lines = append(lines, "  💡 Tips:")
-		lines = append(lines, "  • Write session notes")
-		lines = append(lines, "  • Track plot points")
-		lines = append(lines, "  • List NPC names")
-		lines = append(lines, "  • Record important details")
-		lines = append(lines, "")
-		lines = append(lines, "  Markdown-style formatting:")
-		lines = append(lines, "  # Heading")
-		lines = append(lines, "  ## Subheading")
-		lines = append(lines, "  - Bullet point")
-		lines = append(lines, "  * Another bullet")
-		lines = append(lines, "  **bold text**")
-		lines = append(lines, "  *italic text*")
+		lines = append(lines, "  (Empty)")
 	} else {
 		// Render notes with basic markdown-style formatting
 		notesLines := strings.Split(content, "\n")

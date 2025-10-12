@@ -37,7 +37,9 @@ func (m *Model) processDiceInput(input string) (string, bool) {
 	// Check if input is a macro name
 	if formula, exists := m.DiceMacros[input]; exists {
 		result := panels.RollDice(formula, m.Config)
-		m.addToHistory(fmt.Sprintf("%s: %s", input, result), input)
+		// Store the expanded formula for reroll, not the macro name
+		m.addToHistory(fmt.Sprintf("%s: %s", input, result), formula)
+		m.LastDiceCommand = formula
 		return fmt.Sprintf("Macro '%s' (%s): %s", input, formula, result), true
 	}
 
@@ -129,7 +131,13 @@ func (m *Model) rollSkillCheck(skillInput string) (string, bool) {
 		modifier,
 		total)
 
-	m.addToHistory(result, skillInput)
+	// Store the dice expression for reroll
+	diceExpr := "1d20"
+	if modifier != 0 {
+		diceExpr = fmt.Sprintf("1d20%+d", modifier)
+	}
+	m.addToHistory(result, diceExpr)
+	m.LastDiceCommand = diceExpr
 	return result, true
 }
 
@@ -187,7 +195,8 @@ func (m *Model) rollGroupInitiative() (string, bool) {
 		rolled,
 		strings.Join(results, ", "))
 
-	m.addToHistory(resultStr, "group init")
+	// Don't set LastDiceCommand for group init (not rerollable)
+	m.addToHistory(resultStr, "")
 	return resultStr, true
 }
 

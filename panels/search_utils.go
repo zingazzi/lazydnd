@@ -32,7 +32,6 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 
 	// SEARCH MODE: Show search interface
 	if cfg.SearchMode {
-		contentLines = append(contentLines, strings.Repeat("─", 35))
 
 		// Build the input prompt
 		var prompt string
@@ -124,10 +123,6 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 
 	// Header for non-search mode
 	contentLines = append(contentLines, cfg.Title)
-	contentLines = append(contentLines, "Press Enter to start searching")
-	if cfg.ShowAddPrompt {
-		contentLines = append(contentLines, "Press 'a' to add to initiative")
-	}
 	contentLines = append(contentLines, "")
 	contentLines = append(contentLines, strings.Repeat("─", 35))
 	contentLines = append(contentLines, "")
@@ -136,14 +131,6 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 	if cfg.SelectedItem != nil && cfg.FormatFunc != nil {
 		itemDetails := cfg.FormatFunc(cfg.SelectedItem)
 		if itemDetails != "" {
-			// Capitalize first letter of item type
-			itemTypeTitle := strings.Title(cfg.ItemType)
-			contentLines = append(contentLines, itemTypeTitle+" Details:")
-			contentLines = append(contentLines, "")
-			if cfg.ShowAddPrompt {
-				contentLines = append(contentLines, "Press 'a' to Add to Initiative")
-				contentLines = append(contentLines, "")
-			}
 			// Split the details into lines and add them
 			detailLines := strings.Split(itemDetails, "\n")
 			for _, line := range detailLines {
@@ -151,9 +138,7 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 			}
 		}
 	} else {
-		contentLines = append(contentLines, "No "+cfg.ItemType+" selected")
 		contentLines = append(contentLines, "")
-		contentLines = append(contentLines, "Press Enter to search for "+cfg.ItemType+"s")
 	}
 
 	return strings.Join(contentLines, "\n")
