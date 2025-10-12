@@ -40,8 +40,16 @@ func processInitiativeInput(m Model) Model {
 
 	case "player_initiative":
 		if val, err := panels.ParseInput(m.InitiativeInput, "player_initiative"); err == nil {
-			// Complete player entry
+			// Store initiative and move to AC input
 			m.TempEntry.Initiative = val.(int)
+			m.InitiativeInputType = "player_ac"
+			m.InitiativeInput = ""
+		}
+
+	case "player_ac":
+		if val, err := panels.ParseInput(m.InitiativeInput, "player_ac"); err == nil {
+			// Complete player entry
+			m.TempEntry.AC = val.(int)
 			completeInitiativeEntry(&m)
 		}
 

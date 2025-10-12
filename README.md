@@ -250,8 +250,8 @@ Browse spells by spell level with autocomplete:
 **Keybindings:**
 | Key | Action |
 |-----|--------|
-| `p` | Add player to initiative |
-| `m` | Add monster manually (enter name, HP, AC, initiative) |
+| `p` | Add player to initiative (name, initiative, AC) |
+| `m` | Add monster manually (name, HP, AC, initiative) |
 | `Enter` | Enter edit mode (navigate entries with ↑↓) |
 | `n` | Next turn (advance initiative) |
 | `x` | Reset combat (reset turn and round counters) |
@@ -270,6 +270,7 @@ Browse spells by spell level with autocomplete:
 - ✅ **Turn Tracking**: Track current turn with visual indicator (★)
 - ✅ **Round Counter**: Automatic round tracking with time elapsed (6 seconds per round)
 - ✅ **Auto-Sort**: Entries sorted by initiative (highest first)
+- ✅ **Player AC Tracking**: Track Armor Class for both players and monsters
 - ✅ **Conditions Tracker**: Add/remove status effects (Poisoned, Stunned, etc.) with duration tracking
 - ✅ **Monster Linking**: Monsters added from Monster panel retain full data
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
@@ -345,9 +346,17 @@ Monster HP is displayed with color coding for quick health assessment:
 
 The HP text changes color based on the monster's health percentage, making it easy to see which enemies are weakened at a glance. Perfect for tactical decision-making during combat!
 
-**Adding Monsters:**
-1. **Manual**: Press 'm' and enter details (no action support)
-2. **From Monster Panel**: Search monster, press 'a' to add with full stats and actions
+**Adding Players and Monsters:**
+1. **Add Player**: Press 'p' and enter:
+   - Player name
+   - Initiative value
+   - Armor Class (AC)
+2. **Add Monster Manually**: Press 'm' and enter:
+   - Monster name
+   - Hit Points (HP)
+   - Armor Class (AC)
+   - Initiative value (or 'r' to roll)
+3. **Add Monster from Panel**: Search in Monster panel, press 'a' to add with full stats and actions
 
 **Saving Throws & Skill Checks:**
 When a monster is added from the Monster panel, you can roll all saving throws and skill checks:

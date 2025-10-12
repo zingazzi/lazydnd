@@ -135,6 +135,8 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 			prompt = "Player Name: "
 		case "player_initiative":
 			prompt = "Player Initiative: "
+		case "player_ac":
+			prompt = "Player AC: "
 		case "monster_name":
 			prompt = "Monster Name: "
 		case "monster_hp":
@@ -401,7 +403,12 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 
 					if entry.Type == "player" {
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+						// Format player line with AC if available
+						if entry.AC != "" && entry.AC != "0" {
+							line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.AC, conditionIcons)
+						} else {
+							line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+						}
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
@@ -515,8 +522,9 @@ func RollInitiative() int {
 //
 // Supported input types:
 //   - "player_name", "monster_name": Validates non-empty trimmed strings
-//   - "player_initiative", "monster_initiative": Parses positive integers or "r" to roll
-//   - "monster_hp": Parses positive integers for health points
+//   - "player_initiative", "player_ac": Parses positive integers for player stats
+//   - "monster_initiative": Parses positive integers or "r" to roll
+//   - "monster_hp", "monster_ac": Parses positive integers for monster stats
 //   - "hp_change": Parses signed integers ("+5" or "-10") for HP modifications
 //
 // Returns the parsed value (string or int) or an error if validation fails.
@@ -529,7 +537,7 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		}
 		return strings.TrimSpace(input), nil
 
-	case "player_initiative", "monster_hp", "monster_ac":
+	case "player_initiative", "player_ac", "monster_hp", "monster_ac":
 		val, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			return nil, fmt.Errorf("must be a number")
