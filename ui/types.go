@@ -108,6 +108,10 @@ type Model struct {
 	HPUndoStack []HPHistoryEntry
 	HPRedoStack []HPHistoryEntry
 
+	// Error display
+	ErrorMessage string // Current error message to display in UI
+	ErrorVisible bool   // Whether to show the error banner
+
 	// Debug mode
 	DebugMode         bool
 	CampaignList      []string

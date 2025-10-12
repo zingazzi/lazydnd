@@ -9,6 +9,20 @@ import (
 
 // renderStatusBar renders the status bar at the bottom of the screen
 func (m Model) renderStatusBar() string {
+	var result string
+
+	// Render error banner if there's an error
+	if m.ErrorVisible && m.ErrorMessage != "" {
+		errorBanner := m.Styles.ErrorStyle.
+			Width(m.Width).
+			Background(lipgloss.Color("#8B0000")).
+			Foreground(lipgloss.Color("#FFFFFF")).
+			Bold(true).
+			Padding(0, 1).
+			Render("❌ " + m.ErrorMessage)
+		result = errorBanner + "\n"
+	}
+
 	text := DefaultStatusBarText
 
 	// Project name with version and campaign info
@@ -94,5 +108,6 @@ func (m Model) renderStatusBar() string {
 		Width(m.Width).
 		Render(statusBarContent)
 
-	return statusBar
+	result += statusBar
+	return result
 }

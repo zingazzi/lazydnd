@@ -15,6 +15,7 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 🔄 **Auto-Save** - Automatic saving every 5 minutes
 🔗 **Monster Integration** - Link monsters to initiative with full action support
 ⚡ **Instant Transitions** - Lightning-fast panel switching with zero latency
+❌ **UI Error Messages** - Clear error notifications displayed in the UI, not just terminal
 
 ## Installation
 
