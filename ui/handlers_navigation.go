@@ -10,7 +10,7 @@ import (
 // handleTab handles tab key navigation (forward)
 func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
-		m.ActivePanel = (m.ActivePanel + 1) % 4
+		m.ActivePanel = (m.ActivePanel + 1) % 5
 	}
 	return m, nil
 }
@@ -18,7 +18,7 @@ func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleShiftTab handles shift+tab key navigation (backward)
 func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
-		m.ActivePanel = (m.ActivePanel - 1 + 4) % 4
+		m.ActivePanel = (m.ActivePanel - 1 + 5) % 5
 	}
 	return m, nil
 }

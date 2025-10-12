@@ -15,6 +15,7 @@ var panelContentProviders = map[PanelType]PanelContentProvider{
 	InitiativeTracker: getInitiativeTrackerContent,
 	Spells:            getSpellsContent,
 	Monsters:          getMonstersContent,
+	Notes:             getNotesContent,
 }
 
 // getPanelContent returns the content for a specific panel
@@ -127,6 +128,23 @@ func getMonstersContent(m Model) string {
 	)
 }
 
+// getNotesContent gets content for the notes panel
+func getNotesContent(m Model) string {
+	content := m.NotesContent
+	if m.NotesEditMode {
+		content = m.NotesInput
+	}
+
+	return panels.GetNotesContent(
+		content,
+		m.NotesEditMode,
+		m.NotesSearchMode,
+		m.NotesSearchInput,
+		m.NotesSearchResult,
+		m.Width,
+	)
+}
+
 // ========== HELP TEXT PROVIDERS ==========
 
 // HelpTextProvider defines a function type for getting help text
@@ -138,6 +156,7 @@ var helpTextProviders = map[PanelType]HelpTextProvider{
 	InitiativeTracker: getInitiativeTrackerHelpText,
 	Spells:            getSpellsHelpText,
 	Monsters:          getMonstersHelpText,
+	Notes:             getNotesHelpText,
 }
 
 // getHelpText returns context-sensitive help text
@@ -171,5 +190,11 @@ func getSpellsHelpText(m Model) string {
 // getMonstersHelpText gets help text for the monsters panel
 func getMonstersHelpText(m Model) string {
 	text := MonstersInlineHelp(m)
+	return "\n" + m.Styles.HelpStyle.Render(text)
+}
+
+// getNotesHelpText gets help text for the notes panel
+func getNotesHelpText(m Model) string {
+	text := NotesInlineHelp(m.NotesEditMode, m.NotesSearchMode)
 	return "\n" + m.Styles.HelpStyle.Render(text)
 }

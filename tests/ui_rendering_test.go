@@ -56,6 +56,9 @@ func TestUI_LoadingState(t *testing.T) {
 // TestUI_PanelNames tests that panel names are visible
 func TestUI_PanelNames(t *testing.T) {
 	model := createTestModel()
+	// Use larger dimensions for new layout
+	model.Width = 200
+	model.Height = 50
 
 	view := model.View()
 
@@ -64,6 +67,7 @@ func TestUI_PanelNames(t *testing.T) {
 		"Initiative Tracker",
 		"Spells",
 		"Monsters",
+		"Notes",
 	}
 
 	for _, panelName := range expectedPanels {

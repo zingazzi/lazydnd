@@ -13,7 +13,12 @@ func handleF(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "f"), nil
 	}
-	
+
+	// Notes panel: Search mode
+	if m.ActivePanel == Notes && !m.NotesEditMode && !m.NotesSearchMode {
+		return handleNotesF(m, msg)
+	}
+
 	// Monster panel: CR filter
 	if m.ActivePanel == Monsters && !m.MonsterSearchMode && !m.MonsterCRFilterMode {
 		// Clear any selected monster and enter CR filter mode
@@ -25,7 +30,7 @@ func handleF(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		DebugLog("FILTER: Entering CR filter mode")
 		return m, nil
 	}
-	
+
 	// Spells panel: Level filter
 	if m.ActivePanel == Spells && !m.SpellSearchMode && !m.SpellLevelFilterMode && !m.ActiveSpellListMode && !m.CastSpellInputMode {
 		// Clear any selected spell and enter level filter mode
@@ -37,7 +42,7 @@ func handleF(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		DebugLog("FILTER: Entering spell level filter mode")
 		return m, nil
 	}
-	
+
 	return m, nil
 }
 

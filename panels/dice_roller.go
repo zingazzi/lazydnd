@@ -91,7 +91,7 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, di
 		return content
 	}
 
-	content := "Press Enter to roll, 'h' for history, Esc to clear\nExamples: 1d20, 2d8+3d6, 1d8-2, 1d6-1d4"
+	content := "Press Enter to roll, 'h' for history, Esc to clear\nExamples: 1d20, 2d8+3d6, fireball, lightning_bolt\n35+ preset spell macros available! (? for help)"
 
 	content += "\n\n" + strings.Repeat("─", 30)
 

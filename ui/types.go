@@ -11,6 +11,7 @@ const (
 	InitiativeTracker
 	Spells
 	Monsters
+	Notes
 )
 
 // Model represents the main application state
@@ -32,6 +33,14 @@ type Model struct {
 	DiceHistoryMode bool // When true, navigating dice history to select
 	HistoryIndex    int  // Selected index in history (-1 = none)
 	ScrollOffset    map[PanelType]int
+	// Dice macros state
+	DiceMacros      map[string]string // name -> formula (e.g., "fireball" -> "8d6")
+	MacroListMode   bool              // When true, showing macro list to select/delete
+	SelectedMacro   int               // Selected macro index in list
+	ShowMacroPrompt bool              // Show prompt to create new macro
+	MacroNameInput  string            // Macro name input
+	MacroFormulaInput string          // Macro formula input
+	MacroInputStep  int               // 0 = name, 1 = formula
 	// Spell search state
 	SpellSearchInput string
 	SpellSearchMode  bool
@@ -111,6 +120,14 @@ type Model struct {
 	// Error display
 	ErrorMessage string // Current error message to display in UI
 	ErrorVisible bool   // Whether to show the error banner
+
+	// Notes state
+	NotesContent      string // Main notes content
+	NotesInput        string // Current input for editing
+	NotesEditMode     bool   // Whether notes are being edited
+	NotesSearchMode   bool   // Whether searching within notes
+	NotesSearchInput  string // Search query for notes
+	NotesSearchResult []int  // Line numbers with search matches
 
 	// Debug mode
 	DebugMode         bool
@@ -232,6 +249,8 @@ type SaveState struct {
 	CurrentTurn    int                    `json:"current_turn"`
 	RoundCounter   int                    `json:"round_counter"`
 	ActiveSpells   []ActiveSpell          `json:"active_spells"`
+	Notes          string                 `json:"notes"`        // Campaign notes content
+	DiceMacros     map[string]string      `json:"dice_macros"` // Saved dice macros (name -> formula)
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence
@@ -247,10 +266,18 @@ type SavedInitiativeEntry struct {
 	BaseName    string `json:"base_name"`
 }
 
+// Note represents a campaign note entry
+type Note struct {
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
 // Panel configuration
 var PanelNames = []string{
 	"🎲 Dice Roller",
 	"⚔️  Initiative Tracker",
 	"✨ Spells",
 	"🐉 Monsters",
+	"📝 Notes",
 }

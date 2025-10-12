@@ -12,7 +12,7 @@ import (
 
 // isInInputMode returns true if any input mode is active
 func (m Model) isInInputMode() bool {
-	return m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode
+	return m.InputMode || m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode || m.NotesEditMode || m.NotesSearchMode
 }
 
 // ========== INITIATIVE PROCESSING ==========
@@ -291,12 +291,21 @@ func addToInitiativeInput(m Model, char string) Model {
 
 // handleSearchModeInput handles input when in search mode for spells or monsters
 func handleSearchModeInput(m Model, char string) Model {
-	if m.SpellSearchMode && m.ActivePanel == Spells {
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		m.DiceInput += char
+		return m
+	} else if m.SpellSearchMode && m.ActivePanel == Spells {
 		return addToSpellSearch(m, char)
 	} else if m.MonsterSearchMode && m.ActivePanel == Monsters {
 		return addToMonsterSearch(m, char)
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
 		return addToInitiativeInput(m, char)
+	} else if m.NotesEditMode && m.ActivePanel == Notes {
+		m.NotesInput += char
+		return m
+	} else if m.NotesSearchMode && m.ActivePanel == Notes {
+		m.NotesSearchInput += char
+		return m
 	}
 	return m
 }
