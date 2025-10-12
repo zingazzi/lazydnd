@@ -83,6 +83,7 @@ func SaveCampaign(m Model, campaignName string) error {
 		CurrentTurn:    m.CurrentTurn,
 		RoundCounter:   m.RoundCounter,
 		ActiveSpells:   m.ActiveSpells,
+		Notes:          m.NotesContent,
 	}
 
 	// Marshal to JSON

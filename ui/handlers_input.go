@@ -112,6 +112,9 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.MonsterSearchMode = false
 		m.MonsterSuggestions = []string{}
 		m.MonsterSuggestionIndex = -1
+	} else if m.ActivePanel == Notes {
+		// Handle Notes panel Escape key
+		m = handleNotesEscape(m)
 	}
 
 	return m, nil
@@ -291,6 +294,11 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.MonsterSuggestions = []string{}
 			m.MonsterSuggestionIndex = -1
 		}
+	} else if m.ActivePanel == Notes {
+		// Handle Notes panel Enter key
+		if m.NotesEditMode {
+			m = handleNotesEnter(m)
+		}
 	}
 
 	return m, nil
@@ -406,6 +414,9 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				m.MonsterSuggestionIndex = -1
 			}
 		}
+	} else if m.ActivePanel == Notes && (m.NotesEditMode || m.NotesSearchMode) {
+		// Handle text input for notes panel
+		m = handleNotesInput(m, key)
 	}
 
 	return m, nil

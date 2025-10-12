@@ -11,6 +11,7 @@ const (
 	InitiativeTracker
 	Spells
 	Monsters
+	Notes
 )
 
 // Model represents the main application state
@@ -111,6 +112,14 @@ type Model struct {
 	// Error display
 	ErrorMessage string // Current error message to display in UI
 	ErrorVisible bool   // Whether to show the error banner
+
+	// Notes state
+	NotesContent      string // Main notes content
+	NotesInput        string // Current input for editing
+	NotesEditMode     bool   // Whether notes are being edited
+	NotesSearchMode   bool   // Whether searching within notes
+	NotesSearchInput  string // Search query for notes
+	NotesSearchResult []int  // Line numbers with search matches
 
 	// Debug mode
 	DebugMode         bool
@@ -232,6 +241,7 @@ type SaveState struct {
 	CurrentTurn    int                    `json:"current_turn"`
 	RoundCounter   int                    `json:"round_counter"`
 	ActiveSpells   []ActiveSpell          `json:"active_spells"`
+	Notes          string                 `json:"notes"` // Campaign notes content
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence
@@ -247,10 +257,18 @@ type SavedInitiativeEntry struct {
 	BaseName    string `json:"base_name"`
 }
 
+// Note represents a campaign note entry
+type Note struct {
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
 // Panel configuration
 var PanelNames = []string{
 	"🎲 Dice Roller",
 	"⚔️  Initiative Tracker",
 	"✨ Spells",
 	"🐉 Monsters",
+	"📝 Notes",
 }

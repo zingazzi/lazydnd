@@ -7,12 +7,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// renderAllPanels renders all four panels
-func (m Model) renderAllPanels(dimensions PanelDimensions) []string {
-	panelViews := make([]string, 4)
+// renderAllPanels renders all five panels with dynamic dimensions
+func (m Model) renderAllPanels(dimensionsMap map[PanelType]PanelDimensions) []string {
+	panelViews := make([]string, 5)
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 5; i++ {
 		panelType := PanelType(i)
+		dimensions := dimensionsMap[panelType]
 		panelViews[i] = m.renderSinglePanel(panelType, dimensions, i+1)
 	}
 
