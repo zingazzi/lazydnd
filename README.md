@@ -259,6 +259,7 @@ Browse spells by spell level with autocomplete:
 | `Ctrl+Y` | Redo HP change |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
+| `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
 | `o` | Manage conditions (add/remove status effects in edit mode) |
 | `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
 | `d` | Delete selected entry (in edit mode) |
@@ -277,6 +278,7 @@ Browse spells by spell level with autocomplete:
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
+- ✅ **Max HP Editing**: Adjust maximum HP values for monsters (Shift+H)
 - ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
 - ✅ **Undo/Redo**: Undo up to 3 HP changes with Ctrl+Z, redo with Ctrl+Y
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
@@ -337,6 +339,23 @@ Perfect for area spells (Fireball, Thunderwave) and mass healing:
 - Select all 3 party members with Space
 - Enter `+7` (for 7 healing)
 - Apply: All 3 party members gain 7 HP
+
+**HP Management:**
+LazyDnD provides flexible HP tracking for monsters with two editing modes:
+
+1. **Edit Current HP** (press `h`):
+   - Enter edit mode (`Enter`), select a monster, press `h`
+   - Enter HP change with `+` to heal or `-` to damage
+   - Examples: `-15` (take 15 damage), `+8` (heal 8 HP)
+   - Current HP automatically capped at 0 and maximum HP
+   - Tracks up to 3 actions in undo history (Ctrl+Z to undo)
+
+2. **Edit Maximum HP** (press `H` / Shift+H):
+   - Enter edit mode (`Enter`), select a monster, press `H`
+   - Enter new maximum HP value (absolute value, minimum 1)
+   - Example: `150` sets max HP to 150
+   - Current HP is automatically capped if it exceeds the new maximum
+   - Useful for adjusting monster difficulty or fixing entry mistakes
 
 **Color-Coded HP:**
 Monster HP is displayed with color coding for quick health assessment:

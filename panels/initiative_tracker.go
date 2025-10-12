@@ -91,11 +91,13 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 			contentLines = append(contentLines, "Enter new initiative value:")
 		case "hp":
 			contentLines = append(contentLines, "Enter HP change (+heal/-damage):")
+		case "maxhp":
+			contentLines = append(contentLines, "Enter new Max HP value:")
 		case "delete":
 			contentLines = append(contentLines, "Press Enter to confirm deletion")
 		}
 	} else if listMode {
-		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete, t=multi-target")
+		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, H=Max HP, d=delete, t=multi-target")
 	} else {
 		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, Enter to edit")
 		contentLines = append(contentLines, "Press 'n' for next turn, 'x' to reset combat")
@@ -581,6 +583,21 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		val, err := strconv.Atoi(input)
 		if err != nil {
 			return nil, fmt.Errorf("must be a number (+ to heal, - to damage)")
+		}
+		return val, nil
+
+	case "maxhp":
+		// Max HP (absolute value)
+		input = strings.TrimSpace(input)
+		if input == "" {
+			return nil, fmt.Errorf("enter a number")
+		}
+		val, err := strconv.Atoi(input)
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 1 {
+			return nil, fmt.Errorf("must be at least 1")
 		}
 		return val, nil
 	}

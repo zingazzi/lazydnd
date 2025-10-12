@@ -46,6 +46,7 @@ var keyHandlers = map[string]KeyHandler{
 	"e": handleE,
 	"i": handleI,
 	"h": handleH,
+	"H": handleH, // Shift+H for max HP editing
 	"a": handleA,
 	"d": handleD,
 	"l": handleL,

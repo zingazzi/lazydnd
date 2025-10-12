@@ -94,12 +94,15 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},
 	{"  i", "Edit initiative value"},
-	{"  h", "Edit HP (monsters only)"},
+	{"  h", "Edit HP (+heal/-damage, monsters only)"},
+	{"  H", "Edit Max HP (set absolute value, monsters only)"},
 	{"  s", "Roll saving throws (monsters only)"},
 	{"  l", "View linked monster details"},
+	{"  t", "Multi-target damage/healing"},
 	{"  a", "Show monster actions (if linked)"},
 	{"  c", "Copy/duplicate entry"},
 	{"  d", "Delete entry"},
+	{"  o", "Manage conditions (status effects)"},
 }
 
 // SpellsHelp contains help text for the Spells panel

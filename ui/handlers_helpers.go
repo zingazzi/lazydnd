@@ -140,6 +140,25 @@ func processInitiativeEdit(m Model) Model {
 			m.InitiativeInput = ""
 		}
 
+	case "maxhp":
+		if val, err := panels.ParseInput(m.InitiativeInput, "maxhp"); err == nil {
+			// Update Max HP (absolute value)
+			newMaxHP := val.(int)
+			if newMaxHP < 1 {
+				newMaxHP = 1 // Ensure max HP is at least 1
+			}
+			m.InitiativeList[originalIndex].MaxHP = newMaxHP
+
+			// Cap current HP if it exceeds new max HP
+			if m.InitiativeList[originalIndex].HP > newMaxHP {
+				m.InitiativeList[originalIndex].HP = newMaxHP
+			}
+
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		}
+
 	case "delete":
 		// Delete the selected entry
 		m.InitiativeList = append(m.InitiativeList[:originalIndex], m.InitiativeList[originalIndex+1:]...)
