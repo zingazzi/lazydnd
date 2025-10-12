@@ -68,6 +68,11 @@ func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "e"), nil
 	}
 
+	// Handle Notes panel edit mode
+	if m.ActivePanel == Notes && !m.NotesEditMode && !m.NotesSearchMode {
+		return handleNotesE(m, msg)
+	}
+
 	// 'e' key no longer enters edit mode (now using Enter key)
 	// Keep the handler for typing 'e' in search modes
 

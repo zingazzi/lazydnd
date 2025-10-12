@@ -33,7 +33,7 @@ var DefaultStatusBarText = StatusBarText{
 	TabDesc:     "Switch",
 	ArrowKeys:   "↑↓",
 	ArrowDesc:   "Navigate",
-	NumbersKey:  "1-4",
+	NumbersKey:  "1-5",
 	NumbersDesc: "Panels",
 	HelpKey:     "?",
 	HelpDesc:    "Help",
@@ -74,6 +74,15 @@ var DiceRollerHelp = []HelpKey{
 	{"Enter", "Start/confirm dice input"},
 	{"r", "Reroll last command"},
 	{"h", "Open history to select any roll"},
+	{"Macros:", ""},
+	{"  fireball=8d6", "Save macro (name=formula)"},
+	{"  fireball", "Execute macro (35+ presets!)"},
+	{"  lightning_bolt", "Try preset spells"},
+	{"Skill Checks:", ""},
+	{"  stealth", "Roll skill for selected character"},
+	{"  perception+5", "Roll skill with modifier"},
+	{"Group Rolls:", ""},
+	{"  group", "Roll init for all monsters"},
 	{"Examples:", ""},
 	{"  2d6", "Roll 2 six-sided dice"},
 	{"  1d20+5", "Roll d20 with +5 modifier"},
@@ -132,6 +141,26 @@ var MonstersHelp = []HelpKey{
 	{"  Backspace", "Delete character"},
 }
 
+// NotesHelp contains help text for the Notes panel
+var NotesHelp = []HelpKey{
+	{"e", "Edit notes"},
+	{"f", "Search within notes"},
+	{"", ""},
+	{"In Edit Mode:", ""},
+	{"  Type", "Add/edit text"},
+	{"  Enter", "New line (save with Esc)"},
+	{"  Esc", "Save and exit"},
+	{"", ""},
+	{"In Search Mode:", ""},
+	{"  Type", "Search text"},
+	{"  Esc", "Exit search"},
+	{"", ""},
+	{"Markdown Support:", ""},
+	{"  # Text", "Heading"},
+	{"  - Item", "Bullet point"},
+	{"  **text**", "Bold (simplified)"},
+}
+
 // GetPanelHelpKeys returns the help keys for a specific panel
 func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 	switch panelType {
@@ -143,6 +172,8 @@ func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 		return SpellsHelp
 	case Monsters:
 		return MonstersHelp
+	case Notes:
+		return NotesHelp
 	default:
 		return []HelpKey{}
 	}
@@ -218,6 +249,17 @@ func MonstersInlineHelp(m Model) string {
 		return "a: Add to Initiative • Enter: Search • f: Filter by CR • Esc: Back"
 	}
 	return "Enter: search by name • f: filter by CR • ↑↓: scroll • 1-4/F1-F4: switch panels • q: quit"
+}
+
+// NotesInlineHelp returns context-sensitive help text for the Notes panel
+func NotesInlineHelp(editMode, searchMode bool) string {
+	if editMode {
+		return "Type to add notes • Enter: save • Esc: cancel • F1-F4: switch panels"
+	}
+	if searchMode {
+		return "Type to search • ↑↓: navigate results • Esc: cancel • F1-F4: switch"
+	}
+	return "e: edit notes • f: search notes • F1-F4: switch panels"
 }
 
 // DefaultInlineHelp returns default inline help

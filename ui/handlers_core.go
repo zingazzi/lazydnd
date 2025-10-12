@@ -31,6 +31,7 @@ var keyHandlers = map[string]KeyHandler{
 	"2": handleNumber2,
 	"3": handleNumber3,
 	"4": handleNumber4,
+	"5": handleNumber5,
 
 	// Action handlers
 	"enter":     handleEnter,
