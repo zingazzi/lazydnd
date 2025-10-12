@@ -104,11 +104,24 @@ type Model struct {
 	CurrentCampaignFile string
 	CurrentCampaignName string
 
+	// Undo/Redo state for HP changes (limited to 3 actions)
+	HPUndoStack []HPHistoryEntry
+	HPRedoStack []HPHistoryEntry
+
 	// Debug mode
 	DebugMode         bool
 	CampaignList      []string
 	CampaignListIndex int
 	LastAutoSave      string
+}
+
+// HPHistoryEntry represents a single HP change for undo/redo
+type HPHistoryEntry struct {
+	EntryIndex int // Index in InitiativeList
+	OldHP      int
+	NewHP      int
+	MaxHP      int
+	EntryName  string // For debugging/display
 }
 
 // Condition represents a status effect on a creature

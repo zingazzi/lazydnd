@@ -301,3 +301,41 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	return m, nil
 }
+
+// ========== UNDO/REDO HANDLERS ==========
+
+// handleCtrlZ handles Ctrl+Z for undoing HP changes
+func handleCtrlZ(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Only works in initiative tracker panel
+	if m.ActivePanel != InitiativeTracker {
+		return m, nil
+	}
+
+	// Don't undo while in input/edit modes
+	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
+		return m, nil
+	}
+
+	// Undo last HP change
+	m = undoHPChange(m)
+
+	return m, nil
+}
+
+// handleCtrlY handles Ctrl+Y for redoing HP changes
+func handleCtrlY(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Only works in initiative tracker panel
+	if m.ActivePanel != InitiativeTracker {
+		return m, nil
+	}
+
+	// Don't redo while in input/edit modes
+	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
+		return m, nil
+	}
+
+	// Redo last HP change
+	m = redoHPChange(m)
+
+	return m, nil
+}

@@ -110,6 +110,9 @@ func processInitiativeEdit(m Model) Model {
 
 	case "hp":
 		if val, err := panels.ParseInput(m.InitiativeInput, "hp_change"); err == nil {
+			// Save current HP to undo stack before making changes
+			oldHP := m.InitiativeList[originalIndex].HP
+
 			// Update HP (can be positive or negative)
 			change := val.(int)
 			newHP := m.InitiativeList[originalIndex].HP + change
@@ -120,6 +123,10 @@ func processInitiativeEdit(m Model) Model {
 				newHP = m.InitiativeList[originalIndex].MaxHP
 			}
 			m.InitiativeList[originalIndex].HP = newHP
+
+			// Save to undo history
+			pushHPHistory(&m, originalIndex, oldHP, newHP)
+
 			m.InitiativeEditMode = false
 			m.InitiativeEditType = ""
 			m.InitiativeInput = ""
@@ -316,4 +323,80 @@ func cleanDiceNotation(damage string) string {
 	result = strings.ReplaceAll(result, "- ", "-")
 
 	return strings.TrimSpace(result)
+}
+
+// ========== UNDO/REDO HP HISTORY ==========
+
+// pushHPHistory saves an HP change to the undo stack (limited to 3 actions)
+func pushHPHistory(m *Model, entryIndex int, oldHP int, newHP int) {
+	if entryIndex < 0 || entryIndex >= len(m.InitiativeList) {
+		return
+	}
+
+	entry := HPHistoryEntry{
+		EntryIndex: entryIndex,
+		OldHP:      oldHP,
+		NewHP:      newHP,
+		MaxHP:      m.InitiativeList[entryIndex].MaxHP,
+		EntryName:  m.InitiativeList[entryIndex].Name,
+	}
+
+	// Add to undo stack
+	m.HPUndoStack = append(m.HPUndoStack, entry)
+
+	// Limit to 3 actions
+	if len(m.HPUndoStack) > 3 {
+		m.HPUndoStack = m.HPUndoStack[1:]
+	}
+
+	// Clear redo stack when new action is performed
+	m.HPRedoStack = []HPHistoryEntry{}
+}
+
+// undoHPChange reverts the last HP change
+func undoHPChange(m Model) Model {
+	if len(m.HPUndoStack) == 0 {
+		return m
+	}
+
+	// Pop from undo stack
+	lastAction := m.HPUndoStack[len(m.HPUndoStack)-1]
+	m.HPUndoStack = m.HPUndoStack[:len(m.HPUndoStack)-1]
+
+	// Apply old HP value
+	if lastAction.EntryIndex >= 0 && lastAction.EntryIndex < len(m.InitiativeList) {
+		m.InitiativeList[lastAction.EntryIndex].HP = lastAction.OldHP
+
+		// Add to redo stack
+		m.HPRedoStack = append(m.HPRedoStack, lastAction)
+		if len(m.HPRedoStack) > 3 {
+			m.HPRedoStack = m.HPRedoStack[1:]
+		}
+	}
+
+	return m
+}
+
+// redoHPChange reapplies a previously undone HP change
+func redoHPChange(m Model) Model {
+	if len(m.HPRedoStack) == 0 {
+		return m
+	}
+
+	// Pop from redo stack
+	lastUndo := m.HPRedoStack[len(m.HPRedoStack)-1]
+	m.HPRedoStack = m.HPRedoStack[:len(m.HPRedoStack)-1]
+
+	// Apply new HP value
+	if lastUndo.EntryIndex >= 0 && lastUndo.EntryIndex < len(m.InitiativeList) {
+		m.InitiativeList[lastUndo.EntryIndex].HP = lastUndo.NewHP
+
+		// Add back to undo stack
+		m.HPUndoStack = append(m.HPUndoStack, lastUndo)
+		if len(m.HPUndoStack) > 3 {
+			m.HPUndoStack = m.HPUndoStack[1:]
+		}
+	}
+
+	return m
 }

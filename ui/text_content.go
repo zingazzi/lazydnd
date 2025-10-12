@@ -88,6 +88,8 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"Enter", "Enter edit mode"},
 	{"n", "Next turn (works in all modes)"},
 	{"x", "Reset combat (works in all modes)"},
+	{"Ctrl+Z", "Undo HP change (up to 3 actions)"},
+	{"Ctrl+Y", "Redo HP change"},
 	{"", ""},
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},
@@ -103,6 +105,9 @@ var InitiativeTrackerHelp = []HelpKey{
 // SpellsHelp contains help text for the Spells panel
 var SpellsHelp = []HelpKey{
 	{"Enter", "Start spell search"},
+	{"f", "Filter by spell level (0-9, ranges)"},
+	{"c", "Cast selected spell"},
+	{"v", "View active spells"},
 	{"", ""},
 	{"In Search Mode:", ""},
 	{"  Type", "Search for spells"},
@@ -114,6 +119,7 @@ var SpellsHelp = []HelpKey{
 // MonstersHelp contains help text for the Monsters panel
 var MonstersHelp = []HelpKey{
 	{"Enter", "Start monster search"},
+	{"f", "Filter by CR (exact, range, min)"},
 	{"a", "Add to initiative tracker"},
 	{"", ""},
 	{"In Search Mode:", ""},

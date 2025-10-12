@@ -159,7 +159,9 @@ Both Monsters and Spells panels now use intelligent fuzzy search that:
 - More forgiving than exact substring matching
 - Just start typing to see suggestions!
 
-**CR Filter (Monsters Only):**
+**Level/CR Filters:**
+
+**CR Filter (Monsters Panel):**
 Browse monsters by Challenge Rating with autocomplete:
 1. Press `f` in the Monsters panel to open CR filter
 2. Type a CR value as you type, monsters matching that CR appear instantly:
@@ -171,6 +173,18 @@ Browse monsters by Challenge Rating with autocomplete:
 4. Press `Enter` to select a monster and view its full details
 5. Press `Esc` to cancel and go back
 6. Perfect for finding level-appropriate encounters quickly!
+
+**Spell Level Filter (Spells Panel):**
+Browse spells by spell level with autocomplete:
+1. Press `f` in the Spells panel to open level filter
+2. Type a spell level, spells matching that level appear instantly:
+   - **Exact**: `3` → shows all 3rd-level spells
+   - **Range**: `0-2` → shows cantrips through 2nd-level
+   - **Minimum**: `5+` → shows 5th-level and higher
+3. Use `↑↓` arrow keys to navigate the list
+4. Press `Enter` to select a spell and view its full details
+5. Press `Esc` to cancel and go back
+6. Great for finding spells your character can cast!
 
 ### Global Navigation & Controls
 
@@ -240,6 +254,8 @@ Browse monsters by Challenge Rating with autocomplete:
 | `Enter` | Enter edit mode (navigate entries with ↑↓) |
 | `n` | Next turn (advance initiative) |
 | `x` | Reset combat (reset turn and round counters) |
+| `Ctrl+Z` | Undo HP change (up to 3 actions) |
+| `Ctrl+Y` | Redo HP change |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
 | `o` | Manage conditions (add/remove status effects in edit mode) |
@@ -259,6 +275,7 @@ Browse monsters by Challenge Rating with autocomplete:
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
+- ✅ **Undo/Redo**: Undo up to 3 HP changes with Ctrl+Z, redo with Ctrl+Y
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
@@ -352,6 +369,7 @@ The popup displays:
 | Key | Action |
 |-----|--------|
 | `Enter` | Start spell search |
+| `f` | Filter by spell level (0-9, ranges like 0-3, 5+) |
 | Type spell name | Real-time autocomplete suggestions |
 | `↑` `↓` | Navigate spell suggestions |
 | `Enter` | Select spell to view details |
@@ -363,6 +381,7 @@ The popup displays:
 **Features:**
 - ✅ **Complete D&D 5e Spell Database**
 - ✅ **Real-time Autocomplete**: Suggestions appear as you type
+- ✅ **Spell Level Filter**: Filter by exact level, ranges, or minimum (e.g., 0-2, 5+)
 - ✅ **Full Details**: Level, school, casting time, range, components, duration, description
 - ✅ **Class Information**: Shows which classes can cast the spell
 - ✅ **Ritual & Concentration**: Clearly marked
@@ -400,6 +419,7 @@ When you cast a spell with a duration:
 | Key | Action |
 |-----|--------|
 | `Enter` | Start monster search |
+| `f` | Filter by CR (exact, range like 0-5, or min like 10+) |
 | Type monster name | Real-time autocomplete suggestions |
 | `↑` `↓` | Navigate monster suggestions |
 | `Enter` | Select monster to view stat block |
@@ -409,6 +429,7 @@ When you cast a spell with a duration:
 **Features:**
 - ✅ **8750+ D&D 5e Monsters**
 - ✅ **Complete Stat Blocks**: AC, HP, Speed, Ability Scores, Saves, Skills
+- ✅ **CR Filter**: Filter by exact CR, ranges, or minimum (e.g., 0-5, 10+)
 - ✅ **Traits & Actions**: All special abilities and attacks
 - ✅ **Legendary Actions**: Full legendary action details
 - ✅ **Challenge Rating**: CR and XP values
