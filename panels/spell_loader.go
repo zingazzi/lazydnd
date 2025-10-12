@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/sahilm/fuzzy"
 )
@@ -31,9 +32,12 @@ type Spell struct {
 var spellDatabase []Spell
 var spellNames []string
 var spellsLoaded bool
+var spellMutex sync.Mutex
 
 // ClearSpellCache clears the cached spell data
 func ClearSpellCache() {
+	spellMutex.Lock()
+	defer spellMutex.Unlock()
 	spellDatabase = nil
 	spellNames = nil
 	spellsLoaded = false
@@ -57,6 +61,9 @@ func GetSpellCount() int {
 
 // LoadSpells loads spells from the JSON file
 func LoadSpells() error {
+	spellMutex.Lock()
+	defer spellMutex.Unlock()
+
 	if spellsLoaded && len(spellDatabase) > 0 {
 		return nil // Already loaded
 	}

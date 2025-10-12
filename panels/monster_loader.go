@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/sahilm/fuzzy"
 )
@@ -60,9 +61,12 @@ type Monster struct {
 
 var monsters []Monster
 var monstersLoaded bool
+var monsterMutex sync.Mutex
 
 // ClearMonsterCache clears the cached monster data
 func ClearMonsterCache() {
+	monsterMutex.Lock()
+	defer monsterMutex.Unlock()
 	monsters = nil
 	monstersLoaded = false
 }
@@ -167,6 +171,9 @@ func mergeMonsters(defaultMonsters, customMonsters []Monster) []Monster {
 
 // LoadMonsters loads monsters from the default JSON file and custom monster files
 func LoadMonsters() error {
+	monsterMutex.Lock()
+	defer monsterMutex.Unlock()
+
 	if monstersLoaded && len(monsters) > 0 {
 		return nil // Already loaded
 	}
@@ -183,6 +190,7 @@ func LoadMonsters() error {
 		// Log warning but don't fail - custom monsters are optional
 		fmt.Fprintf(os.Stderr, "Warning: failed to load custom monsters: %v\n", err)
 		monsters = defaultMonsters
+		monstersLoaded = true
 		return nil
 	}
 
