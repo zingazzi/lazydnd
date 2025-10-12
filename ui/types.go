@@ -33,6 +33,14 @@ type Model struct {
 	DiceHistoryMode bool // When true, navigating dice history to select
 	HistoryIndex    int  // Selected index in history (-1 = none)
 	ScrollOffset    map[PanelType]int
+	// Dice macros state
+	DiceMacros      map[string]string // name -> formula (e.g., "fireball" -> "8d6")
+	MacroListMode   bool              // When true, showing macro list to select/delete
+	SelectedMacro   int               // Selected macro index in list
+	ShowMacroPrompt bool              // Show prompt to create new macro
+	MacroNameInput  string            // Macro name input
+	MacroFormulaInput string          // Macro formula input
+	MacroInputStep  int               // 0 = name, 1 = formula
 	// Spell search state
 	SpellSearchInput string
 	SpellSearchMode  bool
@@ -241,7 +249,8 @@ type SaveState struct {
 	CurrentTurn    int                    `json:"current_turn"`
 	RoundCounter   int                    `json:"round_counter"`
 	ActiveSpells   []ActiveSpell          `json:"active_spells"`
-	Notes          string                 `json:"notes"` // Campaign notes content
+	Notes          string                 `json:"notes"`        // Campaign notes content
+	DiceMacros     map[string]string      `json:"dice_macros"` // Saved dice macros (name -> formula)
 }
 
 // SavedInitiativeEntry represents an initiative entry for persistence

@@ -185,13 +185,14 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.DiceHistoryMode = false
 			m.HistoryIndex = -1
 		} else if m.InputMode && m.DiceInput != "" {
-			// Roll the dice
-			result := panels.RollDice(m.DiceInput, m.Config)
+			// Process dice input (handles macros, skill checks, group rolls, and normal rolls)
+			result, shouldClearInput := m.processDiceInput(m.DiceInput)
 			m.DiceResult = result
-			m.LastDiceCommand = m.DiceInput
-			m.addToHistory(result, m.DiceInput)
-			m.DiceInput = ""
-			m.InputMode = false
+			if shouldClearInput {
+				m.LastDiceCommand = m.DiceInput
+				m.DiceInput = ""
+				m.InputMode = false
+			}
 		} else if !m.DiceHistoryMode {
 			m.InputMode = true
 		}
@@ -371,11 +372,11 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Handle text input for dice commands
 	if m.InputMode && m.ActivePanel == DiceRoller {
-		// Allow alphanumeric characters and common symbols for dice notation
+		// Allow alphanumeric characters and common symbols for dice notation and macros
 		if len(key) == 1 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
-			key == "+" || key == "-" || key == "d" || key == " " || key == ",") {
+			key == "+" || key == "-" || key == "d" || key == " " || key == "," || key == "=" || key == "_") {
 			m.DiceInput += key
 		}
 	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && m.ActivePanel == InitiativeTracker {

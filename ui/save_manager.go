@@ -84,6 +84,7 @@ func SaveCampaign(m Model, campaignName string) error {
 		RoundCounter:   m.RoundCounter,
 		ActiveSpells:   m.ActiveSpells,
 		Notes:          m.NotesContent,
+		DiceMacros:     m.DiceMacros,
 	}
 
 	// Marshal to JSON

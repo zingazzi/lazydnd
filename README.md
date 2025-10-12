@@ -235,6 +235,22 @@ Browse spells by spell level with autocomplete:
 - **Comma-Separated**: `1d8+3, 3d6-1` (rolls multiple expressions)
 - **Advantage/Disadvantage**: `1d20 adv`, `2d6 dis`
 
+**🔥 Preset Spell Macros (35+ Built-in):**
+Just type the spell name and press Enter:
+- **Cantrips**: `eldritch_blast`, `fire_bolt`, `toll_the_dead`
+- **Popular Spells**: `fireball`, `lightning_bolt`, `magic_missile`, `cure_wounds`
+- **High-Level**: `disintegrate`, `chain_lightning`, `finger_of_death`
+- **Attack Combos**: `sneak_attack_1d6` through `sneak_attack_4d6`
+- **Divine Smite**: `divine_smite_1d8` through `divine_smite_3d8`
+
+**🎯 Custom Macros:**
+- Create: `my_attack=1d20+5`
+- Execute: `my_attack`
+- Skill Checks: `stealth`, `perception+5` (for selected character)
+- Group Initiative: `group` (rolls init for all monsters)
+
+See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
+
 **Features:**
 - ✅ Minimum value of 1 (D&D rule)
 - ✅ Standard D&D dice: d4, d6, d8, d10, d12, d20, d100
