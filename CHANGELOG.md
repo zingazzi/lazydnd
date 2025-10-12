@@ -1,5 +1,108 @@
 # CHANGELOG
 
+## 2.8.0
+- **Dice Macros**
+  - Save common rolls as macros: `fireball=8d6`, `goblin_attack=1d20+4`
+  - Execute macros by name: type `fireball` to roll 8d6
+  - **35+ preset macros for popular D&D spells built-in**:
+    - Cantrips: `eldritch_blast`, `fire_bolt`, `toll_the_dead`, etc.
+    - Damage spells: `fireball`, `lightning_bolt`, `cone_of_cold`, etc.
+    - Healing: `cure_wounds`, `healing_word`
+    - High-level: `disintegrate`, `chain_lightning`, `finger_of_death`
+    - Attack combos: `sneak_attack_1d6` through `sneak_attack_4d6`
+    - Divine smite: `divine_smite_1d8` through `divine_smite_3d8`
+  - Macros persist with campaign saves
+  - User macros override presets with same name
+  - Simple syntax: `name=formula`
+  - Supports all dice notation (advantage, disadvantage, modifiers)
+  - Perfect for frequently used spells and attacks
+
+- **Skill Check Shortcuts**
+  - Type skill name to roll 1d20 for selected character
+  - Supports all D&D 5e skills: stealth, perception, athletics, etc.
+  - Add modifiers: `stealth+5` rolls 1d20+5
+  - Automatically shows character name with result
+  - Requires selected entry in Initiative Tracker
+
+- **Group Initiative Rolls**
+  - Command: `group`, `group init`, or `group initiative`
+  - Rolls initiative for all monsters at once
+  - Uses monster DEX modifiers automatically
+  - Re-sorts initiative list after rolling
+  - Saves time when starting combat with multiple monsters
+
+- **Notes Panel (5th Panel)**
+  - New dedicated panel for campaign notes (press `5` or `F5`)
+  - Session notes, plot points, NPC names, important details
+  - Full markdown-style formatting support:
+    - `# Heading`, `## Subheading`, `### Smaller` - styled headings
+    - `- item` or `* item` - bullet points
+    - `**bold**`, `*italic*` - text emphasis (simplified for terminal)
+  - Edit mode (`e` key) - multi-line text editing with Enter for new lines
+  - Search functionality (`f` key) - find text within notes with highlighting
+  - Auto-saves with campaign - notes persist through save/load
+  - Empty state with helpful tips and markdown guide
+  - Context-sensitive help and inline instructions
+
+- **Dynamic Panel Layout**
+  - Revolutionary adaptive layout system - panels resize based on focus
+  - Top row: Dice Roller (1) and Initiative Tracker (2) - resize when active
+  - Bottom row: Spells (3), Monsters (4), Notes (5) - resize when active
+  - Active panel automatically expands for better visibility
+  - Inactive panels shrink to save space
+  - Smooth visual transitions when switching panels
+  - Notes panel starts very small, expands to 40% when active
+  - Tab/Shift+Tab now cycles through all 5 panels
+  - Optimized space usage across all screen sizes
+
+## 2.7.0
+- **UI Error Messages**
+  - Errors now display in a red banner above the status bar
+  - Shows clear error messages for save/load failures
+  - Automatically clears after 5 seconds or on any key press
+  - No more silent failures - you'll always know when something goes wrong
+  - Examples of errors shown:
+    - "Failed to save campaign: [reason]"
+    - "Failed to load campaign: [reason]"
+    - "Failed to load campaign list: [reason]"
+
+- **Max HP Editing for Monsters**
+  - Press `H` (Shift+H) in edit mode to change a monster's maximum HP
+  - Set absolute HP values (e.g., "150" sets max HP to 150)
+  - Current HP automatically capped if it exceeds new maximum
+  - Perfect for adjusting monster difficulty on the fly
+  - Minimum max HP value of 1 enforced
+  - All changes persist through save/load
+
+- **Search Panel Improvements**
+  - Added scrolling indicators for long suggestion lists
+  - Shows "X more above/below" with arrow indicators
+  - Maximum 5 visible suggestions at once
+  - Selected item stays centered in scroll view
+  - Smooth scrolling as you navigate suggestions
+  - Clear visual separation with horizontal lines
+  - Consistent styling and spacing
+  - Better handling of long suggestion lists
+
+- **Search Input Refinements**
+  - Clearer input prompts based on context
+  - Shows "Search:", "CR:", or "Level:" appropriately
+  - Active cursor indicator with block character
+  - Empty state handling shows minimal space
+  - Control hints shown below input ("↑↓ Enter Esc")
+  - Improved visual hierarchy and spacing
+  - Better feedback for active/inactive states
+
+- **Panel Content Organization**
+  - Extracted search panel content logic to separate file
+  - Created SearchContentConfig struct for configuration
+  - Generic RenderSearchContent function for reuse
+  - Consistent styling across search panels
+  - Better separation of concerns
+  - Improved code maintainability
+  - Reduced code duplication
+  - Cleaner panel rendering code
+
 ## 2.6.0
 - **CR Filter for Monsters (Autocomplete Style)**
   - Browse monsters by Challenge Rating with live autocomplete
