@@ -8,12 +8,14 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 🎲 **Dice Roller Panel** - Roll any dice with simple commands (2d6, 1d20+5, etc.)
 ⚔️ **Initiative Tracker Panel** - Manage combat initiative for players and monsters
+🎨 **Color-Coded HP** - HP display changes color based on health (green/orange/red)
 ✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
 🐲 **Monsters Panel** - Search and view detailed monster stat blocks with fuzzy search
 💾 **Campaign Save/Load** - Save your game state and resume later
 🔄 **Auto-Save** - Automatic saving every 5 minutes
 🔗 **Monster Integration** - Link monsters to initiative with full action support
 ⚡ **Instant Transitions** - Lightning-fast panel switching with zero latency
+❌ **UI Error Messages** - Clear error notifications displayed in the UI, not just terminal
 
 ## Installation
 
@@ -159,7 +161,9 @@ Both Monsters and Spells panels now use intelligent fuzzy search that:
 - More forgiving than exact substring matching
 - Just start typing to see suggestions!
 
-**CR Filter (Monsters Only):**
+**Level/CR Filters:**
+
+**CR Filter (Monsters Panel):**
 Browse monsters by Challenge Rating with autocomplete:
 1. Press `f` in the Monsters panel to open CR filter
 2. Type a CR value as you type, monsters matching that CR appear instantly:
@@ -171,6 +175,18 @@ Browse monsters by Challenge Rating with autocomplete:
 4. Press `Enter` to select a monster and view its full details
 5. Press `Esc` to cancel and go back
 6. Perfect for finding level-appropriate encounters quickly!
+
+**Spell Level Filter (Spells Panel):**
+Browse spells by spell level with autocomplete:
+1. Press `f` in the Spells panel to open level filter
+2. Type a spell level, spells matching that level appear instantly:
+   - **Exact**: `3` → shows all 3rd-level spells
+   - **Range**: `0-2` → shows cantrips through 2nd-level
+   - **Minimum**: `5+` → shows 5th-level and higher
+3. Use `↑↓` arrow keys to navigate the list
+4. Press `Enter` to select a spell and view its full details
+5. Press `Esc` to cancel and go back
+6. Great for finding spells your character can cast!
 
 ### Global Navigation & Controls
 
@@ -235,13 +251,16 @@ Browse monsters by Challenge Rating with autocomplete:
 **Keybindings:**
 | Key | Action |
 |-----|--------|
-| `p` | Add player to initiative |
-| `m` | Add monster manually (enter name, HP, AC, initiative) |
+| `p` | Add player to initiative (name, initiative, AC) |
+| `m` | Add monster manually (name, HP, AC, initiative) |
 | `Enter` | Enter edit mode (navigate entries with ↑↓) |
 | `n` | Next turn (advance initiative) |
 | `x` | Reset combat (reset turn and round counters) |
+| `Ctrl+Z` | Undo HP change (up to 3 actions) |
+| `Ctrl+Y` | Redo HP change |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
+| `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
 | `o` | Manage conditions (add/remove status effects in edit mode) |
 | `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
 | `d` | Delete selected entry (in edit mode) |
@@ -253,12 +272,16 @@ Browse monsters by Challenge Rating with autocomplete:
 - ✅ **Turn Tracking**: Track current turn with visual indicator (★)
 - ✅ **Round Counter**: Automatic round tracking with time elapsed (6 seconds per round)
 - ✅ **Auto-Sort**: Entries sorted by initiative (highest first)
+- ✅ **Player AC Tracking**: Track Armor Class for both players and monsters
 - ✅ **Conditions Tracker**: Add/remove status effects (Poisoned, Stunned, etc.) with duration tracking
 - ✅ **Monster Linking**: Monsters added from Monster panel retain full data
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
+- ✅ **Max HP Editing**: Adjust maximum HP values for monsters (Shift+H)
+- ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
+- ✅ **Undo/Redo**: Undo up to 3 HP changes with Ctrl+Z, redo with Ctrl+Y
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
@@ -318,9 +341,42 @@ Perfect for area spells (Fireball, Thunderwave) and mass healing:
 - Enter `+7` (for 7 healing)
 - Apply: All 3 party members gain 7 HP
 
-**Adding Monsters:**
-1. **Manual**: Press 'm' and enter details (no action support)
-2. **From Monster Panel**: Search monster, press 'a' to add with full stats and actions
+**HP Management:**
+LazyDnD provides flexible HP tracking for monsters with two editing modes:
+
+1. **Edit Current HP** (press `h`):
+   - Enter edit mode (`Enter`), select a monster, press `h`
+   - Enter HP change with `+` to heal or `-` to damage
+   - Examples: `-15` (take 15 damage), `+8` (heal 8 HP)
+   - Current HP automatically capped at 0 and maximum HP
+   - Tracks up to 3 actions in undo history (Ctrl+Z to undo)
+
+2. **Edit Maximum HP** (press `H` / Shift+H):
+   - Enter edit mode (`Enter`), select a monster, press `H`
+   - Enter new maximum HP value (absolute value, minimum 1)
+   - Example: `150` sets max HP to 150
+   - Current HP is automatically capped if it exceeds the new maximum
+   - Useful for adjusting monster difficulty or fixing entry mistakes
+
+**Color-Coded HP:**
+Monster HP is displayed with color coding for quick health assessment:
+- **Green** (> 50% HP): `HP: 10/10` - Healthy, full combat effectiveness
+- **Orange** (25-50% HP): `HP: 4/10` - Bloodied, wounded but still dangerous
+- **Red** (< 25% HP): `HP: 2/10` - Critical, near death
+
+The HP text changes color based on the monster's health percentage, making it easy to see which enemies are weakened at a glance. Perfect for tactical decision-making during combat!
+
+**Adding Players and Monsters:**
+1. **Add Player**: Press 'p' and enter:
+   - Player name
+   - Initiative value
+   - Armor Class (AC)
+2. **Add Monster Manually**: Press 'm' and enter:
+   - Monster name
+   - Hit Points (HP)
+   - Armor Class (AC)
+   - Initiative value (or 'r' to roll)
+3. **Add Monster from Panel**: Search in Monster panel, press 'a' to add with full stats and actions
 
 **Saving Throws & Skill Checks:**
 When a monster is added from the Monster panel, you can roll all saving throws and skill checks:
@@ -352,6 +408,7 @@ The popup displays:
 | Key | Action |
 |-----|--------|
 | `Enter` | Start spell search |
+| `f` | Filter by spell level (0-9, ranges like 0-3, 5+) |
 | Type spell name | Real-time autocomplete suggestions |
 | `↑` `↓` | Navigate spell suggestions |
 | `Enter` | Select spell to view details |
@@ -363,6 +420,7 @@ The popup displays:
 **Features:**
 - ✅ **Complete D&D 5e Spell Database**
 - ✅ **Real-time Autocomplete**: Suggestions appear as you type
+- ✅ **Spell Level Filter**: Filter by exact level, ranges, or minimum (e.g., 0-2, 5+)
 - ✅ **Full Details**: Level, school, casting time, range, components, duration, description
 - ✅ **Class Information**: Shows which classes can cast the spell
 - ✅ **Ritual & Concentration**: Clearly marked
@@ -400,6 +458,7 @@ When you cast a spell with a duration:
 | Key | Action |
 |-----|--------|
 | `Enter` | Start monster search |
+| `f` | Filter by CR (exact, range like 0-5, or min like 10+) |
 | Type monster name | Real-time autocomplete suggestions |
 | `↑` `↓` | Navigate monster suggestions |
 | `Enter` | Select monster to view stat block |
@@ -409,6 +468,7 @@ When you cast a spell with a duration:
 **Features:**
 - ✅ **8750+ D&D 5e Monsters**
 - ✅ **Complete Stat Blocks**: AC, HP, Speed, Ability Scores, Saves, Skills
+- ✅ **CR Filter**: Filter by exact CR, ranges, or minimum (e.g., 0-5, 10+)
 - ✅ **Traits & Actions**: All special abilities and attacks
 - ✅ **Legendary Actions**: Full legendary action details
 - ✅ **Challenge Rating**: CR and XP values

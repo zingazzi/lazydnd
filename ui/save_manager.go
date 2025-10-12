@@ -12,13 +12,31 @@ import (
 	"time"
 )
 
+// testSaveDir can be set during tests to override the default save directory
+var testSaveDir string
+
 // getSaveDirectory returns the path to the save directory in user's home
 func getSaveDirectory() (string, error) {
+	// Use test directory if set (for testing purposes)
+	if testSaveDir != "" {
+		return testSaveDir, nil
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
 	return filepath.Join(homeDir, ".lazydnd"), nil
+}
+
+// SetTestSaveDirectory sets a custom save directory for testing
+func SetTestSaveDirectory(dir string) {
+	testSaveDir = dir
+}
+
+// ClearTestSaveDirectory clears the test save directory setting
+func ClearTestSaveDirectory() {
+	testSaveDir = ""
 }
 
 // SaveCampaign saves the current campaign state to a JSON file
@@ -107,18 +125,23 @@ func LoadCampaign(filename string) (SaveState, []InitiativeEntry, error) {
 		return saveState, nil, fmt.Errorf("failed to unmarshal save state: %w", err)
 	}
 
-	// Load monsters for re-linking
-	if err := panels.LoadMonsters(); err != nil {
-		return saveState, nil, fmt.Errorf("failed to load monsters: %w", err)
-	}
-
-	monsterMap := make(map[string]*Monster)
-
 	// Build monster map by searching for each unique monster name
 	uniqueMonsterNames := make(map[string]bool)
 	for _, saved := range saveState.InitiativeList {
 		if saved.MonsterName != "" {
 			uniqueMonsterNames[saved.MonsterName] = true
+		}
+	}
+
+	monsterMap := make(map[string]*Monster)
+
+	// Only load monsters if there are monsters to link
+	if len(uniqueMonsterNames) > 0 {
+		// Load monsters for re-linking
+		if err := panels.LoadMonsters(); err != nil {
+			// If monster loading fails, continue without monster data
+			// This allows basic save/load to work without the assets directory
+			uniqueMonsterNames = make(map[string]bool) // Clear monster names to skip linking
 		}
 	}
 

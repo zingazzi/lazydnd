@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/sahilm/fuzzy"
 )
@@ -59,6 +60,32 @@ type Monster struct {
 }
 
 var monsters []Monster
+var monstersLoaded bool
+var monsterMutex sync.Mutex
+
+// ClearMonsterCache clears the cached monster data
+func ClearMonsterCache() {
+	monsterMutex.Lock()
+	defer monsterMutex.Unlock()
+	monsters = nil
+	monstersLoaded = false
+}
+
+// ReloadMonsters forces a reload of monster data from disk
+func ReloadMonsters() error {
+	ClearMonsterCache()
+	return LoadMonsters()
+}
+
+// IsMonstersLoaded returns true if monsters are currently cached
+func IsMonstersLoaded() bool {
+	return monstersLoaded
+}
+
+// GetMonsterCount returns the number of cached monsters
+func GetMonsterCount() int {
+	return len(monsters)
+}
 
 // getCustomMonstersDir returns the path to the custom monsters directory
 func getCustomMonstersDir() (string, error) {
@@ -144,7 +171,10 @@ func mergeMonsters(defaultMonsters, customMonsters []Monster) []Monster {
 
 // LoadMonsters loads monsters from the default JSON file and custom monster files
 func LoadMonsters() error {
-	if len(monsters) > 0 {
+	monsterMutex.Lock()
+	defer monsterMutex.Unlock()
+
+	if monstersLoaded && len(monsters) > 0 {
 		return nil // Already loaded
 	}
 
@@ -160,11 +190,13 @@ func LoadMonsters() error {
 		// Log warning but don't fail - custom monsters are optional
 		fmt.Fprintf(os.Stderr, "Warning: failed to load custom monsters: %v\n", err)
 		monsters = defaultMonsters
+		monstersLoaded = true
 		return nil
 	}
 
 	// Merge default and custom monsters
 	monsters = mergeMonsters(defaultMonsters, customMonsters)
+	monstersLoaded = true
 
 	// Print info about loaded monsters
 	if len(customMonsters) > 0 {

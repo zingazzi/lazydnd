@@ -32,6 +32,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Height = msg.Height
 
 	case tea.KeyMsg:
+		// Clear error on any key press
+		if m.ErrorVisible {
+			ClearError(&m)
+		}
 		return HandleNavigation(m, msg)
 
 	case AutoSaveTickMsg:
@@ -39,6 +43,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m = handleAutoSave(m)
 		// Schedule next tick
 		return m, tickCmd()
+
+	case SetErrorMsg:
+		// Set error message and schedule auto-clear after 5 seconds
+		SetError(&m, msg.Message)
+		return m, ScheduleClearError(5 * time.Second)
+
+	case ClearErrorMsg:
+		// Clear error message
+		ClearError(&m)
 	}
 
 	return m, nil

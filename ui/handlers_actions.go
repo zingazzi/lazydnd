@@ -118,7 +118,7 @@ func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleH handles the 'h' key
+// handleH handles the 'h' and 'H' keys
 func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
@@ -139,12 +139,19 @@ func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Edit HP in list mode (only for monsters)
+	// Check if this is Shift+H (capital H) for max HP editing
+	isShiftH := msg.String() == "H"
+
+	// Edit HP or Max HP in list mode (only for monsters)
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
 			m.InitiativeEditMode = true
-			m.InitiativeEditType = "hp"
+			if isShiftH {
+				m.InitiativeEditType = "maxhp"
+			} else {
+				m.InitiativeEditType = "hp"
+			}
 			m.InitiativeInput = ""
 		}
 	}

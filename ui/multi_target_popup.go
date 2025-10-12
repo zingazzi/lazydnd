@@ -170,21 +170,31 @@ func ApplyMultiTargetDamage(m Model, amount int) Model {
 			}
 		}
 
+		// Save old HP for undo history
+		oldHP := entry.HP
+
 		// Apply damage or healing
+		var newHP int
 		if m.MultiTargetType == "healing" {
-			entry.HP += actualAmount
+			newHP = entry.HP + actualAmount
 			// Cap at max HP
-			if entry.HP > entry.MaxHP {
-				entry.HP = entry.MaxHP
+			if newHP > entry.MaxHP {
+				newHP = entry.MaxHP
 			}
 		} else {
 			// Damage
-			entry.HP -= actualAmount
+			newHP = entry.HP - actualAmount
 			// Cap at 0 HP
-			if entry.HP < 0 {
-				entry.HP = 0
+			if newHP < 0 {
+				newHP = 0
 			}
 		}
+
+		// Update HP
+		entry.HP = newHP
+
+		// Save to undo history
+		pushHPHistory(&m, i, oldHP, newHP)
 	}
 
 	return m
