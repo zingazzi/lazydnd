@@ -20,4 +20,13 @@ Thumbs.db
 
 # Demo recordings (add to repo manually after review)
 demo.gif
+demo.mp4
+demo.webm
 *.cast
+demo.tape
+demo.tape.bak
+create-demo.sh
+DEMO_RECORDING.md
+README_DEMO.md
+*.vhs
+vhs-output/
