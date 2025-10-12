@@ -7,6 +7,54 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// getPanelCommands returns key shortcuts for the active panel
+func (m Model) getPanelCommands() string {
+	switch m.ActivePanel {
+	case DiceRoller:
+		if m.InputMode {
+			return "Enter:roll Esc:cancel"
+		}
+		return "Enter:input r:reroll h:history"
+	case InitiativeTracker:
+		if m.InitiativeInputMode || m.InitiativeEditMode {
+			return "Enter:confirm Esc:cancel"
+		}
+		if m.MultiTargetMode {
+			return "Space:select t:exit Enter:apply"
+		}
+		if m.InitiativeListMode {
+			return "p:player m:monster n:next i:init h:HP d:del"
+		}
+		return "p:player m:monster n:next"
+	case Spells:
+		if m.SpellSearchMode {
+			return "↑↓:select Enter:view Esc:cancel"
+		}
+		if m.ActiveSpellListMode {
+			return "v:view c:cast d:delete Esc:exit"
+		}
+		return "Enter:search f:filter v:active c:cast"
+	case Monsters:
+		if m.MonsterSearchMode {
+			return "↑↓:select Enter:view Esc:cancel"
+		}
+		if m.MonsterCRFilterMode {
+			return "Enter:filter Esc:cancel"
+		}
+		return "Enter:search f:CR a:add"
+	case Notes:
+		if m.NotesEditMode {
+			return "Enter:newline Esc:save"
+		}
+		if m.NotesSearchMode {
+			return "Enter:search Esc:exit"
+		}
+		return "e:edit f:search"
+	default:
+		return ""
+	}
+}
+
 // renderStatusBar renders the status bar at the bottom of the screen
 func (m Model) renderStatusBar() string {
 	var result string
@@ -23,73 +71,37 @@ func (m Model) renderStatusBar() string {
 		result = errorBanner + "\n"
 	}
 
-	text := DefaultStatusBarText
-
-	// Project name with version and campaign info
-	projectNameText := text.ProjectName + " " + AppVersion
+	// LEFT SECTION: LazyD&D info
+	var leftParts []string
+	leftParts = append(leftParts, "🎲LazyDnD")
 	if m.CurrentCampaignName != "" {
-		projectNameText += " | 📁 " + m.CurrentCampaignName
-		if m.LastAutoSave != "" {
-			projectNameText += " (💾 " + m.LastAutoSave + ")"
-		}
+		leftParts = append(leftParts, "│", m.CurrentCampaignName)
 	}
-	projectName := m.Styles.StatusBarTextStyle.Render(projectNameText)
+	leftSection := m.Styles.StatusBarTextStyle.Render(strings.Join(leftParts, " "))
 
-	// Navigation hints
-	tabKey := m.Styles.StatusBarKeyStyle.Render(text.TabKey)
-	tabText := m.Styles.StatusBarTextStyle.Render(text.TabDesc)
+	// MIDDLE SECTION: Panel-specific commands
+	panelName := PanelNames[m.ActivePanel]
+	panelCommands := m.getPanelCommands()
+	middleParts := []string{panelName}
+	if panelCommands != "" {
+		middleParts = append(middleParts, "│", panelCommands)
+	}
+	middleSection := m.Styles.StatusBarKeyStyle.Render(strings.Join(middleParts, " "))
 
-	arrowKeys := m.Styles.StatusBarKeyStyle.Render(text.ArrowKeys)
-	arrowText := m.Styles.StatusBarTextStyle.Render(text.ArrowDesc)
+	// RIGHT SECTION: Shared commands
+	rightSection := m.Styles.StatusBarTextStyle.Render("Tab:switch │ ?:help │ Ctrl+S:save │ q:quit")
 
-	numbersKey := m.Styles.StatusBarKeyStyle.Render(text.NumbersKey)
-	numbersText := m.Styles.StatusBarTextStyle.Render(text.NumbersDesc)
-
-	helpKey := m.Styles.StatusBarKeyStyle.Render(text.HelpKey)
-	helpText := m.Styles.StatusBarTextStyle.Render(text.HelpDesc)
-
-	quitKey := m.Styles.StatusBarKeyStyle.Render(text.QuitKey)
-	quitText := m.Styles.StatusBarTextStyle.Render(text.QuitDesc)
-
-	// Build the status bar content
-	leftSection := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		projectName,
-		"  ",
-	)
-
-	middleSection := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		tabKey,
-		tabText,
-		arrowKeys,
-		arrowText,
-		numbersKey,
-		numbersText,
-	)
-
-	rightSection := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		helpKey,
-		helpText,
-		quitKey,
-		quitText,
-	)
-
-	// Calculate spacing to distribute sections across the width
+	// Calculate spacing for three sections
 	leftWidth := lipgloss.Width(leftSection)
 	middleWidth := lipgloss.Width(middleSection)
 	rightWidth := lipgloss.Width(rightSection)
 
 	totalContentWidth := leftWidth + middleWidth + rightWidth
-	availableSpace := m.Width - totalContentWidth
+	availableSpace := m.Width - totalContentWidth - 4 // Account for separators
 
-	// Distribute space evenly
-	spacing1 := availableSpace / 3
-	spacing2 := availableSpace / 3
-	if spacing1 < 2 {
-		spacing1 = 2
-	}
+	// Minimal spacing between sections
+	spacing1 := 2
+	spacing2 := availableSpace - spacing1
 	if spacing2 < 2 {
 		spacing2 = 2
 	}

@@ -65,10 +65,7 @@ func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions
 		ShowAddPrompt:   false,
 	})
 
-	// Add cast spell prompt if a spell is selected
-	if selectedSpell != nil && !searchMode && showCastPrompt {
-		content += "\n\n💫 Press 'c' to cast this spell"
-	}
+	// Cast spell prompt removed for cleaner interface
 
 	return content
 }

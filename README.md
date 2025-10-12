@@ -302,6 +302,8 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
 - ✅ **Campaign Save**: All initiative data saved with campaign
 
+![LazyD&D Attack](screenshot/condition.png)
+
 **Conditions Tracker:**
 Track status effects (Poisoned, Stunned, Paralyzed, etc.) on any creature:
 1. **Conditions show inline in initiative list** with emoji icons (e.g., "Goblin 1 (HP: 7/7, AC: 13) 🤢😱")
@@ -393,6 +395,8 @@ The HP text changes color based on the monster's health percentage, making it ea
    - Armor Class (AC)
    - Initiative value (or 'r' to roll)
 3. **Add Monster from Panel**: Search in Monster panel, press 'a' to add with full stats and actions
+
+![LazyD&D Attack](screenshot/savingthrows.png)
 
 **Saving Throws & Skill Checks:**
 When a monster is added from the Monster panel, you can roll all saving throws and skill checks:
