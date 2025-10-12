@@ -33,7 +33,47 @@ var (
 				Background(lipgloss.Color("#7D56F4")).
 				Foreground(lipgloss.Color("#FAFAFA")).
 				Bold(true)
+
+	// HP bar styles
+	healthyStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00FF00")) // Green (> 50%)
+
+	bloodiedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFA500")) // Orange (25-50%)
+
+	criticalStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF0000")) // Red (< 25%)
 )
+
+// getColoredHP returns HP text with color coding based on percentage
+// Returns a styled string like "HP: 7/10" with appropriate color
+func getColoredHP(hp, maxHP int) string {
+	if maxHP <= 0 {
+		return ""
+	}
+
+	// Calculate percentage
+	percentage := float64(hp) / float64(maxHP) * 100
+	if percentage < 0 {
+		percentage = 0
+	}
+	if percentage > 100 {
+		percentage = 100
+	}
+
+	// Choose color based on percentage
+	var style lipgloss.Style
+	if percentage > 50 {
+		style = healthyStyle // Green
+	} else if percentage > 25 {
+		style = bloodiedStyle // Orange
+	} else {
+		style = criticalStyle // Red
+	}
+
+	// Format HP text
+	return style.Render(fmt.Sprintf("HP: %d/%d", hp, maxHP))
+}
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
 func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool) string {
@@ -368,7 +408,24 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							line = playerStyle.Render(line)
 						}
 					} else if entry.Type == "monster" {
-						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC, conditionIcons)
+						// Convert HP strings to integers for color coding
+						hpInt := 0
+						maxHPInt := 0
+						if entry.HP != "" {
+							hpInt, _ = strconv.Atoi(entry.HP)
+						}
+						if entry.MaxHP != "" {
+							maxHPInt, _ = strconv.Atoi(entry.MaxHP)
+						}
+
+						// Get colored HP text
+						coloredHP := getColoredHP(hpInt, maxHPInt)
+
+						// Format line with colored HP
+						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s",
+							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, conditionIcons)
+
+						// Apply style (selected or normal monster style)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {

@@ -8,6 +8,7 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 🎲 **Dice Roller Panel** - Roll any dice with simple commands (2d6, 1d20+5, etc.)
 ⚔️ **Initiative Tracker Panel** - Manage combat initiative for players and monsters
+🎨 **Color-Coded HP** - HP display changes color based on health (green/orange/red)
 ✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
 🐲 **Monsters Panel** - Search and view detailed monster stat blocks with fuzzy search
 💾 **Campaign Save/Load** - Save your game state and resume later
@@ -275,6 +276,7 @@ Browse spells by spell level with autocomplete:
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
 - ✅ **HP Tracking**: Real-time HP management for monsters
+- ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
 - ✅ **Undo/Redo**: Undo up to 3 HP changes with Ctrl+Z, redo with Ctrl+Y
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
@@ -334,6 +336,14 @@ Perfect for area spells (Fireball, Thunderwave) and mass healing:
 - Select all 3 party members with Space
 - Enter `+7` (for 7 healing)
 - Apply: All 3 party members gain 7 HP
+
+**Color-Coded HP:**
+Monster HP is displayed with color coding for quick health assessment:
+- **Green** (> 50% HP): `HP: 10/10` - Healthy, full combat effectiveness
+- **Orange** (25-50% HP): `HP: 4/10` - Bloodied, wounded but still dangerous
+- **Red** (< 25% HP): `HP: 2/10` - Critical, near death
+
+The HP text changes color based on the monster's health percentage, making it easy to see which enemies are weakened at a glance. Perfect for tactical decision-making during combat!
 
 **Adding Monsters:**
 1. **Manual**: Press 'm' and enter details (no action support)
