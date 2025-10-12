@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v2.9.0
+- **Fix**
+  - In history now you can reroll macro
+  - Note improvment
+
+- **UI Panel Enhancements**
+  - Clearer input indicators and controls
+  - Consistent styling across search modes
+	- Clear interface
+
 ## 2.8.0
 - **Dice Macros**
   - Save common rolls as macros: `fireball=8d6`, `goblin_attack=1d20+4`
