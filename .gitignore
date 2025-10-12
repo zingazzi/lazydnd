@@ -1,41 +1,32 @@
 # Binaries
 lazydnd
-
-build/
-
-# Go build artifacts
 *.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary
-*.test
-
-# Output of the go coverage tool
 *.out
 
-# Dependency directories
-vendor/
-
-# Go workspace file
-go.work
+# Test coverage
+coverage.out
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Docker
-docker-data/
-.docker/
+# Temporary files
+*.tmp
+*.log
 
-parse_monster_actions.py
-validate_monsters.py
+# Demo recordings (add to repo manually after review)
+demo.gif
+demo.mp4
+demo.webm
+*.cast
+demo.tape
+demo.tape.bak
+create-demo.sh
+DEMO_RECORDING.md
+README_DEMO.md
+*.vhs
+vhs-output/

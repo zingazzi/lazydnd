@@ -79,29 +79,7 @@ func getColoredHP(hp, maxHP int) string {
 func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool) string {
 	var contentLines []string
 
-	// Show different instructions based on mode
-	if multiTargetMode {
-		selectedCount := len(selectedTargets)
-		contentLines = append(contentLines, fmt.Sprintf("🎯 MULTI-TARGET MODE - %d target(s) selected", selectedCount))
-		contentLines = append(contentLines, "Space: select/deselect • Enter: apply damage/healing • t: exit")
-	} else if editMode {
-		contentLines = append(contentLines, "EDIT MODE")
-		switch editType {
-		case "initiative":
-			contentLines = append(contentLines, "Enter new initiative value:")
-		case "hp":
-			contentLines = append(contentLines, "Enter HP change (+heal/-damage):")
-		case "maxhp":
-			contentLines = append(contentLines, "Enter new Max HP value:")
-		case "delete":
-			contentLines = append(contentLines, "Press Enter to confirm deletion")
-		}
-	} else if listMode {
-		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, H=Max HP, d=delete, t=multi-target")
-	} else {
-		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, Enter to edit")
-		contentLines = append(contentLines, "Press 'n' for next turn, 'x' to reset combat")
-	}
+	// Removed instruction text for cleaner interface
 
 	// Show round counter and elapsed time if combat has started
 	if roundCounter > 0 {
@@ -125,9 +103,6 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 		contentLines = append(contentLines, roundInfo)
 	}
 
-	contentLines = append(contentLines, "")
-	contentLines = append(contentLines, strings.Repeat("─", 35))
-	contentLines = append(contentLines, "")
 
 	// Input field (when adding entries or editing)
 	if inputMode || editMode {

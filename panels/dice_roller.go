@@ -62,12 +62,11 @@ var (
 func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, diceCommands []string, lastCommand string, inputMode, isActive bool, historyMode bool, historyIndex int) string {
 	// Show different instructions based on mode
 	if historyMode {
-		content := "HISTORY MODE - Select a roll to repeat\nUse ↑↓ to navigate, Enter to re-roll, Esc to exit"
-		content += "\n\n" + strings.Repeat("─", 30)
+		content := ""
 
 		// Show history with selection
 		if len(diceHistory) > 0 {
-			content += "\n\nSelect a roll to repeat:"
+			content += "History:"
 			for i := len(diceHistory) - 1; i >= 0; i-- {
 				var marker string
 				if historyIndex == i {
@@ -91,45 +90,36 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, di
 		return content
 	}
 
-	content := "Press Enter to roll, 'h' for history, Esc to clear\nExamples: 1d20, 2d8+3d6, fireball, lightning_bolt\n35+ preset spell macros available! (? for help)"
-
-	content += "\n\n" + strings.Repeat("─", 30)
+	content := ""
 
 	// Input field
-	inputPrompt := "Dice Command: "
+	inputPrompt := "Dice: "
 	if inputMode && isActive {
 		inputPrompt += diceInput + "█"
 	} else {
 		inputPrompt += diceInput
 	}
-	content += "\n\n" + inputStyle.Render(inputPrompt)
+	content += inputStyle.Render(inputPrompt)
 
 	// Last result
 	if diceResult != "" {
-		// Split result by newlines first (for multi-line results)
 		resultLines := strings.Split(diceResult, "\n")
 		var allWrappedLines []string
 
 		for _, line := range resultLines {
-			// Wrap at 35 characters to fit within panel width
 			wrappedLines := wrapText(line, 35)
 			allWrappedLines = append(allWrappedLines, wrappedLines...)
 		}
 
 		wrappedResult := strings.Join(allWrappedLines, "\n")
-		content += "\n" + diceResultStyle.Render("Last Roll:\n"+wrappedResult)
-	}
-
-	// Show last command for reroll
-	if lastCommand != "" && !inputMode {
-		content += "\n\nLast Command: " + lastCommand + " (press 'r' to reroll)"
+		content += "\n" + diceResultStyle.Render(wrappedResult)
 	}
 
 	// History (most recent first)
 	if len(diceHistory) > 0 {
 		content += "\n\nHistory:"
 		for i := len(diceHistory) - 1; i >= 0; i-- {
-			content += "\n• " + diceHistory[i]
+			content += "\n" + diceHistory[i]
 		}
 	}
 
