@@ -18,9 +18,12 @@ func handleCtrlS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// If campaign already exists, just save it
 	if m.CurrentCampaignFile != "" && m.CurrentCampaignName != "" {
 		err := SaveCampaign(m, m.CurrentCampaignName)
-		if err == nil {
-			m.LastAutoSave = "Just now"
+		if err != nil {
+			return m, func() tea.Msg {
+				return SetErrorMsg{Message: "Failed to save campaign: " + err.Error()}
+			}
 		}
+		m.LastAutoSave = "Just now"
 		return m, nil
 	}
 
@@ -41,8 +44,9 @@ func handleCtrlL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Load campaign list
 	campaigns, err := ListCampaigns()
 	if err != nil {
-		// Could show error message, but for now just return
-		return m, nil
+		return m, func() tea.Msg {
+			return SetErrorMsg{Message: "Failed to load campaign list: " + err.Error()}
+		}
 	}
 
 	// Open load popup
@@ -86,10 +90,11 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		err := SaveCampaign(m, campaignName)
 		if err != nil {
-			// Could show error message, but for now just close popup
 			m.ShowSavePopup = false
 			m.SaveInput = ""
-			return m, nil
+			return m, func() tea.Msg {
+				return SetErrorMsg{Message: "Failed to save campaign: " + err.Error()}
+			}
 		}
 
 		// Update current campaign file and name
@@ -140,9 +145,10 @@ func handleLoadPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		selectedFile := m.CampaignList[m.CampaignListIndex]
 		saveState, initiativeList, err := LoadCampaign(selectedFile)
 		if err != nil {
-			// Could show error message, but for now just close popup
 			m.ShowLoadPopup = false
-			return m, nil
+			return m, func() tea.Msg {
+				return SetErrorMsg{Message: "Failed to load campaign: " + err.Error()}
+			}
 		}
 
 		// Update model with loaded data
@@ -223,10 +229,11 @@ func handleRenamePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Save with new name
 		err := SaveCampaign(m, newName)
 		if err != nil {
-			// Could show error message, but for now just close popup
 			m.ShowRenamePopup = false
 			m.SaveInput = ""
-			return m, nil
+			return m, func() tea.Msg {
+				return SetErrorMsg{Message: "Failed to rename campaign: " + err.Error()}
+			}
 		}
 
 		// Update current campaign file and name

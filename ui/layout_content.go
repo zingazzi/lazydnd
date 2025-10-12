@@ -35,6 +35,11 @@ func (m Model) getPanelContent(panelType PanelType) string {
 	return content
 }
 
+// GetPanelContent is exported for testing
+func (m Model) GetPanelContent(panelType PanelType) string {
+	return m.getPanelContent(panelType)
+}
+
 // ========== PANEL CONTENT PROVIDERS ==========
 
 // getDiceRollerContent gets content for the dice roller panel

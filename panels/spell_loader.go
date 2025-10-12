@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/sahilm/fuzzy"
 )
@@ -30,10 +31,40 @@ type Spell struct {
 
 var spellDatabase []Spell
 var spellNames []string
+var spellsLoaded bool
+var spellMutex sync.Mutex
+
+// ClearSpellCache clears the cached spell data
+func ClearSpellCache() {
+	spellMutex.Lock()
+	defer spellMutex.Unlock()
+	spellDatabase = nil
+	spellNames = nil
+	spellsLoaded = false
+}
+
+// ReloadSpells forces a reload of spell data from disk
+func ReloadSpells() error {
+	ClearSpellCache()
+	return LoadSpells()
+}
+
+// IsSpellsLoaded returns true if spells are currently cached
+func IsSpellsLoaded() bool {
+	return spellsLoaded
+}
+
+// GetSpellCount returns the number of cached spells
+func GetSpellCount() int {
+	return len(spellDatabase)
+}
 
 // LoadSpells loads spells from the JSON file
 func LoadSpells() error {
-	if len(spellDatabase) > 0 {
+	spellMutex.Lock()
+	defer spellMutex.Unlock()
+
+	if spellsLoaded && len(spellDatabase) > 0 {
 		return nil // Already loaded
 	}
 
@@ -53,6 +84,8 @@ func LoadSpells() error {
 		spellNames[i] = spell.Name
 	}
 
+	spellsLoaded = true
+
 	return nil
 }
 
@@ -62,10 +95,10 @@ func matchesLevelFilter(spell *Spell, filter string) bool {
 	if filter == "" {
 		return true // No filter
 	}
-	
+
 	filter = strings.TrimSpace(filter)
 	spellLevel := spell.Level
-	
+
 	// Handle "X+" format (e.g., "5+")
 	if strings.HasSuffix(filter, "+") {
 		minLevel, err := strconv.Atoi(strings.TrimSuffix(filter, "+"))
@@ -74,7 +107,7 @@ func matchesLevelFilter(spell *Spell, filter string) bool {
 		}
 		return spellLevel >= minLevel
 	}
-	
+
 	// Handle "X-Y" format (e.g., "1-3")
 	if strings.Contains(filter, "-") {
 		parts := strings.Split(filter, "-")
@@ -86,7 +119,7 @@ func matchesLevelFilter(spell *Spell, filter string) bool {
 			}
 		}
 	}
-	
+
 	// Handle single value (e.g., "0" for cantrips, "3" for level 3)
 	targetLevel, err := strconv.Atoi(filter)
 	if err != nil {
@@ -110,7 +143,7 @@ func SearchSpells(searchTerm string, levelFilter string) []string {
 	for i := range spellDatabase {
 		allSpells = append(allSpells, &spellDatabase[i])
 	}
-	
+
 	// Filter by level first if specified
 	filteredSpells := allSpells
 	if levelFilter != "" {

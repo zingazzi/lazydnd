@@ -33,7 +33,47 @@ var (
 				Background(lipgloss.Color("#7D56F4")).
 				Foreground(lipgloss.Color("#FAFAFA")).
 				Bold(true)
+
+	// HP bar styles
+	healthyStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00FF00")) // Green (> 50%)
+
+	bloodiedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFA500")) // Orange (25-50%)
+
+	criticalStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF0000")) // Red (< 25%)
 )
+
+// getColoredHP returns HP text with color coding based on percentage
+// Returns a styled string like "HP: 7/10" with appropriate color
+func getColoredHP(hp, maxHP int) string {
+	if maxHP <= 0 {
+		return ""
+	}
+
+	// Calculate percentage
+	percentage := float64(hp) / float64(maxHP) * 100
+	if percentage < 0 {
+		percentage = 0
+	}
+	if percentage > 100 {
+		percentage = 100
+	}
+
+	// Choose color based on percentage
+	var style lipgloss.Style
+	if percentage > 50 {
+		style = healthyStyle // Green
+	} else if percentage > 25 {
+		style = bloodiedStyle // Orange
+	} else {
+		style = criticalStyle // Red
+	}
+
+	// Format HP text
+	return style.Render(fmt.Sprintf("HP: %d/%d", hp, maxHP))
+}
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
 func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool) string {
@@ -51,11 +91,13 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 			contentLines = append(contentLines, "Enter new initiative value:")
 		case "hp":
 			contentLines = append(contentLines, "Enter HP change (+heal/-damage):")
+		case "maxhp":
+			contentLines = append(contentLines, "Enter new Max HP value:")
 		case "delete":
 			contentLines = append(contentLines, "Press Enter to confirm deletion")
 		}
 	} else if listMode {
-		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, d=delete, t=multi-target")
+		contentLines = append(contentLines, "LIST MODE - Use ↑↓ to select, i=initiative, h=HP, H=Max HP, d=delete, t=multi-target")
 	} else {
 		contentLines = append(contentLines, "Press 'p' to add player, 'm' to add monster, Enter to edit")
 		contentLines = append(contentLines, "Press 'n' for next turn, 'x' to reset combat")
@@ -95,6 +137,8 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 			prompt = "Player Name: "
 		case "player_initiative":
 			prompt = "Player Initiative: "
+		case "player_ac":
+			prompt = "Player AC: "
 		case "monster_name":
 			prompt = "Monster Name: "
 		case "monster_hp":
@@ -361,14 +405,36 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 
 					if entry.Type == "player" {
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+						// Format player line with AC if available
+						if entry.AC != "" && entry.AC != "0" {
+							line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.AC, conditionIcons)
+						} else {
+							line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+						}
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
 							line = playerStyle.Render(line)
 						}
 					} else if entry.Type == "monster" {
-						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, HP: %s/%s, AC: %s)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.HP, entry.MaxHP, entry.AC, conditionIcons)
+						// Convert HP strings to integers for color coding
+						hpInt := 0
+						maxHPInt := 0
+						if entry.HP != "" {
+							hpInt, _ = strconv.Atoi(entry.HP)
+						}
+						if entry.MaxHP != "" {
+							maxHPInt, _ = strconv.Atoi(entry.MaxHP)
+						}
+
+						// Get colored HP text
+						coloredHP := getColoredHP(hpInt, maxHPInt)
+
+						// Format line with colored HP
+						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s",
+							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, conditionIcons)
+
+						// Apply style (selected or normal monster style)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						} else {
@@ -458,8 +524,9 @@ func RollInitiative() int {
 //
 // Supported input types:
 //   - "player_name", "monster_name": Validates non-empty trimmed strings
-//   - "player_initiative", "monster_initiative": Parses positive integers or "r" to roll
-//   - "monster_hp": Parses positive integers for health points
+//   - "player_initiative", "player_ac": Parses positive integers for player stats
+//   - "monster_initiative": Parses positive integers or "r" to roll
+//   - "monster_hp", "monster_ac": Parses positive integers for monster stats
 //   - "hp_change": Parses signed integers ("+5" or "-10") for HP modifications
 //
 // Returns the parsed value (string or int) or an error if validation fails.
@@ -472,7 +539,7 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		}
 		return strings.TrimSpace(input), nil
 
-	case "player_initiative", "monster_hp", "monster_ac":
+	case "player_initiative", "player_ac", "monster_hp", "monster_ac":
 		val, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			return nil, fmt.Errorf("must be a number")
@@ -516,6 +583,21 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		val, err := strconv.Atoi(input)
 		if err != nil {
 			return nil, fmt.Errorf("must be a number (+ to heal, - to damage)")
+		}
+		return val, nil
+
+	case "maxhp":
+		// Max HP (absolute value)
+		input = strings.TrimSpace(input)
+		if input == "" {
+			return nil, fmt.Errorf("enter a number")
+		}
+		val, err := strconv.Atoi(input)
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 1 {
+			return nil, fmt.Errorf("must be at least 1")
 		}
 		return val, nil
 	}

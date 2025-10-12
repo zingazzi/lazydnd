@@ -88,21 +88,29 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"Enter", "Enter edit mode"},
 	{"n", "Next turn (works in all modes)"},
 	{"x", "Reset combat (works in all modes)"},
+	{"Ctrl+Z", "Undo HP change (up to 3 actions)"},
+	{"Ctrl+Y", "Redo HP change"},
 	{"", ""},
 	{"In Edit Mode:", ""},
 	{"  ↑/↓", "Select entry"},
 	{"  i", "Edit initiative value"},
-	{"  h", "Edit HP (monsters only)"},
+	{"  h", "Edit HP (+heal/-damage, monsters only)"},
+	{"  H", "Edit Max HP (set absolute value, monsters only)"},
 	{"  s", "Roll saving throws (monsters only)"},
 	{"  l", "View linked monster details"},
+	{"  t", "Multi-target damage/healing"},
 	{"  a", "Show monster actions (if linked)"},
 	{"  c", "Copy/duplicate entry"},
 	{"  d", "Delete entry"},
+	{"  o", "Manage conditions (status effects)"},
 }
 
 // SpellsHelp contains help text for the Spells panel
 var SpellsHelp = []HelpKey{
 	{"Enter", "Start spell search"},
+	{"f", "Filter by spell level (0-9, ranges)"},
+	{"c", "Cast selected spell"},
+	{"v", "View active spells"},
 	{"", ""},
 	{"In Search Mode:", ""},
 	{"  Type", "Search for spells"},
@@ -114,6 +122,7 @@ var SpellsHelp = []HelpKey{
 // MonstersHelp contains help text for the Monsters panel
 var MonstersHelp = []HelpKey{
 	{"Enter", "Start monster search"},
+	{"f", "Filter by CR (exact, range, min)"},
 	{"a", "Add to initiative tracker"},
 	{"", ""},
 	{"In Search Mode:", ""},

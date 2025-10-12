@@ -46,6 +46,7 @@ var keyHandlers = map[string]KeyHandler{
 	"e": handleE,
 	"i": handleI,
 	"h": handleH,
+	"H": handleH, // Shift+H for max HP editing
 	"a": handleA,
 	"d": handleD,
 	"l": handleL,
@@ -65,6 +66,10 @@ var keyHandlers = map[string]KeyHandler{
 	"ctrl+s": handleCtrlS,
 	"ctrl+l": handleCtrlL,
 	"ctrl+n": handleCtrlN,
+
+	// Undo/Redo handlers
+	"ctrl+z": handleCtrlZ,
+	"ctrl+y": handleCtrlY,
 }
 
 // HandleNavigation processes navigation-related key presses
@@ -110,7 +115,7 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.MonsterCRFilterMode {
 		return handleCRFilterInput(m, key)
 	}
-	
+
 	// Handle spell level filter input (when in spell level filter mode)
 	if m.SpellLevelFilterMode {
 		return handleSpellLevelFilterInput(m, key)
