@@ -291,6 +291,8 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
 | `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
 | `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode, monsters only) |
+| `+` or `=` | **Quick Add HP** - Fast healing popup (works with single or multi-target) |
+| `-` | **Quick Remove HP** - Fast damage popup (works with single or multi-target) |
 | `R` | Toggle Reaction - Shift+R to mark reaction as used/available (in edit mode) |
 | `t` | Multi-target damage/healing mode |
 | `o` | Manage conditions (add/remove status effects in edit mode) |
