@@ -1,14 +1,34 @@
 # CHANGELOG
 
-## v2.9.0
+## 2.9.0
+- **Temporary HP System** 💙
+  - Track temporary hit points separately from regular HP
+  - Display format: `HP: 25/30 +5` with cyan color
+  - Temp HP absorbed first before real damage
+  - Press `Shift+T` in edit mode to set temp HP (replaces existing, doesn't stack)
+  - Clear input label: "Temporary HP:" when editing
+  - D&D 5e compliant damage absorption rules
+  - Temp HP persists through campaign save/load
+  - Works with both single-target and multi-target damage
+  - Visible in initiative list with proper color coding
+
+- **Help Popup Improvements** 📖
+  - **Two-Column Layout**: Help content now displays in 2 columns for better space utilization
+  - **Wider Popup**: Increased width to accommodate more information
+  - All keybindings now visible including `Shift+T` for Temp HP
+  - Left column: Common Navigation keys
+  - Right column: Panel-specific keys
+  - Scrolling removed (no longer needed with 2-column layout)
+
 - **Fix**
   - In history now you can reroll macro
-  - Note improvment
+  - Note improvement
+  - TempHP now properly extracted and displayed in initiative list
 
 - **UI Panel Enhancements**
   - Clearer input indicators and controls
   - Consistent styling across search modes
-	- Clear interface
+  - Clear interface
 
 ## 2.8.0
 - **Dice Macros**
