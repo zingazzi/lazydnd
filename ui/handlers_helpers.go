@@ -50,6 +50,7 @@ func processInitiativeInput(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "player_ac"); err == nil {
 			// Complete player entry
 			m.TempEntry.AC = val.(int)
+			m.TempEntry.ReactionUsed = false // Initialize reaction as available
 			completeInitiativeEntry(&m)
 		}
 
@@ -83,6 +84,7 @@ func processInitiativeInput(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "monster_initiative"); err == nil {
 			// Complete monster entry
 			m.TempEntry.Initiative = val.(int)
+			m.TempEntry.ReactionUsed = false // Initialize reaction as available
 			completeInitiativeEntry(&m)
 		}
 	}
@@ -120,20 +122,47 @@ func processInitiativeEdit(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "hp_change"); err == nil {
 			// Save current HP to undo stack before making changes
 			oldHP := m.InitiativeList[originalIndex].HP
+			oldTempHP := m.InitiativeList[originalIndex].TempHP
 
 			// Update HP (can be positive or negative)
 			change := val.(int)
-			newHP := m.InitiativeList[originalIndex].HP + change
-			if newHP < 0 {
-				newHP = 0
-			}
-			if newHP > m.InitiativeList[originalIndex].MaxHP {
-				newHP = m.InitiativeList[originalIndex].MaxHP
-			}
-			m.InitiativeList[originalIndex].HP = newHP
 
-			// Save to undo history
-			pushHPHistory(&m, originalIndex, oldHP, newHP)
+			if change < 0 {
+				// Taking damage - apply to temp HP first
+				damage := -change
+				if m.InitiativeList[originalIndex].TempHP > 0 {
+					if damage <= m.InitiativeList[originalIndex].TempHP {
+						// All damage absorbed by temp HP
+						m.InitiativeList[originalIndex].TempHP -= damage
+					} else {
+						// Temp HP absorbed some, rest goes to real HP
+						remainingDamage := damage - m.InitiativeList[originalIndex].TempHP
+						m.InitiativeList[originalIndex].TempHP = 0
+						m.InitiativeList[originalIndex].HP -= remainingDamage
+						if m.InitiativeList[originalIndex].HP < 0 {
+							m.InitiativeList[originalIndex].HP = 0
+						}
+					}
+				} else {
+					// No temp HP, damage goes directly to real HP
+					m.InitiativeList[originalIndex].HP += change // change is negative
+					if m.InitiativeList[originalIndex].HP < 0 {
+						m.InitiativeList[originalIndex].HP = 0
+					}
+				}
+			} else {
+				// Healing - only affects real HP, not temp HP
+				newHP := m.InitiativeList[originalIndex].HP + change
+				if newHP > m.InitiativeList[originalIndex].MaxHP {
+					newHP = m.InitiativeList[originalIndex].MaxHP
+				}
+				m.InitiativeList[originalIndex].HP = newHP
+			}
+
+			// Save to undo history (only if HP changed)
+			if m.InitiativeList[originalIndex].HP != oldHP || m.InitiativeList[originalIndex].TempHP != oldTempHP {
+				pushHPHistory(&m, originalIndex, oldHP, m.InitiativeList[originalIndex].HP)
+			}
 
 			m.InitiativeEditMode = false
 			m.InitiativeEditType = ""
@@ -154,6 +183,27 @@ func processInitiativeEdit(m Model) Model {
 				m.InitiativeList[originalIndex].HP = newMaxHP
 			}
 
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		}
+
+	case "temphp":
+		if val, err := panels.ParseInput(m.InitiativeInput, "temphp"); err == nil {
+			// Set Temp HP (absolute value, replaces existing temp HP)
+			newTempHP := val.(int)
+			if newTempHP < 0 {
+				newTempHP = 0 // Temp HP cannot be negative
+			}
+			// Temp HP doesn't stack - just set the new value
+			m.InitiativeList[originalIndex].TempHP = newTempHP
+
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		} else {
+			// Handle error
+			SetError(&m, err.Error())
 			m.InitiativeEditMode = false
 			m.InitiativeEditType = ""
 			m.InitiativeInput = ""
@@ -399,9 +449,11 @@ func undoHPChange(m Model) Model {
 	lastAction := m.HPUndoStack[len(m.HPUndoStack)-1]
 	m.HPUndoStack = m.HPUndoStack[:len(m.HPUndoStack)-1]
 
-	// Apply old HP value
+	// Apply old HP and temp HP values
 	if lastAction.EntryIndex >= 0 && lastAction.EntryIndex < len(m.InitiativeList) {
-		m.InitiativeList[lastAction.EntryIndex].HP = lastAction.OldHP
+		// Validate values before applying
+		m.InitiativeList[lastAction.EntryIndex].HP = HPCalc.ValidateHP(lastAction.OldHP, m.InitiativeList[lastAction.EntryIndex].MaxHP)
+		m.InitiativeList[lastAction.EntryIndex].TempHP = HPCalc.SetTempHP(lastAction.OldTempHP)
 
 		// Add to redo stack
 		m.HPRedoStack = append(m.HPRedoStack, lastAction)
@@ -423,9 +475,11 @@ func redoHPChange(m Model) Model {
 	lastUndo := m.HPRedoStack[len(m.HPRedoStack)-1]
 	m.HPRedoStack = m.HPRedoStack[:len(m.HPRedoStack)-1]
 
-	// Apply new HP value
+	// Apply new HP and temp HP values
 	if lastUndo.EntryIndex >= 0 && lastUndo.EntryIndex < len(m.InitiativeList) {
-		m.InitiativeList[lastUndo.EntryIndex].HP = lastUndo.NewHP
+		// Validate values before applying
+		m.InitiativeList[lastUndo.EntryIndex].HP = HPCalc.ValidateHP(lastUndo.NewHP, m.InitiativeList[lastUndo.EntryIndex].MaxHP)
+		m.InitiativeList[lastUndo.EntryIndex].TempHP = HPCalc.SetTempHP(lastUndo.NewTempHP)
 
 		// Add back to undo stack
 		m.HPUndoStack = append(m.HPUndoStack, lastUndo)

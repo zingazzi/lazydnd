@@ -45,15 +45,6 @@ func getDefaultDiceMacros() map[string]string {
 		"chain_lightning": "10d8",
 		"disintegrate":    "10d6+40",
 		"finger_of_death": "7d8+30",
-
-		// Common Attack Macros
-		"sneak_attack_1d6": "1d20+1d6",
-		"sneak_attack_2d6": "1d20+2d6",
-		"sneak_attack_3d6": "1d20+3d6",
-		"sneak_attack_4d6": "1d20+4d6",
-		"divine_smite_1d8": "1d8",
-		"divine_smite_2d8": "2d8",
-		"divine_smite_3d8": "3d8",
 	}
 }
 

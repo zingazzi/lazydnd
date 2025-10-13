@@ -1,14 +1,155 @@
 # CHANGELOG
 
-## v2.9.0
+## 2.10.0
+- **Dice Roller UI Redesign** 🎲
+  - **Clean, Single-Line Format**: Results on one line with clear visual hierarchy
+    - Example: `16  13 (1d20) + 3`
+    - Total (16) in **bright green** - most prominent
+    - Dice rolls (13) in **light gray** - secondary info
+    - Formula (1d20) + 3 in **dark gray** - contextual
+  - **Compact & Readable**: All info on one line, no wasted space
+  - **Consistent Formatting**: Works for all roll types
+    - Normal: `15  10, 5 (2d6)`
+    - With modifier: `18  13 (1d20) + 5`
+    - Advantage: `20  17 vs 14 (1d20) ADV`
+    - Critical: `25  10, 8, 7 (3d8 × 2) ★ CRIT`
+    - Multi-expression: `24  16 (2d8) + 5 (1d4) + 3 (2d8 + 1d4 + 3)`
+  - **Cleaner History**: Shows last 3 results in dimmed text
+  - **Better Visual Hierarchy**:
+    1. Total result (brightest, most important)
+    2. Individual dice (lighter, for detail)
+    3. Formula (dimmest, for context)
+
+- **HP Calculation Edge Case Fixes** 💚
+  - **HP Calculator Module**: New `ui/hp_calculator.go` with 13 safe calculation methods
+    - Input validation on all methods
+    - Overflow/underflow protection
+    - Consistent bounds checking (0 ≤ HP ≤ MaxHP)
+    - Temp HP damage absorption logic
+    - Healing cap enforcement
+  - **Undo/Redo Improvements**: Now tracks temporary HP changes
+    - Extended `HPHistoryEntry` with `OldTempHP` and `NewTempHP`
+    - Validation on undo/redo to prevent invalid HP states
+    - HP capped at current MaxHP when undoing/redoing
+  - **10 Edge Cases Fixed**:
+    1. Undo/redo now properly handles temp HP
+    2. HP validation prevents exceeding MaxHP on undo
+    3. Negative damage/healing values properly handled
+    4. Integer overflow protection on large values
+    5. Max HP enforced to be ≥ 1 at runtime
+    6. HP capping at MaxHP in all code paths
+    7. Temp HP range validation (0-9999)
+    8. Healing feedback when already at max HP
+    9. Damage properly capped at 0 HP
+    10. Concurrent modifications documented
+  - **Safe Calculation Methods**:
+    - `ApplyDamage()` - Temp HP absorption, bounds checking
+    - `ApplyHealing()` - Max HP capping, actual healed tracking
+    - `SetTempHP()` - Range validation
+    - `SetMaxHP()` - Adjusts current HP if needed
+    - `ValidateHP()` - Ensures HP within bounds
+    - `SafeAddHP()` / `SafeSubtractHP()` - Overflow protection
+  - **Documentation**: Complete HP edge case guide in `HP_EDGE_CASES.md`
+    - All 10 edge cases documented with fixes
+    - Migration guide for safe HP calculations
+    - Test coverage summary (40+ tests)
+  - **Backwards Compatible**: Old saves load correctly, undo stacks upgraded
+
+- **Consistent Error Handling System** 🔧
+  - **AppError Type**: New structured error type with operation context and user-friendly messages
+    - Wraps underlying errors with application context
+    - Separates technical details from user-facing messages
+    - Supports error unwrapping for debugging
+  - **Standard Error Operations**: Predefined constants for common operations
+    - Save/Load/Delete campaign
+    - Load monsters/spells
+    - Parse/validate input
+    - Config operations
+  - **Helper Functions**: Simplified error handling with `WrapError()`, `WrapErrorf()`, `HandleError()`
+    - Consistent error wrapping across all modules
+    - Automatic UI error display
+    - Fallback messages for robustness
+  - **User-Friendly Messages**: All errors now display clear, actionable feedback
+    - No technical jargon or stack traces
+    - Specific about what failed
+    - Concise and helpful
+  - **Documentation**: Complete error handling guide in `ERROR_HANDLING.md`
+    - Error types and when to use them
+    - Standard patterns and examples
+    - Best practices and anti-patterns
+    - Migration guide for existing code
+  - **Comprehensive Tests**: 20+ test cases for error handling
+    - Error creation and wrapping
+    - User message extraction
+    - Error propagation
+    - Nil error handling
+  - **Improved Consistency**: All modules now follow the same error handling patterns
+
+- **Comprehensive Input Validation System** 🛡️
+  - **Name Validation**: Character/monster names limited to 50 characters with allowed character restrictions
+    - Allowed: letters, numbers, spaces, hyphens, apostrophes, underscores
+    - Invalid characters blocked during input
+  - **Numeric Range Validation**: All numeric inputs now have proper bounds
+    - Initiative: -10 to 99
+    - HP: 0 to 9999
+    - AC: 0 to 99
+    - Max HP: 1 to 9999
+    - Temp HP: 0 to 9999
+  - **Campaign Name Validation**: Save names limited to 50 characters with automatic sanitization
+    - Spaces converted to underscores in filenames
+    - Invalid characters automatically blocked during input
+  - **Dice Command Validation**: Commands limited to 100 characters
+    - Prevents excessively long or malformed inputs
+  - **Improved Error Messages**: All validation errors provide clear, actionable feedback
+    - Specific error messages for each validation failure
+    - Examples: "initiative must be -10 to 99", "name too long (max 50 characters)"
+  - **Real-time Input Prevention**: Invalid characters blocked as you type
+    - Campaign names: only letters, numbers, spaces, -, _
+    - Dice commands: length capped at 100 characters
+  - **200+ Validation Tests**: Comprehensive test coverage for all input types
+  - **Security**: Prevents directory traversal and filename injection attacks
+  - See `VALIDATION.md` for complete documentation
+
+- **Advantage/Disadvantage for Monster Actions** ⚡⚠️
+  - When viewing monster actions (press 'a' on a monster), you can now:
+    - Press `a` to toggle **ADVANTAGE** mode (rolls 2d20, takes higher)
+    - Press `d` to toggle **DISADVANTAGE** mode (rolls 2d20, takes lower)
+  - Visual indicator shows current mode (⚡ ADVANTAGE ⚡ or ⚠️ DISADVANTAGE ⚠️)
+  - Works with critical hit detection - advantage rolls can still crit!
+  - Modes are mutually exclusive (can't have both at once)
+  - Resets when closing the action popup
+- **Fix**: Reroll Critical Hit Detection
+  - Fixed issue where rerolling monster attacks from history ('r' key) would not apply critical hit detection
+  - Now each reroll independently checks for natural 20s and auto-doubles damage if applicable
+
+- **Temporary HP System** 💙
+  - Track temporary hit points separately from regular HP
+  - Display format: `HP: 25/30 +5` with cyan color
+  - Temp HP absorbed first before real damage
+  - Press `Shift+T` in edit mode to set temp HP (replaces existing, doesn't stack)
+  - Clear input label: "Temporary HP:" when editing
+  - D&D 5e compliant damage absorption rules
+  - Temp HP persists through campaign save/load
+  - Works with both single-target and multi-target damage
+  - Visible in initiative list with proper color coding
+	- **Help Popup Improvements** 📖
+  - **Two-Column Layout**: Help content now displays in 2 columns for better space utilization
+  - **Wider Popup**: Increased width to accommodate more information
+  - All keybindings now visible including `Shift+T` for Temp HP
+  - Left column: Common Navigation keys
+  - Right column: Panel-specific keys
+  - Scrolling removed (no longer needed with 2-column layout)
+
+## 2.9.0
 - **Fix**
   - In history now you can reroll macro
-  - Note improvment
+  - Note improvement
+  - TempHP now properly extracted and displayed in initiative list
 
 - **UI Panel Enhancements**
   - Clearer input indicators and controls
   - Consistent styling across search modes
-	- Clear interface
+  - Clear interface
 
 ## 2.8.0
 - **Dice Macros**

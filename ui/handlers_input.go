@@ -3,6 +3,7 @@ package ui
 
 import (
 	"lazydnd/panels"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -143,11 +144,44 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		// Build dice command from action
 		var diceCommand string
+		var hasDamage bool
+		var damageCommand string
+
 		if selectedAction.Roll != "" && selectedAction.Damage != "" {
-			// Clean damage string: remove spaces and keep comma-separated format
+			// Attack with damage - roll attack first to check for crit
+			attackCommand := "1d20" + selectedAction.Roll
+			
+			// Add advantage/disadvantage if applicable
+			if m.ActionPopupAdvantage {
+				attackCommand += " adv"
+			} else if m.ActionPopupDisadvantage {
+				attackCommand += " dis"
+			}
+			
+			attackResult := panels.RollDice(attackCommand, m.Config)
+
+			// Check if it's a critical hit (contains "CRIT" indicator or d20: 20)
+			isCrit := strings.Contains(attackResult, "CRIT") || (strings.Contains(attackResult, "d20: 20") && m.Config.DiceRoller.CriticalHitEnabled)
+
+			// Clean damage string
 			cleanDamage := cleanDiceNotation(selectedAction.Damage)
-			// Format: "1d20+7, 2d6+4" (comma-separated for dice roller)
-			diceCommand = "1d20" + selectedAction.Roll + ", " + cleanDamage
+
+			// If critical hit, add "crit" keyword to damage roll
+			if isCrit {
+				damageCommand = cleanDamage + " crit"
+			} else {
+				damageCommand = cleanDamage
+			}
+
+			// Roll damage
+			damageResult := panels.RollDice(damageCommand, m.Config)
+
+			// Combine results
+			result := attackResult + "\n\n" + damageResult
+			m.DiceResult = result
+			m.LastDiceCommand = attackCommand + ", " + cleanDamage
+			m.addToHistory(result, m.LastDiceCommand)
+			hasDamage = true
 		} else if selectedAction.Damage != "" {
 			// Just damage roll
 			diceCommand = cleanDiceNotation(selectedAction.Damage)
@@ -156,19 +190,21 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			diceCommand = "1d20" + selectedAction.Roll
 		}
 
-		// Execute the dice roll if we have a command
-		if diceCommand != "" {
+		// Execute single dice command if we have one (non-attack+damage)
+		if !hasDamage && diceCommand != "" {
 			result := panels.RollDice(diceCommand, m.Config)
 			m.DiceResult = result
 			m.LastDiceCommand = diceCommand
 			m.addToHistory(result, diceCommand)
 		}
 
-		// Close the popup
+		// Close the popup and reset flags
 		m.ShowActionPopup = false
 		m.ActionPopupActions = []MonsterAction{}
 		m.ActionPopupIndex = 0
 		m.ActionPopupMonster = ""
+		m.ActionPopupAdvantage = false
+		m.ActionPopupDisadvantage = false
 
 		return m, nil
 	}
@@ -373,7 +409,8 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle text input for dice commands
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		// Allow alphanumeric characters and common symbols for dice notation and macros
-		if len(key) == 1 && ((key >= "a" && key <= "z") ||
+		// Limit input length to prevent abuse
+		if len(key) == 1 && len(m.DiceInput) < 100 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
 			key == "+" || key == "-" || key == "d" || key == " " || key == "," || key == "=" || key == "_") {
@@ -428,5 +465,38 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleHelp toggles the help popup
 func handleHelp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	m.ShowHelpPopup = !m.ShowHelpPopup
+	// Reset scroll offset when opening
+	if m.ShowHelpPopup {
+		m.HelpPopupScrollOffset = 0
+	}
 	return m, nil
+}
+
+// handleHelpPopupInput handles input when help popup is shown
+func handleHelpPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	key := msg.String()
+
+	switch key {
+	case "?", "esc":
+		// Close help popup
+		m.ShowHelpPopup = false
+		m.HelpPopupScrollOffset = 0
+		return m, nil
+
+	case "up":
+		// Scroll up
+		if m.HelpPopupScrollOffset > 0 {
+			m.HelpPopupScrollOffset--
+		}
+		return m, nil
+
+	case "down":
+		// Scroll down (max limit is checked in buildHelpContent)
+		m.HelpPopupScrollOffset++
+		return m, nil
+
+	default:
+		// Ignore other keys while help is open
+		return m, nil
+	}
 }

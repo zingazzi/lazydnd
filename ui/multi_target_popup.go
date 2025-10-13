@@ -174,27 +174,42 @@ func ApplyMultiTargetDamage(m Model, amount int) Model {
 		oldHP := entry.HP
 
 		// Apply damage or healing
-		var newHP int
 		if m.MultiTargetType == "healing" {
-			newHP = entry.HP + actualAmount
+			// Healing - only affects real HP
+			newHP := entry.HP + actualAmount
 			// Cap at max HP
 			if newHP > entry.MaxHP {
 				newHP = entry.MaxHP
 			}
+			entry.HP = newHP
 		} else {
-			// Damage
-			newHP = entry.HP - actualAmount
-			// Cap at 0 HP
-			if newHP < 0 {
-				newHP = 0
+			// Damage - apply to temp HP first
+			if entry.TempHP > 0 {
+				if actualAmount <= entry.TempHP {
+					// All damage absorbed by temp HP
+					entry.TempHP -= actualAmount
+				} else {
+					// Temp HP absorbed some, rest goes to real HP
+					remainingDamage := actualAmount - entry.TempHP
+					entry.TempHP = 0
+					entry.HP -= remainingDamage
+					// Cap at 0 HP
+					if entry.HP < 0 {
+						entry.HP = 0
+					}
+				}
+			} else {
+				// No temp HP, damage goes directly to real HP
+				entry.HP -= actualAmount
+				// Cap at 0 HP
+				if entry.HP < 0 {
+					entry.HP = 0
+				}
 			}
 		}
 
-		// Update HP
-		entry.HP = newHP
-
 		// Save to undo history
-		pushHPHistory(&m, i, oldHP, newHP)
+		pushHPHistory(&m, i, oldHP, entry.HP)
 	}
 
 	return m

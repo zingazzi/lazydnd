@@ -42,6 +42,7 @@ var keyHandlers = map[string]KeyHandler{
 
 	// Letter handlers
 	"r": handleR,
+	"R": handleR, // Shift+R for reaction toggle
 	"p": handleP,
 	"m": handleM,
 	"e": handleE,
@@ -57,6 +58,7 @@ var keyHandlers = map[string]KeyHandler{
 	"x": handleResetCombat,
 	"v": handleV,
 	"t": handleT,
+	"T": handleT, // Shift+T for temp HP
 	"o": handleO,
 	"f": handleF,
 
@@ -77,6 +79,11 @@ var keyHandlers = map[string]KeyHandler{
 func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	key := msg.String()
 
+	// Handle help popup scrolling
+	if m.ShowHelpPopup {
+		return handleHelpPopupInput(m, msg)
+	}
+
 	// Handle cast spell popup input (highest priority)
 	if m.ShowCastSpellPrompt && m.CastSpellInputMode {
 		return handleCastSpellInput(m, msg)
@@ -90,6 +97,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle condition popup input
 	if m.ShowConditionPopup {
 		return handleConditionPopupInput(m, msg)
+	}
+
+	// Handle action popup input (but not Enter key - that goes to handleEnter)
+	if m.ShowActionPopup && key != "enter" {
+		return handleActionPopupInput(m, key)
 	}
 
 	// Handle save popup input

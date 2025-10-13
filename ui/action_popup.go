@@ -89,11 +89,26 @@ func (m Model) buildActionContent() string {
 		content.WriteString("\n")
 	}
 
+	// Show current advantage/disadvantage mode
+	if m.ActionPopupAdvantage || m.ActionPopupDisadvantage {
+		content.WriteString("\n")
+		modeText := ""
+		if m.ActionPopupAdvantage {
+			modeText = "⚡ ADVANTAGE ⚡"
+		} else if m.ActionPopupDisadvantage {
+			modeText = "⚠️  DISADVANTAGE ⚠️"
+		}
+		modeStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00FF00")).
+			Bold(true)
+		content.WriteString(modeStyle.Render(modeText))
+	}
+
 	// Instructions
 	content.WriteString("\n")
 	instructions := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#888888")).
-		Render("↑/↓: Navigate | Enter: Roll | Esc: Close")
+		Render("↑/↓: Navigate | a: Advantage | d: Disadvantage | Enter: Roll | Esc: Close")
 	content.WriteString(instructions)
 
 	return content.String()

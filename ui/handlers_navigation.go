@@ -297,6 +297,11 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 		m.CurrentTurn = nextTurn
+		
+		// Reset reaction for the creature whose turn is starting
+		if nextTurn >= 0 && nextTurn < len(m.InitiativeList) {
+			m.InitiativeList[nextTurn].ReactionUsed = false
+		}
 	}
 
 	return m, nil

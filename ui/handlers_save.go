@@ -4,6 +4,7 @@ package ui
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -83,9 +84,30 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch key {
 	case "enter":
 		// Save campaign
-		campaignName := m.SaveInput
+		campaignName := strings.TrimSpace(m.SaveInput)
 		if campaignName == "" {
 			campaignName = "my_campaign"
+		}
+
+		// Validate campaign name
+		if len(campaignName) > 50 {
+			m.ShowSavePopup = false
+			m.SaveInput = ""
+			return m, func() tea.Msg {
+				return SetErrorMsg{Message: "Campaign name too long (max 50 characters)"}
+			}
+		}
+
+		// Check for invalid characters
+		for _, char := range campaignName {
+			if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+				(char >= '0' && char <= '9') || char == ' ' || char == '-' || char == '_') {
+				m.ShowSavePopup = false
+				m.SaveInput = ""
+				return m, func() tea.Msg {
+					return SetErrorMsg{Message: "Campaign name contains invalid characters (use only letters, numbers, spaces, -, _)"}
+				}
+			}
 		}
 
 		err := SaveCampaign(m, campaignName)
@@ -122,9 +144,14 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 
 	default:
-		// Add character to input
-		if len(key) == 1 {
-			m.SaveInput += key
+		// Add character to input (only allow valid characters)
+		if len(key) == 1 && len(m.SaveInput) < 50 {
+			// Allow letters, numbers, spaces, hyphens, underscores
+			char := rune(key[0])
+			if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+				(char >= '0' && char <= '9') || char == ' ' || char == '-' || char == '_' {
+				m.SaveInput += key
+			}
 		}
 		return m, nil
 	}
