@@ -57,6 +57,7 @@ var keyHandlers = map[string]KeyHandler{
 	"x": handleResetCombat,
 	"v": handleV,
 	"t": handleT,
+	"T": handleT, // Shift+T for temp HP
 	"o": handleO,
 	"f": handleF,
 
@@ -76,6 +77,11 @@ var keyHandlers = map[string]KeyHandler{
 // HandleNavigation processes navigation-related key presses
 func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	key := msg.String()
+
+	// Handle help popup scrolling
+	if m.ShowHelpPopup {
+		return handleHelpPopupInput(m, msg)
+	}
 
 	// Handle cast spell popup input (highest priority)
 	if m.ShowCastSpellPrompt && m.CastSpellInputMode {

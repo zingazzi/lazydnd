@@ -68,6 +68,7 @@ func SaveCampaign(m Model, campaignName string) error {
 			Initiative:  entry.Initiative,
 			HP:          entry.HP,
 			MaxHP:       entry.MaxHP,
+			TempHP:      entry.TempHP,
 			AC:          entry.AC,
 			MonsterName: monsterName,
 			InstanceNum: entry.InstanceNum,

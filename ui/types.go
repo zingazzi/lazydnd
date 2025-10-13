@@ -88,7 +88,8 @@ type Model struct {
 	CastSpellInputMode  bool
 	SpellToCast         *Spell // Spell waiting to be cast
 	// Help popup state
-	ShowHelpPopup bool
+	ShowHelpPopup       bool
+	HelpPopupScrollOffset int
 	// Action popup state
 	ShowActionPopup    bool
 	ActionPopupActions []MonsterAction
@@ -160,6 +161,7 @@ type InitiativeEntry struct {
 	Initiative  int
 	HP          int         // Only for monsters
 	MaxHP       int         // Only for monsters
+	TempHP      int         // Temporary HP (absorbed before real HP)
 	AC          int         // Only for monsters
 	MonsterData *Monster    // Link to full monster data for actions
 	InstanceNum int         // Instance number for duplicates (0 = no number shown)
@@ -260,6 +262,7 @@ type SavedInitiativeEntry struct {
 	Initiative  int    `json:"initiative"`
 	HP          int    `json:"hp"`
 	MaxHP       int    `json:"max_hp"`
+	TempHP      int    `json:"temp_hp"`
 	AC          int    `json:"ac"`
 	MonsterName string `json:"monster_name"`
 	InstanceNum int    `json:"instance_num"`

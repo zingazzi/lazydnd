@@ -43,6 +43,9 @@ var (
 
 	criticalStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF0000")) // Red (< 25%)
+
+	tempHPStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00FFFF")) // Cyan for temp HP
 )
 
 // getColoredHP returns HP text with color coding based on percentage
@@ -73,6 +76,25 @@ func getColoredHP(hp, maxHP int) string {
 
 	// Format HP text
 	return style.Render(fmt.Sprintf("HP: %d/%d", hp, maxHP))
+}
+
+// getColoredHPWithTemp returns HP text with temp HP in cyan
+// Returns a styled string like "HP: 7/10 +5" with appropriate colors
+func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
+	if maxHP <= 0 {
+		return ""
+	}
+
+	// Get the colored HP part
+	hpPart := getColoredHP(hp, maxHP)
+
+	// Add temp HP if present
+	if tempHP > 0 {
+		tempPart := tempHPStyle.Render(fmt.Sprintf(" +%d", tempHP))
+		return hpPart + tempPart
+	}
+
+	return hpPart
 }
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
@@ -133,6 +155,10 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 				prompt = "New Initiative: "
 			case "hp":
 				prompt = "HP Change (+heal/-damage): "
+			case "maxhp":
+				prompt = "Max HP: "
+			case "temphp":
+				prompt = "Temporary HP: "
 			case "delete":
 				prompt = "Press Enter to confirm deletion"
 			}
@@ -199,6 +225,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					Initiative int
 					HP         string
 					MaxHP      string
+					TempHP     string
 					AC         string
 					RawEntry   string
 					Conditions []Condition
@@ -221,14 +248,15 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							}
 						}
 
-						hp := extractField(entry, "HP:")
-						maxHP := extractField(entry, "MaxHP:")
-						ac := extractField(entry, "AC:")
+					hp := extractField(entry, "HP:")
+					maxHP := extractField(entry, "MaxHP:")
+					tempHP := extractField(entry, "TempHP:")
+					ac := extractField(entry, "AC:")
 
-						// DEBUG: Print what we're about to parse
-						_ = entryIdx // Use the variable to avoid unused error
+					// DEBUG: Print what we're about to parse
+					_ = entryIdx // Use the variable to avoid unused error
 
-						// Extract conditions if present
+					// Extract conditions if present
 						var conditions []Condition
 						if strings.Contains(entry, "Conditions:[") {
 							// Find the Conditions array in the string
@@ -294,16 +322,17 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							}
 						}
 
-						parsedEntries = append(parsedEntries, ParsedEntry{
-							Name:       name,
-							Type:       entryType,
-							Initiative: initiative,
-							HP:         hp,
-							MaxHP:      maxHP,
-							AC:         ac,
-							RawEntry:   entry,
-							Conditions: conditions,
-						})
+					parsedEntries = append(parsedEntries, ParsedEntry{
+						Name:       name,
+						Type:       entryType,
+						Initiative: initiative,
+						HP:         hp,
+						MaxHP:      maxHP,
+						TempHP:     tempHP,
+						AC:         ac,
+						RawEntry:   entry,
+						Conditions: conditions,
+					})
 					}
 				}
 
@@ -402,11 +431,15 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							maxHPInt, _ = strconv.Atoi(entry.MaxHP)
 						}
 
-						// Get colored HP text
-						coloredHP := getColoredHP(hpInt, maxHPInt)
+					// Get colored HP text with temp HP
+					tempHPInt := 0
+					if entry.TempHP != "" {
+						tempHPInt, _ = strconv.Atoi(entry.TempHP)
+					}
+					coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt)
 
-						// Format line with colored HP
-						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s",
+					// Format line with colored HP
+					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s",
 							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, conditionIcons)
 
 						// Apply style (selected or normal monster style)
@@ -573,6 +606,21 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		}
 		if val < 1 {
 			return nil, fmt.Errorf("must be at least 1")
+		}
+		return val, nil
+
+	case "temphp":
+		// Temp HP (absolute value, non-negative)
+		input = strings.TrimSpace(input)
+		if input == "" {
+			return nil, fmt.Errorf("enter a number (0 to clear)")
+		}
+		val, err := strconv.Atoi(input)
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 0 {
+			return nil, fmt.Errorf("temp HP cannot be negative")
 		}
 		return val, nil
 	}

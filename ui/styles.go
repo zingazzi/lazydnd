@@ -102,8 +102,8 @@ func NewStyles(cfg *config.Config) *Styles {
 			BorderForeground(lipgloss.Color(primaryColor)).
 			Background(lipgloss.Color("#1A1A1A")).
 			Foreground(lipgloss.Color("#FAFAFA")).
-			Padding(1, 2).
-			Margin(1, 2),
+			Padding(1, 3).
+			Width(100), // Wider to accommodate 2 columns
 
 		HelpPopupTitleStyle: lipgloss.NewStyle().
 			Bold(true).
@@ -119,7 +119,7 @@ func NewStyles(cfg *config.Config) *Styles {
 		HelpPopupKeyStyle: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color(primaryColor)).
-			Width(15),
+			Width(12), // Slightly narrower for 2-column layout
 
 		HelpPopupDescStyle: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#CCCCCC")),

@@ -240,9 +240,6 @@ Just type the spell name and press Enter:
 - **Cantrips**: `eldritch_blast`, `fire_bolt`, `toll_the_dead`
 - **Popular Spells**: `fireball`, `lightning_bolt`, `magic_missile`, `cure_wounds`
 - **High-Level**: `disintegrate`, `chain_lightning`, `finger_of_death`
-- **Attack Combos**: `sneak_attack_1d6` through `sneak_attack_4d6`
-- **Divine Smite**: `divine_smite_1d8` through `divine_smite_3d8`
-
 **🎯 Custom Macros:**
 - Create: `my_attack=1d20+5`
 - Execute: `my_attack`
@@ -277,6 +274,8 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
 | `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
+| `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode, monsters only) |
+| `t` | Multi-target damage/healing mode |
 | `o` | Manage conditions (add/remove status effects in edit mode) |
 | `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
 | `d` | Delete selected entry (in edit mode) |
@@ -297,6 +296,7 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 - ✅ **HP Tracking**: Real-time HP management for monsters
 - ✅ **Max HP Editing**: Adjust maximum HP values for monsters (Shift+H)
 - ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
+- ✅ **Temporary HP**: Track temp HP separately, displayed in cyan (+5)
 - ✅ **Undo/Redo**: Undo up to 3 HP changes with Ctrl+Z, redo with Ctrl+Y
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
@@ -383,6 +383,20 @@ Monster HP is displayed with color coding for quick health assessment:
 - **Red** (< 25% HP): `HP: 2/10` - Critical, near death
 
 The HP text changes color based on the monster's health percentage, making it easy to see which enemies are weakened at a glance. Perfect for tactical decision-making during combat!
+
+**Temporary HP:**
+Track temporary hit points separately from regular HP following D&D 5e rules:
+- **Display**: `HP: 25/30 +5` - Temp HP shown in **cyan** color
+- **Damage Absorption**: Temp HP is always lost first before real HP
+- **Non-Stacking**: Setting new temp HP replaces existing (doesn't add)
+- **Set Temp HP**: Press `Shift+T` in edit mode, enter value (0 to clear)
+- **Healing**: Healing only affects real HP, not temp HP
+- **Persistence**: Temp HP saved with your campaign
+
+**Example:**
+- Goblin has `HP: 7/7 +3`
+- Takes 5 damage → Loses 3 temp HP, 2 real HP → Now `HP: 5/7`
+- Takes 2 damage → Now `HP: 3/7`
 
 **Adding Players and Monsters:**
 1. **Add Player**: Press 'p' and enter:

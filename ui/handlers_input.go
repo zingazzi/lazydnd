@@ -428,5 +428,38 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleHelp toggles the help popup
 func handleHelp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	m.ShowHelpPopup = !m.ShowHelpPopup
+	// Reset scroll offset when opening
+	if m.ShowHelpPopup {
+		m.HelpPopupScrollOffset = 0
+	}
 	return m, nil
+}
+
+// handleHelpPopupInput handles input when help popup is shown
+func handleHelpPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	key := msg.String()
+
+	switch key {
+	case "?", "esc":
+		// Close help popup
+		m.ShowHelpPopup = false
+		m.HelpPopupScrollOffset = 0
+		return m, nil
+
+	case "up":
+		// Scroll up
+		if m.HelpPopupScrollOffset > 0 {
+			m.HelpPopupScrollOffset--
+		}
+		return m, nil
+
+	case "down":
+		// Scroll down (max limit is checked in buildHelpContent)
+		m.HelpPopupScrollOffset++
+		return m, nil
+
+	default:
+		// Ignore other keys while help is open
+		return m, nil
+	}
 }
