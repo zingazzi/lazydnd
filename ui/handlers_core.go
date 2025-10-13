@@ -64,6 +64,10 @@ var keyHandlers = map[string]KeyHandler{
 
 	// Special handlers
 	"?": handleHelp,
+	"+": handleQuickAddHP,
+	"=": handleQuickAddHP,    // = is + without shift
+	"-": handleQuickRemoveHP,
+	"_": handleQuickRemoveHP, // _ is - with shift
 
 	// Save/Load handlers
 	"ctrl+s": handleCtrlS,
@@ -97,6 +101,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle condition popup input
 	if m.ShowConditionPopup {
 		return handleConditionPopupInput(m, msg)
+	}
+
+	// Handle quick HP popup input
+	if m.ShowQuickHPPopup {
+		return handleQuickHPInput(m, key)
 	}
 
 	// Handle action popup input (but not Enter key - that goes to handleEnter)
