@@ -3,6 +3,7 @@ package ui
 
 import (
 	"lazydnd/panels"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -143,11 +144,36 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		// Build dice command from action
 		var diceCommand string
+		var hasDamage bool
+		var damageCommand string
+
 		if selectedAction.Roll != "" && selectedAction.Damage != "" {
-			// Clean damage string: remove spaces and keep comma-separated format
+			// Attack with damage - roll attack first to check for crit
+			attackCommand := "1d20" + selectedAction.Roll
+			attackResult := panels.RollDice(attackCommand, m.Config)
+
+			// Check if it's a critical hit (contains "CRIT" indicator or d20: 20)
+			isCrit := strings.Contains(attackResult, "CRIT") || (strings.Contains(attackResult, "d20: 20") && m.Config.DiceRoller.CriticalHitEnabled)
+
+			// Clean damage string
 			cleanDamage := cleanDiceNotation(selectedAction.Damage)
-			// Format: "1d20+7, 2d6+4" (comma-separated for dice roller)
-			diceCommand = "1d20" + selectedAction.Roll + ", " + cleanDamage
+
+			// If critical hit, add "crit" keyword to damage roll
+			if isCrit {
+				damageCommand = cleanDamage + " crit"
+			} else {
+				damageCommand = cleanDamage
+			}
+
+			// Roll damage
+			damageResult := panels.RollDice(damageCommand, m.Config)
+
+			// Combine results
+			result := attackResult + "\n\n" + damageResult
+			m.DiceResult = result
+			m.LastDiceCommand = attackCommand + ", " + cleanDamage
+			m.addToHistory(result, m.LastDiceCommand)
+			hasDamage = true
 		} else if selectedAction.Damage != "" {
 			// Just damage roll
 			diceCommand = cleanDiceNotation(selectedAction.Damage)
@@ -156,8 +182,8 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			diceCommand = "1d20" + selectedAction.Roll
 		}
 
-		// Execute the dice roll if we have a command
-		if diceCommand != "" {
+		// Execute single dice command if we have one (non-attack+damage)
+		if !hasDamage && diceCommand != "" {
 			result := panels.RollDice(diceCommand, m.Config)
 			m.DiceResult = result
 			m.LastDiceCommand = diceCommand

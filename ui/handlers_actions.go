@@ -4,6 +4,7 @@ package ui
 import (
 	"lazydnd/panels"
 	"reflect"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -30,12 +31,51 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Reroll dice command (lowercase 'r')
 	if m.ActivePanel == DiceRoller && !m.InputMode && !m.DiceHistoryMode && m.LastDiceCommand != "" {
-		result := panels.RollDice(m.LastDiceCommand, m.Config)
-		m.DiceResult = result
-		m.addToHistory(result, m.LastDiceCommand)
+		m = rerollDiceCommand(m)
 	}
 
 	return m, nil
+}
+
+// rerollDiceCommand rerolls the last dice command with critical hit detection for monster attacks
+func rerollDiceCommand(m Model) Model {
+	command := m.LastDiceCommand
+
+	// Check if this is a monster attack format: "1d20+X, damage"
+	if strings.Contains(command, ",") && strings.HasPrefix(command, "1d20") {
+		// Split into attack and damage
+		parts := strings.SplitN(command, ",", 2)
+		if len(parts) == 2 {
+			attackCommand := strings.TrimSpace(parts[0])
+			damageCommand := strings.TrimSpace(parts[1])
+
+			// Roll attack first
+			attackResult := panels.RollDice(attackCommand, m.Config)
+
+			// Check for critical hit
+			isCrit := strings.Contains(attackResult, "CRIT") || (strings.Contains(attackResult, "d20: 20") && m.Config.DiceRoller.CriticalHitEnabled)
+
+			// Roll damage (with crit if needed)
+			var damageResult string
+			if isCrit {
+				damageResult = panels.RollDice(damageCommand+" crit", m.Config)
+			} else {
+				damageResult = panels.RollDice(damageCommand, m.Config)
+			}
+
+			// Combine results
+			result := attackResult + "\n\n" + damageResult
+			m.DiceResult = result
+			m.addToHistory(result, command)
+			return m
+		}
+	}
+
+	// Normal reroll for non-attack commands
+	result := panels.RollDice(command, m.Config)
+	m.DiceResult = result
+	m.addToHistory(result, command)
+	return m
 }
 
 // handleP handles the 'p' key

@@ -239,6 +239,10 @@ Browse spells by spell level with autocomplete:
 **🎯 Critical Hit System:**
 - **Auto-Detection**: Natural 20 on d20 rolls shows ★ CRITICAL HIT! ★ banner with 🎯 icon
 - **Manual Crits**: Roll critical damage with `2d8 crit`, `3d6+5 crit`, etc.
+- **Monster Attacks**: When a monster attacks and rolls nat 20, damage dice automatically double!
+  - Attack roll is checked first (1d20+modifier)
+  - If natural 20, damage dice are rolled as critical automatically
+  - Example: Goblin hits with nat 20 → damage rolls as `1d6 crit` (2d6 or max+1d6)
 - **Two Modes** (configurable in `~/.config/lazydnd/config.json`):
   - `"double"` (default): Roll all damage dice twice (D&D 5e standard)
     - Example: `2d8 crit` → rolls 4d8 total (2d8 + 2d8)

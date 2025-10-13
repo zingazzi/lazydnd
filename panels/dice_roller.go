@@ -48,15 +48,12 @@ var (
 
 	critStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("#FFD700")). // Gold color
-			Background(lipgloss.Color("#8B0000")). // Dark red background
-			Padding(0, 1)
+			Foreground(lipgloss.Color("#FF0000")) // Red color
 )
 
-// getCriticalHitBanner returns a celebratory banner for critical hits
+// getCriticalHitBanner returns a simple critical hit indicator
 func getCriticalHitBanner() string {
-	banner := critStyle.Render("★ ═══ CRITICAL HIT! ═══ ★")
-	return banner
+	return critStyle.Render("★ CRIT")
 }
 
 // handleCriticalDamageRoll handles rolling critical damage based on the configured mode
@@ -64,6 +61,9 @@ func getCriticalHitBanner() string {
 //   - "double": Roll all damage dice twice (standard D&D 5e)
 //   - "max": Maximum damage + one roll (popular house rule)
 func handleCriticalDamageRoll(command string) string {
+	// Remove all spaces first
+	command = strings.ReplaceAll(command, " ", "")
+
 	// Parse the dice expression
 	parts := strings.Split(command, "d")
 	if len(parts) != 2 {
@@ -150,9 +150,8 @@ func handleCriticalDamageRoll(command string) string {
 
 	finalTotal := total + modifier
 
-	// Format result with banner
-	result := getCriticalHitBanner() + "\n"
-	result += fmt.Sprintf("TOTAL: %d 🎯\n", finalTotal)
+	// Format result with crit indicator
+	result := fmt.Sprintf("TOTAL: %d %s\n", finalTotal, getCriticalHitBanner())
 	result += fmt.Sprintf("%d (%dd%d × 2): %s", total, numDice, sides, displayText)
 	if modifier != 0 {
 		result += fmt.Sprintf(" %+d", modifier)
@@ -288,6 +287,11 @@ func RollDice(command string, cfg *config.Config) string {
 		command = strings.TrimSpace(command)
 	}
 
+	// Handle crit rolls for damage dice FIRST (before other parsing)
+	if critRoll && currentCritEnabled {
+		return handleCriticalDamageRoll(command)
+	}
+
 	// Check for advantage/disadvantage
 	var advantage, disadvantage bool
 	if strings.HasSuffix(command, " adv") || strings.HasSuffix(command, " advantage") || strings.HasSuffix(command, "adv") {
@@ -307,16 +311,7 @@ func RollDice(command string, cfg *config.Config) string {
 
 	// Check for multiple dice expressions with + (e.g., "2d8+3d6")
 	if hasMultipleDiceExpressions(command) {
-		result := handleMultipleDiceExpressions(command, advantage, disadvantage)
-		if critRoll && currentCritEnabled {
-			return getCriticalHitBanner() + "\n" + result + " 🎯"
-		}
-		return result
-	}
-
-	// Handle crit rolls for damage dice
-	if critRoll && currentCritEnabled {
-		return handleCriticalDamageRoll(command)
+		return handleMultipleDiceExpressions(command, advantage, disadvantage)
 	}
 
 	// Handle simple dice notation
@@ -365,25 +360,17 @@ func RollDice(command string, cfg *config.Config) string {
 
 			// Check for crit
 			isCrit := currentCritEnabled && result == 20
-			resultStr := ""
+			resultStr := fmt.Sprintf("d20 %s: %d (%d, %d)", resultType, result, roll1, roll2)
 			if isCrit {
-				resultStr = getCriticalHitBanner() + "\n"
-			}
-			resultStr += fmt.Sprintf("d20 %s: %d (%d, %d)", resultType, result, roll1, roll2)
-			if isCrit {
-				resultStr += " 🎯"
+				resultStr += " " + getCriticalHitBanner()
 			}
 			return resultStr
 		} else {
 			result := rand.Intn(20) + 1
 			isCrit := currentCritEnabled && result == 20
-			resultStr := ""
+			resultStr := fmt.Sprintf("d20: %d", result)
 			if isCrit {
-				resultStr = getCriticalHitBanner() + "\n"
-			}
-			resultStr += fmt.Sprintf("d20: %d", result)
-			if isCrit {
-				resultStr += " 🎯"
+				resultStr += " " + getCriticalHitBanner()
 			}
 			return resultStr
 		}
@@ -667,14 +654,9 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 		}
 
 		// Format result - Total first, then breakdown
-		result := ""
+		result := fmt.Sprintf("TOTAL: %d", finalTotal)
 		if isCrit {
-			result = getCriticalHitBanner() + "\n"
-		}
-
-		result += fmt.Sprintf("TOTAL: %d", finalTotal)
-		if isCrit {
-			result += " 🎯"
+			result += " " + getCriticalHitBanner()
 		}
 		result += "\n"
 		result += fmt.Sprintf("%d (%s): [%s]", total, diceExpr, strings.Join(rollsStr, ", "))
@@ -740,15 +722,9 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 	total := calculateTotal(results, operators)
 
 	// Format result - Total first, then breakdown
-	resultStr := ""
+	resultStr := fmt.Sprintf("TOTAL: %d", total)
 	if hasCrit {
-		resultStr = getCriticalHitBanner() + "\n"
-	}
-
-	resultStr += fmt.Sprintf("TOTAL: %d", total)
-
-	if hasCrit {
-		resultStr += " 🎯"
+		resultStr += " " + getCriticalHitBanner()
 	}
 
 	if advantage {
