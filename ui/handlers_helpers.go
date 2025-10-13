@@ -50,6 +50,7 @@ func processInitiativeInput(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "player_ac"); err == nil {
 			// Complete player entry
 			m.TempEntry.AC = val.(int)
+			m.TempEntry.ReactionUsed = false // Initialize reaction as available
 			completeInitiativeEntry(&m)
 		}
 
@@ -83,6 +84,7 @@ func processInitiativeInput(m Model) Model {
 		if val, err := panels.ParseInput(m.InitiativeInput, "monster_initiative"); err == nil {
 			// Complete monster entry
 			m.TempEntry.Initiative = val.(int)
+			m.TempEntry.ReactionUsed = false // Initialize reaction as available
 			completeInitiativeEntry(&m)
 		}
 	}

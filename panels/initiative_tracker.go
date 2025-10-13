@@ -220,15 +220,16 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 
 				// Parse entries into a sortable structure
 				type ParsedEntry struct {
-					Name       string
-					Type       string
-					Initiative int
-					HP         string
-					MaxHP      string
-					TempHP     string
-					AC         string
-					RawEntry   string
-					Conditions []Condition
+					Name         string
+					Type         string
+					Initiative   int
+					HP           string
+					MaxHP        string
+					TempHP       string
+					AC           string
+					ReactionUsed string
+					RawEntry     string
+					Conditions   []Condition
 				}
 
 				var parsedEntries []ParsedEntry
@@ -252,6 +253,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					maxHP := extractField(entry, "MaxHP:")
 					tempHP := extractField(entry, "TempHP:")
 					ac := extractField(entry, "AC:")
+					reactionUsed := extractField(entry, "ReactionUsed:")
 
 					// DEBUG: Print what we're about to parse
 					_ = entryIdx // Use the variable to avoid unused error
@@ -323,15 +325,16 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 						}
 
 					parsedEntries = append(parsedEntries, ParsedEntry{
-						Name:       name,
-						Type:       entryType,
-						Initiative: initiative,
-						HP:         hp,
-						MaxHP:      maxHP,
-						TempHP:     tempHP,
-						AC:         ac,
-						RawEntry:   entry,
-						Conditions: conditions,
+						Name:         name,
+						Type:         entryType,
+						Initiative:   initiative,
+						HP:           hp,
+						MaxHP:        maxHP,
+						TempHP:       tempHP,
+						AC:           ac,
+						ReactionUsed: reactionUsed,
+						RawEntry:     entry,
+						Conditions:   conditions,
 					})
 					}
 				}
@@ -438,9 +441,17 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 					coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt)
 
+					// Get reaction indicator
+					reactionIcon := ""
+					if entry.ReactionUsed == "true" {
+						reactionIcon = " [✗]" // Reaction used
+					} else if entry.ReactionUsed == "false" {
+						reactionIcon = " [✓]" // Reaction available
+					}
+
 					// Format line with colored HP
-					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s",
-							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, conditionIcons)
+					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
+							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
 
 						// Apply style (selected or normal monster style)
 						if listMode && selectedEntry == i {
@@ -449,7 +460,15 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							line = monsterStyle.Render(line)
 						}
 					} else {
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+						// Get reaction indicator for players too
+						reactionIcon := ""
+						if entry.ReactionUsed == "true" {
+							reactionIcon = " [✗]" // Reaction used
+						} else if entry.ReactionUsed == "false" {
+							reactionIcon = " [✓]" // Reaction available
+						}
+
+						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, reactionIcon, conditionIcons)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						}

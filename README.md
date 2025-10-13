@@ -275,6 +275,7 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
 | `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
 | `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode, monsters only) |
+| `R` | Toggle Reaction - Shift+R to mark reaction as used/available (in edit mode) |
 | `t` | Multi-target damage/healing mode |
 | `o` | Manage conditions (add/remove status effects in edit mode) |
 | `s` | Roll saving throws & skill checks (in edit mode, monsters only) |
@@ -297,6 +298,7 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 - ✅ **Max HP Editing**: Adjust maximum HP values for monsters (Shift+H)
 - ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
 - ✅ **Temporary HP**: Track temp HP separately, displayed in cyan (+5)
+- ✅ **Reaction Tracker**: Mark reactions as used [✗] or available [✓], auto-resets on turn (works for players & monsters)
 - ✅ **Undo/Redo**: Undo up to 3 HP changes with Ctrl+Z, redo with Ctrl+Y
 - ✅ **Duplicate Monsters**: Copy entries with automatic numbering (Goblin 1, Goblin 2, etc.)
 - ✅ **Multi-Target Damage/Healing**: Apply damage or healing to multiple targets simultaneously
@@ -606,9 +608,11 @@ You can add your own custom monsters or override existing ones:
 
 **What Gets Saved:**
 - ✅ All initiative tracker entries (players and monsters)
-- ✅ HP, AC, initiative values
+- ✅ HP, AC, initiative values, Temp HP, Reaction status
 - ✅ Monster links (actions remain available after load)
 - ✅ Instance numbers for duplicated monsters
+- ✅ Active conditions and spell durations
+- ✅ Campaign notes and dice macros
 - ❌ Dice history (session-specific)
 - ❌ Current panel or scroll position
 

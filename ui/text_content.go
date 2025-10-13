@@ -113,6 +113,7 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"  c", "Copy/duplicate entry"},
 	{"  d", "Delete entry"},
 	{"  o", "Manage conditions (status effects)"},
+	{"  Shift+R", "Toggle reaction status (✓/✗)"},
 }
 
 // SpellsHelp contains help text for the Spells panel

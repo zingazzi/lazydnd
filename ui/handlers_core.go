@@ -42,6 +42,7 @@ var keyHandlers = map[string]KeyHandler{
 
 	// Letter handlers
 	"r": handleR,
+	"R": handleR, // Shift+R for reaction toggle
 	"p": handleP,
 	"m": handleM,
 	"e": handleE,

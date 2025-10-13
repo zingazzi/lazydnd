@@ -17,7 +17,18 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "r"), nil
 	}
 
-	// Reroll dice command
+	// Check if this is Shift+R (capital R) for reaction toggle
+	isShiftR := msg.String() == "R"
+
+	if isShiftR {
+		// Toggle reaction status in initiative tracker
+		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+			m.InitiativeList[m.SelectedEntry].ReactionUsed = !m.InitiativeList[m.SelectedEntry].ReactionUsed
+		}
+		return m, nil
+	}
+
+	// Reroll dice command (lowercase 'r')
 	if m.ActivePanel == DiceRoller && !m.InputMode && !m.DiceHistoryMode && m.LastDiceCommand != "" {
 		result := panels.RollDice(m.LastDiceCommand, m.Config)
 		m.DiceResult = result
@@ -190,15 +201,16 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 				// Create initiative entry with full monster data link
 				newEntry := InitiativeEntry{
-					Name:        monsterName,
-					Type:        "monster",
-					Initiative:  initiative,
-					HP:          hp,
-					MaxHP:       hp,
-					AC:          ac,
-					MonsterData: m.SelectedMonster, // Link to full monster data
-					BaseName:    monsterName,
-					MonsterName: monsterName, // Store for save/load persistence
+					Name:         monsterName,
+					Type:         "monster",
+					Initiative:   initiative,
+					HP:           hp,
+					MaxHP:        hp,
+					AC:           ac,
+					ReactionUsed: false, // Initialize reaction as available
+					MonsterData:  m.SelectedMonster, // Link to full monster data
+					BaseName:     monsterName,
+					MonsterName:  monsterName, // Store for save/load persistence
 				}
 
 				// Add to initiative list
@@ -298,14 +310,17 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 			// Create a duplicate with same stats
 			duplicate := InitiativeEntry{
-				Name:        baseName, // Use base name, will be renumbered
-				Type:        original.Type,
-				Initiative:  original.Initiative,
-				HP:          original.HP,
-				MaxHP:       original.MaxHP,
-				AC:          original.AC,
-				MonsterData: original.MonsterData,
-				BaseName:    baseName,
+				Name:         baseName, // Use base name, will be renumbered
+				Type:         original.Type,
+				Initiative:   original.Initiative,
+				HP:           original.HP,
+				MaxHP:        original.MaxHP,
+				TempHP:       original.TempHP,
+				AC:           original.AC,
+				ReactionUsed: false, // Reset reaction for new duplicate
+				MonsterData:  original.MonsterData,
+				BaseName:     baseName,
+				MonsterName:  original.MonsterName,
 			}
 
 			// Add to initiative list
