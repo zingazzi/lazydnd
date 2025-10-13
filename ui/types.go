@@ -60,6 +60,10 @@ type Model struct {
 	InitiativeEditMode bool
 	InitiativeEditType string // "initiative", "hp", "delete"
 	InitiativeListMode bool   // When true, navigating the list instead of adding entries
+	// Quick HP adjustment state
+	ShowQuickHPPopup bool   // When true, showing quick HP adjustment popup
+	QuickHPInput     string // HP adjustment amount
+	QuickHPMode      string // "add" or "remove"
 	// Multi-target damage state
 	MultiTargetMode      bool           // When true, selecting multiple targets for damage/healing
 	SelectedTargets      map[int]bool   // Map of selected target indices

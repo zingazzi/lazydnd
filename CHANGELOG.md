@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2.11.0
+- **Quick HP Adjustment Shortcuts** ⚡
+  - **New Keybindings**: Press `+` or `-` for instant HP adjustments
+    - `+` or `=`: Opens popup to add HP (healing)
+    - `-`: Opens popup to remove HP (damage)
+  - **Prominent UI**: Large, visible input field with:
+    - Green thick border for high visibility
+    - Dark background with white text
+    - Shows "0" placeholder when empty
+    - Animated cursor (█) for clear input indication
+  - **Smart Multi-Target**: Works seamlessly with single or multiple targets
+    - Shows target name and HP for single selection
+    - Lists all targets for multi-target mode (press `t` + Space to select)
+    - Apply same HP change to all selected creatures at once
+  - **Full Integration**:
+    - ✅ Added to undo/redo history (Ctrl+Z/Ctrl+Y)
+    - ✅ Properly handles temporary HP absorption
+    - ✅ Uses HP Calculator for safe operations
+    - ✅ Works for both players and monsters
+  - **Benefits**:
+    - ⚡ Much faster than entering edit mode (press `h`)
+    - 👥 Batch healing/damage for multiple creatures
+    - 🎯 No mode switching required - works anytime in Initiative Tracker
+    - 📊 Clear visual feedback with centered popup
+
 ## 2.10.0
 - **Dice Roller UI Redesign** 🎲
   - **Clean, Single-Line Format**: Results on one line with clear visual hierarchy
