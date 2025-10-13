@@ -264,4 +264,3 @@ func TestErrorMessages_UserFriendly(t *testing.T) {
 		t.Error("Full error should contain original error details")
 	}
 }
-

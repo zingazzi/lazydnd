@@ -144,6 +144,8 @@ type HPHistoryEntry struct {
 	EntryIndex int // Index in InitiativeList
 	OldHP      int
 	NewHP      int
+	OldTempHP  int // Track temp HP changes for accurate undo/redo
+	NewTempHP  int
 	MaxHP      int
 	EntryName  string // For debugging/display
 }

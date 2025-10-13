@@ -106,4 +106,3 @@ func WrapErrorf(operation string, err error, format string, args ...interface{})
 	}
 	return NewAppError(operation, err, fmt.Sprintf(format, args...))
 }
-

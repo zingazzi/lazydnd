@@ -449,9 +449,11 @@ func undoHPChange(m Model) Model {
 	lastAction := m.HPUndoStack[len(m.HPUndoStack)-1]
 	m.HPUndoStack = m.HPUndoStack[:len(m.HPUndoStack)-1]
 
-	// Apply old HP value
+	// Apply old HP and temp HP values
 	if lastAction.EntryIndex >= 0 && lastAction.EntryIndex < len(m.InitiativeList) {
-		m.InitiativeList[lastAction.EntryIndex].HP = lastAction.OldHP
+		// Validate values before applying
+		m.InitiativeList[lastAction.EntryIndex].HP = HPCalc.ValidateHP(lastAction.OldHP, m.InitiativeList[lastAction.EntryIndex].MaxHP)
+		m.InitiativeList[lastAction.EntryIndex].TempHP = HPCalc.SetTempHP(lastAction.OldTempHP)
 
 		// Add to redo stack
 		m.HPRedoStack = append(m.HPRedoStack, lastAction)
@@ -473,9 +475,11 @@ func redoHPChange(m Model) Model {
 	lastUndo := m.HPRedoStack[len(m.HPRedoStack)-1]
 	m.HPRedoStack = m.HPRedoStack[:len(m.HPRedoStack)-1]
 
-	// Apply new HP value
+	// Apply new HP and temp HP values
 	if lastUndo.EntryIndex >= 0 && lastUndo.EntryIndex < len(m.InitiativeList) {
-		m.InitiativeList[lastUndo.EntryIndex].HP = lastUndo.NewHP
+		// Validate values before applying
+		m.InitiativeList[lastUndo.EntryIndex].HP = HPCalc.ValidateHP(lastUndo.NewHP, m.InitiativeList[lastUndo.EntryIndex].MaxHP)
+		m.InitiativeList[lastUndo.EntryIndex].TempHP = HPCalc.SetTempHP(lastUndo.NewTempHP)
 
 		// Add back to undo stack
 		m.HPUndoStack = append(m.HPUndoStack, lastUndo)
