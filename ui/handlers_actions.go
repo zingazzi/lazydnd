@@ -4,6 +4,7 @@ package ui
 import (
 	"lazydnd/panels"
 	"reflect"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -17,14 +18,64 @@ func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "r"), nil
 	}
 
-	// Reroll dice command
+	// Check if this is Shift+R (capital R) for reaction toggle
+	isShiftR := msg.String() == "R"
+
+	if isShiftR {
+		// Toggle reaction status in initiative tracker
+		if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+			m.InitiativeList[m.SelectedEntry].ReactionUsed = !m.InitiativeList[m.SelectedEntry].ReactionUsed
+		}
+		return m, nil
+	}
+
+	// Reroll dice command (lowercase 'r')
 	if m.ActivePanel == DiceRoller && !m.InputMode && !m.DiceHistoryMode && m.LastDiceCommand != "" {
-		result := panels.RollDice(m.LastDiceCommand, m.Config)
-		m.DiceResult = result
-		m.addToHistory(result, m.LastDiceCommand)
+		m = rerollDiceCommand(m)
 	}
 
 	return m, nil
+}
+
+// rerollDiceCommand rerolls the last dice command with critical hit detection for monster attacks
+func rerollDiceCommand(m Model) Model {
+	command := m.LastDiceCommand
+
+	// Check if this is a monster attack format: "1d20+X, damage"
+	if strings.Contains(command, ",") && strings.HasPrefix(command, "1d20") {
+		// Split into attack and damage
+		parts := strings.SplitN(command, ",", 2)
+		if len(parts) == 2 {
+			attackCommand := strings.TrimSpace(parts[0])
+			damageCommand := strings.TrimSpace(parts[1])
+
+			// Roll attack first
+			attackResult := panels.RollDice(attackCommand, m.Config)
+
+			// Check for critical hit
+			isCrit := strings.Contains(attackResult, "CRIT") || (strings.Contains(attackResult, "d20: 20") && m.Config.DiceRoller.CriticalHitEnabled)
+
+			// Roll damage (with crit if needed)
+			var damageResult string
+			if isCrit {
+				damageResult = panels.RollDice(damageCommand+" crit", m.Config)
+			} else {
+				damageResult = panels.RollDice(damageCommand, m.Config)
+			}
+
+			// Combine results
+			result := attackResult + "\n\n" + damageResult
+			m.DiceResult = result
+			m.addToHistory(result, command)
+			return m
+		}
+	}
+
+	// Normal reroll for non-attack commands
+	result := panels.RollDice(command, m.Config)
+	m.DiceResult = result
+	m.addToHistory(result, command)
+	return m
 }
 
 // handleP handles the 'p' key
@@ -190,15 +241,16 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 				// Create initiative entry with full monster data link
 				newEntry := InitiativeEntry{
-					Name:        monsterName,
-					Type:        "monster",
-					Initiative:  initiative,
-					HP:          hp,
-					MaxHP:       hp,
-					AC:          ac,
-					MonsterData: m.SelectedMonster, // Link to full monster data
-					BaseName:    monsterName,
-					MonsterName: monsterName, // Store for save/load persistence
+					Name:         monsterName,
+					Type:         "monster",
+					Initiative:   initiative,
+					HP:           hp,
+					MaxHP:        hp,
+					AC:           ac,
+					ReactionUsed: false, // Initialize reaction as available
+					MonsterData:  m.SelectedMonster, // Link to full monster data
+					BaseName:     monsterName,
+					MonsterName:  monsterName, // Store for save/load persistence
 				}
 
 				// Add to initiative list
@@ -298,14 +350,17 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 			// Create a duplicate with same stats
 			duplicate := InitiativeEntry{
-				Name:        baseName, // Use base name, will be renumbered
-				Type:        original.Type,
-				Initiative:  original.Initiative,
-				HP:          original.HP,
-				MaxHP:       original.MaxHP,
-				AC:          original.AC,
-				MonsterData: original.MonsterData,
-				BaseName:    baseName,
+				Name:         baseName, // Use base name, will be renumbered
+				Type:         original.Type,
+				Initiative:   original.Initiative,
+				HP:           original.HP,
+				MaxHP:        original.MaxHP,
+				TempHP:       original.TempHP,
+				AC:           original.AC,
+				ReactionUsed: false, // Reset reaction for new duplicate
+				MonsterData:  original.MonsterData,
+				BaseName:     baseName,
+				MonsterName:  original.MonsterName,
 			}
 
 			// Add to initiative list

@@ -88,12 +88,15 @@ type Model struct {
 	CastSpellInputMode  bool
 	SpellToCast         *Spell // Spell waiting to be cast
 	// Help popup state
-	ShowHelpPopup bool
+	ShowHelpPopup       bool
+	HelpPopupScrollOffset int
 	// Action popup state
 	ShowActionPopup    bool
-	ActionPopupActions []MonsterAction
-	ActionPopupIndex   int
-	ActionPopupMonster string // Name of the monster whose actions are shown
+	ActionPopupActions      []MonsterAction
+	ActionPopupIndex        int
+	ActionPopupMonster      string
+	ActionPopupAdvantage    bool // Roll attack with advantage
+	ActionPopupDisadvantage bool // Roll attack with disadvantage
 	// Saving throw popup state
 	ShowSavingThrowPopup bool
 	// Condition management state
@@ -141,6 +144,8 @@ type HPHistoryEntry struct {
 	EntryIndex int // Index in InitiativeList
 	OldHP      int
 	NewHP      int
+	OldTempHP  int // Track temp HP changes for accurate undo/redo
+	NewTempHP  int
 	MaxHP      int
 	EntryName  string // For debugging/display
 }
@@ -155,17 +160,19 @@ type Condition struct {
 
 // InitiativeEntry represents a player or monster in the initiative tracker
 type InitiativeEntry struct {
-	Name        string
-	Type        string // "player" or "monster"
-	Initiative  int
-	HP          int         // Only for monsters
-	MaxHP       int         // Only for monsters
-	AC          int         // Only for monsters
-	MonsterData *Monster    // Link to full monster data for actions
-	InstanceNum int         // Instance number for duplicates (0 = no number shown)
-	BaseName    string      // Original name without number
-	MonsterName string      // Original monster name for save/load persistence
-	Conditions  []Condition // Active conditions on this creature
+	Name         string
+	Type         string // "player" or "monster"
+	Initiative   int
+	HP           int         // Only for monsters
+	MaxHP        int         // Only for monsters
+	TempHP       int         // Temporary HP (absorbed before real HP)
+	AC           int         // Only for monsters
+	ReactionUsed bool        // Whether reaction has been used this round
+	MonsterData  *Monster    // Link to full monster data for actions
+	InstanceNum  int         // Instance number for duplicates (0 = no number shown)
+	BaseName     string      // Original name without number
+	MonsterName  string      // Original monster name for save/load persistence
+	Conditions   []Condition // Active conditions on this creature
 }
 
 // Spell represents a D&D spell
@@ -255,15 +262,17 @@ type SaveState struct {
 
 // SavedInitiativeEntry represents an initiative entry for persistence
 type SavedInitiativeEntry struct {
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Initiative  int    `json:"initiative"`
-	HP          int    `json:"hp"`
-	MaxHP       int    `json:"max_hp"`
-	AC          int    `json:"ac"`
-	MonsterName string `json:"monster_name"`
-	InstanceNum int    `json:"instance_num"`
-	BaseName    string `json:"base_name"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	Initiative   int    `json:"initiative"`
+	HP           int    `json:"hp"`
+	MaxHP        int    `json:"max_hp"`
+	TempHP       int    `json:"temp_hp"`
+	AC           int    `json:"ac"`
+	ReactionUsed bool   `json:"reaction_used"`
+	MonsterName  string `json:"monster_name"`
+	InstanceNum  int    `json:"instance_num"`
+	BaseName     string `json:"base_name"`
 }
 
 // Note represents a campaign note entry

@@ -44,17 +44,6 @@ LazyDnD comes with 35+ built-in macros for popular D&D 5e spells and attacks. Ju
 - `disintegrate` - 10d6+40
 - `finger_of_death` - 7d8+30
 
-## 🗡️ Sneak Attack Combos
-- `sneak_attack_1d6` - 1d20+1d6
-- `sneak_attack_2d6` - 1d20+2d6
-- `sneak_attack_3d6` - 1d20+3d6
-- `sneak_attack_4d6` - 1d20+4d6
-
-## ✨ Divine Smite
-- `divine_smite_1d8` - 1d8
-- `divine_smite_2d8` - 2d8
-- `divine_smite_3d8` - 3d8
-
 ## 📝 Custom Macros
 
 You can override any preset or create your own:

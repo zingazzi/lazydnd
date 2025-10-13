@@ -19,36 +19,51 @@ func handleT(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Need to have entries in initiative list
+	// Check if this is Shift+T (capital T) for temp HP
+	isShiftT := msg.String() == "T"
+	if isShiftT && m.InitiativeListMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		originalIndex := findOriginalIndex(m, m.SelectedEntry)
+		if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
+			// Enter temp HP edit mode
+			m.InitiativeEditMode = true
+			m.InitiativeEditType = "temphp"
+			m.InitiativeInput = ""
+			return m, nil
+		}
+	}
+
+	// Need to have entries in initiative list for multi-target
 	if len(m.InitiativeList) == 0 {
 		return m, nil
 	}
 
-	// Toggle multi-target mode
-	if !m.MultiTargetMode {
-		// Enter multi-target mode
-		m.MultiTargetMode = true
-		m.InitiativeListMode = true // Ensure list mode is active
+	// Toggle multi-target mode (only if not in edit mode and lowercase t)
+	if !m.InitiativeEditMode && !isShiftT {
+		if !m.MultiTargetMode {
+			// Enter multi-target mode
+			m.MultiTargetMode = true
+			m.InitiativeListMode = true // Ensure list mode is active
 
-		// Ensure SelectedEntry is valid
-		if m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
-			m.SelectedEntry = 0 // Start with first entry selected
+			// Ensure SelectedEntry is valid
+			if m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
+				m.SelectedEntry = 0 // Start with first entry selected
+			}
+
+			m.SelectedTargets = make(map[int]bool)
+			m.TargetSaveResults = make(map[int]string)
+			// Exit any edit modes
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		} else {
+			// Exit multi-target mode but stay in list mode
+			m.MultiTargetMode = false
+			m.SelectedTargets = make(map[int]bool)
+			m.ShowMultiTargetPopup = false
+			m.MultiTargetInput = ""
+			m.TargetSaveResults = make(map[int]string)
+			// Stay in list mode with current selection
 		}
-
-		m.SelectedTargets = make(map[int]bool)
-		m.TargetSaveResults = make(map[int]string)
-		// Exit any edit modes
-		m.InitiativeEditMode = false
-		m.InitiativeEditType = ""
-		m.InitiativeInput = ""
-	} else {
-		// Exit multi-target mode but stay in list mode
-		m.MultiTargetMode = false
-		m.SelectedTargets = make(map[int]bool)
-		m.ShowMultiTargetPopup = false
-		m.MultiTargetInput = ""
-		m.TargetSaveResults = make(map[int]string)
-		// Stay in list mode with current selection
 	}
 
 	return m, nil

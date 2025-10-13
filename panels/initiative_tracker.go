@@ -43,6 +43,9 @@ var (
 
 	criticalStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF0000")) // Red (< 25%)
+
+	tempHPStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00FFFF")) // Cyan for temp HP
 )
 
 // getColoredHP returns HP text with color coding based on percentage
@@ -73,6 +76,25 @@ func getColoredHP(hp, maxHP int) string {
 
 	// Format HP text
 	return style.Render(fmt.Sprintf("HP: %d/%d", hp, maxHP))
+}
+
+// getColoredHPWithTemp returns HP text with temp HP in cyan
+// Returns a styled string like "HP: 7/10 +5" with appropriate colors
+func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
+	if maxHP <= 0 {
+		return ""
+	}
+
+	// Get the colored HP part
+	hpPart := getColoredHP(hp, maxHP)
+
+	// Add temp HP if present
+	if tempHP > 0 {
+		tempPart := tempHPStyle.Render(fmt.Sprintf(" +%d", tempHP))
+		return hpPart + tempPart
+	}
+
+	return hpPart
 }
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
@@ -133,6 +155,10 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 				prompt = "New Initiative: "
 			case "hp":
 				prompt = "HP Change (+heal/-damage): "
+			case "maxhp":
+				prompt = "Max HP: "
+			case "temphp":
+				prompt = "Temporary HP: "
 			case "delete":
 				prompt = "Press Enter to confirm deletion"
 			}
@@ -194,14 +220,16 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 
 				// Parse entries into a sortable structure
 				type ParsedEntry struct {
-					Name       string
-					Type       string
-					Initiative int
-					HP         string
-					MaxHP      string
-					AC         string
-					RawEntry   string
-					Conditions []Condition
+					Name         string
+					Type         string
+					Initiative   int
+					HP           string
+					MaxHP        string
+					TempHP       string
+					AC           string
+					ReactionUsed string
+					RawEntry     string
+					Conditions   []Condition
 				}
 
 				var parsedEntries []ParsedEntry
@@ -221,14 +249,16 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							}
 						}
 
-						hp := extractField(entry, "HP:")
-						maxHP := extractField(entry, "MaxHP:")
-						ac := extractField(entry, "AC:")
+					hp := extractField(entry, "HP:")
+					maxHP := extractField(entry, "MaxHP:")
+					tempHP := extractField(entry, "TempHP:")
+					ac := extractField(entry, "AC:")
+					reactionUsed := extractField(entry, "ReactionUsed:")
 
-						// DEBUG: Print what we're about to parse
-						_ = entryIdx // Use the variable to avoid unused error
+					// DEBUG: Print what we're about to parse
+					_ = entryIdx // Use the variable to avoid unused error
 
-						// Extract conditions if present
+					// Extract conditions if present
 						var conditions []Condition
 						if strings.Contains(entry, "Conditions:[") {
 							// Find the Conditions array in the string
@@ -294,16 +324,18 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							}
 						}
 
-						parsedEntries = append(parsedEntries, ParsedEntry{
-							Name:       name,
-							Type:       entryType,
-							Initiative: initiative,
-							HP:         hp,
-							MaxHP:      maxHP,
-							AC:         ac,
-							RawEntry:   entry,
-							Conditions: conditions,
-						})
+					parsedEntries = append(parsedEntries, ParsedEntry{
+						Name:         name,
+						Type:         entryType,
+						Initiative:   initiative,
+						HP:           hp,
+						MaxHP:        maxHP,
+						TempHP:       tempHP,
+						AC:           ac,
+						ReactionUsed: reactionUsed,
+						RawEntry:     entry,
+						Conditions:   conditions,
+					})
 					}
 				}
 
@@ -402,12 +434,24 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							maxHPInt, _ = strconv.Atoi(entry.MaxHP)
 						}
 
-						// Get colored HP text
-						coloredHP := getColoredHP(hpInt, maxHPInt)
+					// Get colored HP text with temp HP
+					tempHPInt := 0
+					if entry.TempHP != "" {
+						tempHPInt, _ = strconv.Atoi(entry.TempHP)
+					}
+					coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt)
 
-						// Format line with colored HP
-						line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s",
-							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, conditionIcons)
+					// Get reaction indicator
+					reactionIcon := ""
+					if entry.ReactionUsed == "true" {
+						reactionIcon = " [✗]" // Reaction used
+					} else if entry.ReactionUsed == "false" {
+						reactionIcon = " [✓]" // Reaction available
+					}
+
+					// Format line with colored HP
+					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
+							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
 
 						// Apply style (selected or normal monster style)
 						if listMode && selectedEntry == i {
@@ -416,7 +460,15 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							line = monsterStyle.Render(line)
 						}
 					} else {
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+						// Get reaction indicator for players too
+						reactionIcon := ""
+						if entry.ReactionUsed == "true" {
+							reactionIcon = " [✗]" // Reaction used
+						} else if entry.ReactionUsed == "false" {
+							reactionIcon = " [✓]" // Reaction available
+						}
+
+						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, reactionIcon, conditionIcons)
 						if listMode && selectedEntry == i {
 							line = selectedEntryStyle.Render("► " + line)
 						}
@@ -498,29 +550,43 @@ func RollInitiative() int {
 // ParseInput parses and validates user input based on the specified input type.
 //
 // Supported input types:
-//   - "player_name", "monster_name": Validates non-empty trimmed strings
-//   - "player_initiative", "player_ac": Parses positive integers for player stats
-//   - "monster_initiative": Parses positive integers or "r" to roll
-//   - "monster_hp", "monster_ac": Parses positive integers for monster stats
+//   - "player_name", "monster_name": Validates non-empty trimmed strings with length/character limits
+//   - "player_initiative", "monster_initiative", "initiative": Validates initiative values (-10 to 99)
+//   - "player_ac", "monster_ac": Validates armor class (0 to 99)
+//   - "monster_hp": Validates hit points (0 to 9999)
 //   - "hp_change": Parses signed integers ("+5" or "-10") for HP modifications
+//   - "maxhp": Validates maximum HP (1 to 9999)
+//   - "temphp": Validates temporary HP (0 to 9999)
 //
 // Returns the parsed value (string or int) or an error if validation fails.
 // For "monster_initiative" with input "r", automatically rolls a d20.
 func ParseInput(input string, inputType string) (interface{}, error) {
 	switch inputType {
 	case "player_name", "monster_name":
-		if strings.TrimSpace(input) == "" {
+		name := strings.TrimSpace(input)
+		if name == "" {
 			return nil, fmt.Errorf("name cannot be empty")
 		}
-		return strings.TrimSpace(input), nil
+		if len(name) > 50 {
+			return nil, fmt.Errorf("name too long (max 50 characters)")
+		}
+		// Allow letters, numbers, spaces, hyphens, apostrophes, underscores
+		for _, char := range name {
+			if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') ||
+				(char >= '0' && char <= '9') || char == ' ' || char == '-' ||
+				char == '\'' || char == '_') {
+				return nil, fmt.Errorf("name contains invalid characters")
+			}
+		}
+		return name, nil
 
-	case "player_initiative", "player_ac", "monster_hp", "monster_ac":
+	case "player_initiative", "initiative":
 		val, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			return nil, fmt.Errorf("must be a number")
 		}
-		if val < 0 {
-			return nil, fmt.Errorf("must be positive")
+		if val < -10 || val > 99 {
+			return nil, fmt.Errorf("initiative must be -10 to 99")
 		}
 		return val, nil
 
@@ -533,24 +599,35 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		if err != nil {
 			return nil, fmt.Errorf("enter a number or 'r' to roll")
 		}
-		if val < 0 {
-			return nil, fmt.Errorf("must be positive")
+		if val < -10 || val > 99 {
+			return nil, fmt.Errorf("initiative must be -10 to 99")
 		}
 		return val, nil
 
-	case "initiative":
-		// Edit initiative value
+	case "player_ac", "monster_ac":
+		val, err := strconv.Atoi(strings.TrimSpace(input))
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 0 || val > 99 {
+			return nil, fmt.Errorf("AC must be 0 to 99")
+		}
+		return val, nil
+
+	case "monster_hp":
 		val, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			return nil, fmt.Errorf("must be a number")
 		}
 		if val < 0 {
-			return nil, fmt.Errorf("must be positive")
+			return nil, fmt.Errorf("HP cannot be negative")
+		}
+		if val > 9999 {
+			return nil, fmt.Errorf("HP too high (max 9999)")
 		}
 		return val, nil
 
 	case "hp_change":
-		// HP change (can be positive or negative)
 		input = strings.TrimSpace(input)
 		if input == "" {
 			return nil, fmt.Errorf("enter a number (+ to heal, - to damage)")
@@ -559,10 +636,12 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		if err != nil {
 			return nil, fmt.Errorf("must be a number (+ to heal, - to damage)")
 		}
+		if val < -9999 || val > 9999 {
+			return nil, fmt.Errorf("value too extreme (max 9999)")
+		}
 		return val, nil
 
 	case "maxhp":
-		// Max HP (absolute value)
 		input = strings.TrimSpace(input)
 		if input == "" {
 			return nil, fmt.Errorf("enter a number")
@@ -573,6 +652,26 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 		}
 		if val < 1 {
 			return nil, fmt.Errorf("must be at least 1")
+		}
+		if val > 9999 {
+			return nil, fmt.Errorf("max HP too high (max 9999)")
+		}
+		return val, nil
+
+	case "temphp":
+		input = strings.TrimSpace(input)
+		if input == "" {
+			return nil, fmt.Errorf("enter a number (0 to clear)")
+		}
+		val, err := strconv.Atoi(input)
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 0 {
+			return nil, fmt.Errorf("temp HP cannot be negative")
+		}
+		if val > 9999 {
+			return nil, fmt.Errorf("temp HP too high (max 9999)")
 		}
 		return val, nil
 	}

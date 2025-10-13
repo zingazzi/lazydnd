@@ -1,4 +1,3 @@
-# /Users/marcozingoni/Playgound/lazydnd/validate_monsters.py
 #!/usr/bin/env python3
 """Validate the updated monsters.json file"""
 
