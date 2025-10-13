@@ -40,6 +40,7 @@ func ClearTestSaveDirectory() {
 }
 
 // SaveCampaign saves the current campaign state to a JSON file
+// Returns an AppError with user-friendly messages on failure
 func SaveCampaign(m Model, campaignName string) error {
 	// Get save directory path
 	saveDir, err := getSaveDirectory()

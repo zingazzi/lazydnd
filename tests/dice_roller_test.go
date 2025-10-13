@@ -178,7 +178,7 @@ func TestParseInput(t *testing.T) {
 			name:      "Negative initiative",
 			input:     "-5",
 			inputType: "player_initiative",
-			wantError: true,
+			wantError: false, // Now allows -10 to 99
 		},
 		{
 			name:      "Valid HP",

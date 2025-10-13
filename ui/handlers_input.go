@@ -409,7 +409,8 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle text input for dice commands
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		// Allow alphanumeric characters and common symbols for dice notation and macros
-		if len(key) == 1 && ((key >= "a" && key <= "z") ||
+		// Limit input length to prevent abuse
+		if len(key) == 1 && len(m.DiceInput) < 100 && ((key >= "a" && key <= "z") ||
 			(key >= "A" && key <= "Z") ||
 			(key >= "0" && key <= "9") ||
 			key == "+" || key == "-" || key == "d" || key == " " || key == "," || key == "=" || key == "_") {
