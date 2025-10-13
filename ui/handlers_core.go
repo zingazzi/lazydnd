@@ -99,6 +99,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleConditionPopupInput(m, msg)
 	}
 
+	// Handle action popup input (but not Enter key - that goes to handleEnter)
+	if m.ShowActionPopup && key != "enter" {
+		return handleActionPopupInput(m, key)
+	}
+
 	// Handle save popup input
 	if m.ShowSavePopup {
 		return handleSavePopupInput(m, msg)

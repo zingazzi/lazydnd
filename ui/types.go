@@ -92,9 +92,11 @@ type Model struct {
 	HelpPopupScrollOffset int
 	// Action popup state
 	ShowActionPopup    bool
-	ActionPopupActions []MonsterAction
-	ActionPopupIndex   int
-	ActionPopupMonster string // Name of the monster whose actions are shown
+	ActionPopupActions      []MonsterAction
+	ActionPopupIndex        int
+	ActionPopupMonster      string
+	ActionPopupAdvantage    bool // Roll attack with advantage
+	ActionPopupDisadvantage bool // Roll attack with disadvantage
 	// Saving throw popup state
 	ShowSavingThrowPopup bool
 	// Condition management state

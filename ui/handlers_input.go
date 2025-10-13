@@ -150,6 +150,14 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		if selectedAction.Roll != "" && selectedAction.Damage != "" {
 			// Attack with damage - roll attack first to check for crit
 			attackCommand := "1d20" + selectedAction.Roll
+			
+			// Add advantage/disadvantage if applicable
+			if m.ActionPopupAdvantage {
+				attackCommand += " adv"
+			} else if m.ActionPopupDisadvantage {
+				attackCommand += " dis"
+			}
+			
 			attackResult := panels.RollDice(attackCommand, m.Config)
 
 			// Check if it's a critical hit (contains "CRIT" indicator or d20: 20)
@@ -190,11 +198,13 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.addToHistory(result, diceCommand)
 		}
 
-		// Close the popup
+		// Close the popup and reset flags
 		m.ShowActionPopup = false
 		m.ActionPopupActions = []MonsterAction{}
 		m.ActionPopupIndex = 0
 		m.ActionPopupMonster = ""
+		m.ActionPopupAdvantage = false
+		m.ActionPopupDisadvantage = false
 
 		return m, nil
 	}
