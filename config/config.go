@@ -36,9 +36,11 @@ type AutoSaveConfig struct {
 
 // DiceRollerConfig for dice roller settings
 type DiceRollerConfig struct {
-	HistorySize    int  `json:"history_size"`    // Number of rolls to keep in history
-	ShowIndividual bool `json:"show_individual"` // Show individual die results
-	MinimumValue   int  `json:"minimum_value"`   // Minimum roll value (D&D standard: 1)
+	HistorySize        int    `json:"history_size"`        // Number of rolls to keep in history
+	ShowIndividual     bool   `json:"show_individual"`     // Show individual die results
+	MinimumValue       int    `json:"minimum_value"`       // Minimum roll value (D&D standard: 1)
+	CriticalHitEnabled bool   `json:"critical_hit_enabled"` // Enable critical hit detection
+	CriticalHitMode    string `json:"critical_hit_mode"`    // "double" or "max" - how to calculate crit damage
 }
 
 // InitiativeConfig for initiative tracker settings
@@ -83,9 +85,11 @@ func Default() *Config {
 			IntervalMinutes: 5,
 		},
 		DiceRoller: DiceRollerConfig{
-			HistorySize:    15,
-			ShowIndividual: true,
-			MinimumValue:   1,
+			HistorySize:        15,
+			ShowIndividual:     true,
+			MinimumValue:       1,
+			CriticalHitEnabled: true,
+			CriticalHitMode:    "double", // "double" or "max"
 		},
 		InitiativeTracker: InitiativeConfig{
 			AutoSort:        true,

@@ -6,7 +6,7 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 
 ## Features
 
-🎲 **Dice Roller Panel** - Roll any dice with simple commands (2d6, 1d20+5, etc.)
+🎲 **Dice Roller Panel** - Roll any dice with simple commands (2d6, 1d20+5, etc.) + Critical Hit Detection
 ⚔️ **Initiative Tracker Panel** - Manage combat initiative for players and monsters
 🎨 **Color-Coded HP** - HP display changes color based on health (green/orange/red)
 ✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
@@ -234,6 +234,18 @@ Browse spells by spell level with autocomplete:
 - **Complex Expressions**: `1d6+3+2d8-5`, `2d6-1d4+3`
 - **Comma-Separated**: `1d8+3, 3d6-1` (rolls multiple expressions)
 - **Advantage/Disadvantage**: `1d20 adv`, `2d6 dis`
+- **Critical Damage**: `2d8 crit`, `3d6+5 crit` (auto-doubles dice or max damage)
+
+**🎯 Critical Hit System:**
+- **Auto-Detection**: Natural 20 on d20 rolls shows ★ CRITICAL HIT! ★ banner with 🎯 icon
+- **Manual Crits**: Roll critical damage with `2d8 crit`, `3d6+5 crit`, etc.
+- **Two Modes** (configurable in `~/.config/lazydnd/config.json`):
+  - `"double"` (default): Roll all damage dice twice (D&D 5e standard)
+    - Example: `2d8 crit` → rolls 4d8 total (2d8 + 2d8)
+  - `"max"`: Maximum damage + one roll (popular house rule)
+    - Example: `2d8 crit` → 16 (max) + 1 roll of 2d8
+- **Visual Celebration**: Gold and dark red banner, target emoji 🎯
+- **Enable/Disable**: Set `critical_hit_enabled: false` in config to turn off
 
 **🔥 Preset Spell Macros (35+ Built-in):**
 Just type the spell name and press Enter:

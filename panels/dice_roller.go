@@ -22,6 +22,8 @@ const (
 var (
 	currentMinValue       = 1
 	currentShowIndividual = true
+	currentCritEnabled    = true
+	currentCritMode       = "double"
 )
 
 // ValidDiceTypes defines the standard D&D dice types plus Zocchi's dice
@@ -43,7 +45,121 @@ var (
 			Padding(0, 1).
 			Margin(1, 0).
 			MaxWidth(35)
+
+	critStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#FFD700")). // Gold color
+			Background(lipgloss.Color("#8B0000")). // Dark red background
+			Padding(0, 1)
 )
+
+// getCriticalHitBanner returns a celebratory banner for critical hits
+func getCriticalHitBanner() string {
+	banner := critStyle.Render("★ ═══ CRITICAL HIT! ═══ ★")
+	return banner
+}
+
+// handleCriticalDamageRoll handles rolling critical damage based on the configured mode
+// Supports two modes:
+//   - "double": Roll all damage dice twice (standard D&D 5e)
+//   - "max": Maximum damage + one roll (popular house rule)
+func handleCriticalDamageRoll(command string) string {
+	// Parse the dice expression
+	parts := strings.Split(command, "d")
+	if len(parts) != 2 {
+		return "Invalid crit format. Use: XdY crit (e.g., 2d8 crit)"
+	}
+
+	numDice := 1
+	if parts[0] != "" {
+		var err error
+		numDice, err = strconv.Atoi(parts[0])
+		if err != nil || numDice < MinDiceValue || numDice > MaxDicePerRoll {
+			return fmt.Sprintf("Invalid number of dice (%d-%d)", MinDiceValue, MaxDicePerRoll)
+		}
+	}
+
+	// Parse dice type and modifier
+	modifier := 0
+	diceType := parts[1]
+	if strings.Contains(diceType, "+") {
+		modParts := strings.Split(diceType, "+")
+		if len(modParts) == 2 {
+			diceType = modParts[0]
+			var err error
+			modifier, err = strconv.Atoi(modParts[1])
+			if err != nil {
+				return "Invalid modifier"
+			}
+		}
+	} else if strings.Contains(diceType, "-") {
+		modParts := strings.Split(diceType, "-")
+		if len(modParts) == 2 {
+			diceType = modParts[0]
+			mod, err := strconv.Atoi(modParts[1])
+			if err != nil {
+				return "Invalid modifier"
+			}
+			modifier = -mod
+		}
+	}
+
+	sides, err := strconv.Atoi(diceType)
+	if err != nil || sides < MinDiceValue {
+		return "Invalid dice type"
+	}
+
+	if err := validateDiceType(sides); err != nil {
+		return err.Error()
+	}
+
+	// Roll critical damage based on mode
+	var total int
+	var rolls []int
+	var displayText string
+
+	if currentCritMode == "max" {
+		// Max damage mode: max value for all dice + one normal roll
+		maxDamage := numDice * sides
+		normalTotal, normalRolls := rollDiceSet(numDice, sides)
+		total = maxDamage + normalTotal
+		rolls = normalRolls
+
+		rollsStr := make([]string, len(rolls))
+		for i, roll := range rolls {
+			rollsStr[i] = strconv.Itoa(roll)
+		}
+
+		displayText = fmt.Sprintf("Max: %d + Roll: %d [%s]", maxDamage, normalTotal, strings.Join(rollsStr, ", "))
+	} else {
+		// Double dice mode: roll all dice twice
+		total1, rolls1 := rollDiceSet(numDice, sides)
+		total2, rolls2 := rollDiceSet(numDice, sides)
+		total = total1 + total2
+		rolls = append(rolls1, rolls2...)
+
+		rollsStr1 := make([]string, len(rolls1))
+		rollsStr2 := make([]string, len(rolls2))
+		for i := range rolls1 {
+			rollsStr1[i] = strconv.Itoa(rolls1[i])
+			rollsStr2[i] = strconv.Itoa(rolls2[i])
+		}
+
+		displayText = fmt.Sprintf("[%s] + [%s]", strings.Join(rollsStr1, ", "), strings.Join(rollsStr2, ", "))
+	}
+
+	finalTotal := total + modifier
+
+	// Format result with banner
+	result := getCriticalHitBanner() + "\n"
+	result += fmt.Sprintf("TOTAL: %d 🎯\n", finalTotal)
+	result += fmt.Sprintf("%d (%dd%d × 2): %s", total, numDice, sides, displayText)
+	if modifier != 0 {
+		result += fmt.Sprintf(" %+d", modifier)
+	}
+
+	return result
+}
 
 // GetDiceRollerContent returns the formatted content for the dice roller panel.
 // It displays input mode, history mode, or the current dice result along with
@@ -149,14 +265,27 @@ func RollDice(command string, cfg *config.Config) string {
 			currentMinValue = 1
 		}
 		currentShowIndividual = cfg.DiceRoller.ShowIndividual
+		currentCritEnabled = cfg.DiceRoller.CriticalHitEnabled
+		currentCritMode = cfg.DiceRoller.CriticalHitMode
 	} else {
 		currentMinValue = 1
 		currentShowIndividual = true
+		currentCritEnabled = true
+		currentCritMode = "double"
 	}
 
 	// Check for comma-separated rolls (e.g., "2d8, 3d6")
 	if strings.Contains(command, ",") {
 		return handleMultipleRolls(command)
+	}
+
+	// Check for critical hit modifier
+	var critRoll bool
+	if strings.HasSuffix(command, " crit") || strings.HasSuffix(command, " critical") {
+		critRoll = true
+		command = strings.TrimSuffix(command, " crit")
+		command = strings.TrimSuffix(command, " critical")
+		command = strings.TrimSpace(command)
 	}
 
 	// Check for advantage/disadvantage
@@ -178,7 +307,16 @@ func RollDice(command string, cfg *config.Config) string {
 
 	// Check for multiple dice expressions with + (e.g., "2d8+3d6")
 	if hasMultipleDiceExpressions(command) {
-		return handleMultipleDiceExpressions(command, advantage, disadvantage)
+		result := handleMultipleDiceExpressions(command, advantage, disadvantage)
+		if critRoll && currentCritEnabled {
+			return getCriticalHitBanner() + "\n" + result + " 🎯"
+		}
+		return result
+	}
+
+	// Handle crit rolls for damage dice
+	if critRoll && currentCritEnabled {
+		return handleCriticalDamageRoll(command)
 	}
 
 	// Handle simple dice notation
@@ -225,10 +363,29 @@ func RollDice(command string, cfg *config.Config) string {
 				resultType = "DIS"
 			}
 
-			return fmt.Sprintf("d20 %s: %d (%d, %d)", resultType, result, roll1, roll2)
+			// Check for crit
+			isCrit := currentCritEnabled && result == 20
+			resultStr := ""
+			if isCrit {
+				resultStr = getCriticalHitBanner() + "\n"
+			}
+			resultStr += fmt.Sprintf("d20 %s: %d (%d, %d)", resultType, result, roll1, roll2)
+			if isCrit {
+				resultStr += " 🎯"
+			}
+			return resultStr
 		} else {
 			result := rand.Intn(20) + 1
-			return fmt.Sprintf("d20: %d", result)
+			isCrit := currentCritEnabled && result == 20
+			resultStr := ""
+			if isCrit {
+				resultStr = getCriticalHitBanner() + "\n"
+			}
+			resultStr += fmt.Sprintf("d20: %d", result)
+			if isCrit {
+				resultStr += " 🎯"
+			}
+			return resultStr
 		}
 	}
 	if command == "d100" || command == "1d100" {
@@ -255,18 +412,75 @@ func validateDiceType(sides int) error {
 	return fmt.Errorf("invalid dice type: d%d (allowed: d3, d4, d5, d6, d7, d8, d10, d12, d14, d16, d20, d24, d30, d100)", sides)
 }
 
+// rollSingleDiceExpressionWithDetails rolls a dice expression and returns total, rolls, and whether it's a crit
+func rollSingleDiceExpressionWithDetails(expr string, advantage, disadvantage bool) (int, []int, bool) {
+	// Parse the expression
+	parts := strings.Split(expr, "d")
+	if len(parts) != 2 {
+		return -1, nil, false
+	}
+
+	numDice := 1
+	if parts[0] != "" {
+		var err error
+		numDice, err = strconv.Atoi(parts[0])
+		if err != nil || numDice < MinDiceValue || numDice > MaxDicePerRoll {
+			return -1, nil, false
+		}
+	}
+
+	sides, err := strconv.Atoi(parts[1])
+	if err != nil || sides < MinDiceValue {
+		return -1, nil, false
+	}
+
+	if err := validateDiceType(sides); err != nil {
+		return -1, nil, false
+	}
+
+	// Roll dice
+	if advantage || disadvantage {
+		total1, rolls1 := rollDiceSet(numDice, sides)
+		total2, rolls2 := rollDiceSet(numDice, sides)
+
+		if advantage {
+			if total1 >= total2 {
+				isCrit := currentCritEnabled && numDice == 1 && sides == 20 && rolls1[0] == 20
+				return total1, rolls1, isCrit
+			}
+			isCrit := currentCritEnabled && numDice == 1 && sides == 20 && rolls2[0] == 20
+			return total2, rolls2, isCrit
+		} else {
+			if total1 <= total2 {
+				isCrit := currentCritEnabled && numDice == 1 && sides == 20 && rolls1[0] == 20
+				return total1, rolls1, isCrit
+			}
+			isCrit := currentCritEnabled && numDice == 1 && sides == 20 && rolls2[0] == 20
+			return total2, rolls2, isCrit
+		}
+	}
+
+	total, rolls := rollDiceSet(numDice, sides)
+	isCrit := currentCritEnabled && numDice == 1 && sides == 20 && rolls[0] == 20
+	return total, rolls, isCrit
+}
+
 // evaluateExpressions evaluates a list of dice/number expressions with operators.
-// Returns the results array and formatted result strings, or an error.
-func evaluateExpressions(expressions []string, advantage, disadvantage bool) ([]int, []string, error) {
+// Returns the results array, formatted result strings, whether any roll was a crit, or an error.
+func evaluateExpressions(expressions []string, advantage, disadvantage bool) ([]int, []string, bool, error) {
 	var results []int
 	var resultStrings []string
+	hasCrit := false
 
 	for _, expr := range expressions {
 		// Check if it's a dice expression or just a number
 		if strings.Contains(expr, "d") {
-			result := rollSingleDiceExpression(expr, advantage, disadvantage)
+			result, _, isCrit := rollSingleDiceExpressionWithDetails(expr, advantage, disadvantage)
 			if result == -1 {
-				return nil, nil, fmt.Errorf("invalid dice expression: %s", expr)
+				return nil, nil, false, fmt.Errorf("invalid dice expression: %s", expr)
+			}
+			if isCrit {
+				hasCrit = true
 			}
 			results = append(results, result)
 			resultStrings = append(resultStrings, fmt.Sprintf("%d (%s)", result, expr))
@@ -274,14 +488,14 @@ func evaluateExpressions(expressions []string, advantage, disadvantage bool) ([]
 			// It's just a number
 			num, err := strconv.Atoi(expr)
 			if err != nil {
-				return nil, nil, fmt.Errorf("invalid number: %s", expr)
+				return nil, nil, false, fmt.Errorf("invalid number: %s", expr)
 			}
 			results = append(results, num)
 			resultStrings = append(resultStrings, expr)
 		}
 	}
 
-	return results, resultStrings, nil
+	return results, resultStrings, hasCrit, nil
 }
 
 // calculateTotal calculates the total from results array using the provided operators.
@@ -436,6 +650,9 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 			total += roll
 		}
 
+		// Check for critical hit (natural 20 on d20)
+		isCrit := currentCritEnabled && numDice == 1 && sides == 20 && rolls[0] == 20
+
 		// Format result
 		rollsStr := make([]string, len(rolls))
 		for i, roll := range rolls {
@@ -450,7 +667,16 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 		}
 
 		// Format result - Total first, then breakdown
-		result := fmt.Sprintf("TOTAL: %d\n", finalTotal)
+		result := ""
+		if isCrit {
+			result = getCriticalHitBanner() + "\n"
+		}
+
+		result += fmt.Sprintf("TOTAL: %d", finalTotal)
+		if isCrit {
+			result += " 🎯"
+		}
+		result += "\n"
 		result += fmt.Sprintf("%d (%s): [%s]", total, diceExpr, strings.Join(rollsStr, ", "))
 		if modifier != 0 {
 			result += fmt.Sprintf(" %+d", modifier)
@@ -505,7 +731,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 	}
 
 	// Evaluate all expressions
-	results, resultStrings, err := evaluateExpressions(expressions, advantage, disadvantage)
+	results, resultStrings, hasCrit, err := evaluateExpressions(expressions, advantage, disadvantage)
 	if err != nil {
 		return err.Error()
 	}
@@ -514,7 +740,16 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 	total := calculateTotal(results, operators)
 
 	// Format result - Total first, then breakdown
-	resultStr := fmt.Sprintf("TOTAL: %d", total)
+	resultStr := ""
+	if hasCrit {
+		resultStr = getCriticalHitBanner() + "\n"
+	}
+
+	resultStr += fmt.Sprintf("TOTAL: %d", total)
+
+	if hasCrit {
+		resultStr += " 🎯"
+	}
 
 	if advantage {
 		resultStr += " (ADV)"
@@ -535,6 +770,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 }
 
 // rollSingleDiceExpression rolls a single dice expression and returns the total
+// Returns -1 for invalid expressions
 func rollSingleDiceExpression(expr string, advantage, disadvantage bool) int {
 	// Parse the expression
 	parts := strings.Split(expr, "d")
@@ -637,7 +873,7 @@ func rollComplexExpression(command string) string {
 	}
 
 	// Evaluate all expressions (no advantage/disadvantage for comma-separated rolls)
-	results, resultStrings, err := evaluateExpressions(expressions, false, false)
+		results, resultStrings, _, err := evaluateExpressions(expressions, false, false)
 	if err != nil {
 		return "Invalid: " + err.Error()
 	}
