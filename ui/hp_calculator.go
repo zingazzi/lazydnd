@@ -254,4 +254,3 @@ func (c *HPCalculator) IsCritical(currentHP, maxHP int) bool {
 
 // Global HP calculator instance
 var HPCalc = &HPCalculator{}
-

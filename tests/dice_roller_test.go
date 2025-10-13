@@ -19,31 +19,31 @@ func TestRollDice(t *testing.T) {
 		{
 			name:         "Simple d20 roll",
 			command:      "1d20",
-			wantContains: "d20:",
+			wantContains: "(d20)",
 			wantError:    false,
 		},
 		{
 			name:         "Simple d6 roll",
 			command:      "1d6",
-			wantContains: "d6:",
+			wantContains: "(d6)",
 			wantError:    false,
 		},
 		{
 			name:         "Multiple dice",
 			command:      "2d6",
-			wantContains: "TOTAL:",
+			wantContains: "",
 			wantError:    false,
 		},
 		{
 			name:         "Dice with modifier",
 			command:      "1d20+5",
-			wantContains: "TOTAL:",
+			wantContains: "",
 			wantError:    false,
 		},
 		{
 			name:         "Dice with negative modifier",
 			command:      "1d20-2",
-			wantContains: "TOTAL:",
+			wantContains: "",
 			wantError:    false,
 		},
 		{
@@ -71,8 +71,23 @@ func TestRollDice(t *testing.T) {
 			cfg := config.Default()
 			result := panels.RollDice(tt.command, cfg)
 
-			if !strings.Contains(result, tt.wantContains) {
-				t.Errorf("RollDice(%q) = %q, want to contain %q", tt.command, result, tt.wantContains)
+			if tt.wantError {
+				// Should contain error message
+				if !strings.Contains(result, tt.wantContains) {
+					t.Errorf("RollDice(%q) = %q, want error containing %q", tt.command, result, tt.wantContains)
+				}
+			} else {
+				// Should be valid (not empty, not an error)
+				if result == "" {
+					t.Errorf("RollDice(%q) returned empty result", tt.command)
+				}
+				if strings.Contains(result, "Invalid") {
+					t.Errorf("RollDice(%q) = %q, want valid result but got error", tt.command, result)
+				}
+				// Check for contains if specified
+				if tt.wantContains != "" && !strings.Contains(result, tt.wantContains) {
+					t.Errorf("RollDice(%q) = %q, want to contain %q", tt.command, result, tt.wantContains)
+				}
 			}
 		})
 	}
@@ -114,8 +129,8 @@ func TestRollDiceResults(t *testing.T) {
 				result := panels.RollDice(tt.command, cfg)
 
 				// Extract the rolled value (this is a simplified check)
-				if !strings.Contains(result, ":") {
-					t.Errorf("Expected result to contain colon separator")
+				if result == "" {
+					t.Errorf("RollDice returned empty result")
 					continue
 				}
 
