@@ -188,6 +188,20 @@ func processInitiativeEdit(m Model) Model {
 			m.InitiativeInput = ""
 		}
 
+	case "ac":
+		if val, err := panels.ParseInput(m.InitiativeInput, "ac"); err == nil {
+			// Update AC (absolute value)
+			newAC := val.(int)
+			if newAC < 0 {
+				newAC = 0 // Ensure AC is at least 0
+			}
+			m.InitiativeList[originalIndex].AC = newAC
+
+			m.InitiativeEditMode = false
+			m.InitiativeEditType = ""
+			m.InitiativeInput = ""
+		}
+
 	case "temphp":
 		if val, err := panels.ParseInput(m.InitiativeInput, "temphp"); err == nil {
 			// Set Temp HP (absolute value, replaces existing temp HP)

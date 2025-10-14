@@ -109,6 +109,7 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"  i", "Edit initiative value"},
 	{"  h", "Edit HP (+heal/-damage)"},
 	{"  Shift+H", "Edit Max HP (absolute)"},
+	{"  k", "Edit AC (armor class)"},
 	{"  Shift+T", "Edit Temp HP (absolute)"},
 	{"  s", "Roll saving throws (monsters only)"},
 	{"  l", "View linked monster details"},

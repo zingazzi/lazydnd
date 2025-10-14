@@ -198,16 +198,42 @@ func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Check if this is Shift+H (capital H) for max HP editing
 	isShiftH := msg.String() == "H"
 
-	// Edit HP or Max HP in list mode (only for monsters)
+	// Edit HP or Max HP in list mode (for both monsters and players)
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		originalIndex := findOriginalIndex(m, m.SelectedEntry)
-		if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {
+		if originalIndex >= 0 {
 			m.InitiativeEditMode = true
 			if isShiftH {
 				m.InitiativeEditType = "maxhp"
 			} else {
 				m.InitiativeEditType = "hp"
 			}
+			m.InitiativeInput = ""
+		}
+	}
+
+	return m, nil
+}
+
+// handleK handles the 'k' key (AC editing)
+func handleK(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Handle dice input mode
+	if m.InputMode && m.ActivePanel == DiceRoller {
+		m.DiceInput += "k"
+		return m, nil
+	}
+
+	// Handle search mode input
+	if m.isInInputMode() {
+		return handleSearchModeInput(m, "k"), nil
+	}
+
+	// Edit AC in list mode (for both monsters and players)
+	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		originalIndex := findOriginalIndex(m, m.SelectedEntry)
+		if originalIndex >= 0 {
+			m.InitiativeEditMode = true
+			m.InitiativeEditType = "ac"
 			m.InitiativeInput = ""
 		}
 	}
