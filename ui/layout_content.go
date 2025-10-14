@@ -72,6 +72,7 @@ func getInitiativeTrackerContent(m Model) string {
 		m.RoundCounter,
 		m.MultiTargetMode,
 		m.SelectedTargets,
+		m.Config.InitiativeTracker.RoundCounter,
 	)
 }
 

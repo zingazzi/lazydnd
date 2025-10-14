@@ -98,13 +98,13 @@ func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
 }
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool, showRoundCounter bool) string {
 	var contentLines []string
 
 	// Removed instruction text for cleaner interface
 
-	// Show round counter and elapsed time if combat has started
-	if roundCounter > 0 {
+	// Show round counter and elapsed time if combat has started (if enabled in config)
+	if showRoundCounter && roundCounter > 0 {
 		totalSeconds := roundCounter * 6
 		minutes := totalSeconds / 60
 		seconds := totalSeconds % 60

@@ -10,7 +10,7 @@ import (
 
 // createTestModel creates a basic model for testing
 func createTestModel() ui.Model {
-	cfg := &config.Config{}
+	cfg := config.Default()
 	styles := ui.NewStyles(cfg)
 
 	model := ui.Model{

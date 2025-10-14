@@ -37,6 +37,7 @@ func NewStyles(cfg *config.Config) *Styles {
 	highlightColor := "#00FF00"
 	errorColor := "#FF0000"
 	successColor := "#00FF00"
+	compactMode := false
 
 	if cfg != nil {
 		primaryColor = cfg.Theme.PrimaryColor
@@ -44,38 +45,56 @@ func NewStyles(cfg *config.Config) *Styles {
 		highlightColor = cfg.Theme.HighlightColor
 		errorColor = cfg.Theme.ErrorColor
 		successColor = cfg.Theme.SuccessColor
+		compactMode = cfg.Display.CompactMode
 	}
 
 	// Derive a darker shade for status bar key background
 	statusBarKeyBg := darkenColor(primaryColor)
 
+	// Adjust padding based on compact mode
+	panelPadding := 2
+	titlePadding := 1
+	inputPadding := 1
+	resultPadding := 1
+	helpPadding := 3
+	statusPadding := 1
+
+	if compactMode {
+		panelPadding = 1
+		titlePadding = 0
+		inputPadding = 0
+		resultPadding = 0
+		helpPadding = 1
+		statusPadding = 0
+	}
+
 	return &Styles{
 		ActivePanelStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color(primaryColor)).
-			Padding(0, 2),
+			Padding(0, panelPadding),
 
 		InactivePanelStyle: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color(borderColor)).
-			Padding(0, 2),
+			Padding(0, panelPadding),
 
 		PanelTitleStyle: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#FAFAFA")).
 			Background(lipgloss.Color(primaryColor)).
-			Padding(0, 1),
+			Padding(0, titlePadding),
 
 		InputStyle: lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color(primaryColor)).
-			Padding(0, 1),
+			Padding(0, inputPadding),
 
 		DiceResultStyle: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color(highlightColor)).
 			Background(lipgloss.Color("#1A1A1A")).
-			Padding(0, 1),
+			Padding(0, resultPadding),
 
 		HelpStyle: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#666666")),
@@ -83,7 +102,7 @@ func NewStyles(cfg *config.Config) *Styles {
 		StatusBarStyle: lipgloss.NewStyle().
 			Background(lipgloss.Color(primaryColor)).
 			Foreground(lipgloss.Color("#FAFAFA")).
-			Padding(0, 1).
+			Padding(0, statusPadding).
 			Bold(true),
 
 		StatusBarKeyStyle: lipgloss.NewStyle().
@@ -102,7 +121,7 @@ func NewStyles(cfg *config.Config) *Styles {
 			BorderForeground(lipgloss.Color(primaryColor)).
 			Background(lipgloss.Color("#1A1A1A")).
 			Foreground(lipgloss.Color("#FAFAFA")).
-			Padding(1, 3).
+			Padding(1, helpPadding).
 			Width(100), // Wider to accommodate 2 columns
 
 		HelpPopupTitleStyle: lipgloss.NewStyle().
