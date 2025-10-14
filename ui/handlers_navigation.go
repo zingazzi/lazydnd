@@ -10,7 +10,7 @@ import (
 // handleTab handles tab key navigation (forward)
 func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
-		m.ActivePanel = (m.ActivePanel + 1) % 5
+		m.ActivePanel = (m.ActivePanel + 1) % 6
 	}
 	return m, nil
 }
@@ -18,7 +18,7 @@ func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // handleShiftTab handles shift+tab key navigation (backward)
 func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if !m.InputMode {
-		m.ActivePanel = (m.ActivePanel - 1 + 5) % 5
+		m.ActivePanel = (m.ActivePanel - 1 + 6) % 6
 	}
 	return m, nil
 }
@@ -63,6 +63,9 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Auto-scroll to keep selection visible
 			m = adjustScrollForSelection(m)
 		}
+	} else if m.ActivePanel == EncounterBuilder {
+		// Navigate encounter builder
+		return handleEncounterBuilderInput(m, msg)
 	} else if !m.InputMode && !m.InitiativeInputMode {
 		// Normal panel scrolling when not in input mode (allow even in spell search mode if no suggestions)
 		if m.ScrollOffset[m.ActivePanel] > 0 {
@@ -93,6 +96,11 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.HistoryIndex--
 		}
 		return m, nil
+	}
+
+	// Handle encounter builder navigation first
+	if m.ActivePanel == EncounterBuilder {
+		return handleEncounterBuilderInput(m, msg)
 	}
 
 	// Handle spell suggestion navigation
@@ -297,7 +305,7 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 		m.CurrentTurn = nextTurn
-		
+
 		// Reset reaction for the creature whose turn is starting
 		if nextTurn >= 0 && nextTurn < len(m.InitiativeList) {
 			m.InitiativeList[nextTurn].ReactionUsed = false

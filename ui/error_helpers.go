@@ -19,6 +19,13 @@ func ClearError(m *Model) {
 	m.ErrorVisible = false
 }
 
+// SetSuccess displays a success message (uses the error display system with green text)
+func SetSuccess(m *Model, message string) {
+	// We'll use the error message system but with a success prefix
+	m.ErrorMessage = "✓ " + message
+	m.ErrorVisible = true
+}
+
 // ClearErrorMsg is a message type for clearing errors after a delay
 type ClearErrorMsg struct{}
 

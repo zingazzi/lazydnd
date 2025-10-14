@@ -12,6 +12,7 @@ const (
 	Spells
 	Monsters
 	Notes
+	EncounterBuilder
 )
 
 // Model represents the main application state
@@ -135,6 +136,21 @@ type Model struct {
 	NotesSearchMode   bool   // Whether searching within notes
 	NotesSearchInput  string // Search query for notes
 	NotesSearchResult []int  // Line numbers with search matches
+
+	// Encounter Builder state
+	PartySize              int                // Number of players
+	PartyLevel             int                // Average party level
+	EncounterMonsters      []EncounterMonster // Monsters being added to encounter
+	SelectedEncounterIndex int                // Selected monster in current encounter
+	SavedEncounters        []Encounter        // Loaded encounter templates
+	EncounterListMode      bool               // Viewing saved encounters list
+	EncounterNameInput     string             // Input for saving encounter
+	ShowEncounterPrompt    bool               // Show save prompt
+	EncounterBuilderMode   string             // "party_setup", "building", "templates"
+	EncounterCRFilter        string // CR filter string
+	EncounterFilterActive    bool   // Whether CR filter is being edited
+	EncounterSelectedSaved   int    // Selected saved encounter index
+	AddingMonsterToEncounter bool   // Track if we're adding a monster to an encounter
 
 	// Debug mode
 	DebugMode         bool
@@ -286,6 +302,23 @@ type Note struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
+// Encounter represents a pre-built encounter
+type Encounter struct {
+	Name     string
+	Monsters []EncounterMonster
+}
+
+// EncounterMonster represents a monster in an encounter
+type EncounterMonster struct {
+	Name     string
+	CR       string
+	HP       int
+	MaxHP    int
+	AC       int
+	Quantity int
+	XP       int
+}
+
 // Panel configuration
 var PanelNames = []string{
 	"🎲 Dice Roller",
@@ -293,4 +326,5 @@ var PanelNames = []string{
 	"✨ Spells",
 	"🐉 Monsters",
 	"📝 Notes",
+	"⚔️  Encounter Builder",
 }

@@ -108,6 +108,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleQuickHPInput(m, key)
 	}
 
+	// Handle encounter name prompt input
+	if m.ShowEncounterPrompt {
+		return handleEncounterPromptInput(m, key)
+	}
+
 	// Handle action popup input (but not Enter key - that goes to handleEnter)
 	if m.ShowActionPopup && key != "enter" {
 		return handleActionPopupInput(m, key)
@@ -141,6 +146,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle spell level filter input (when in spell level filter mode)
 	if m.SpellLevelFilterMode {
 		return handleSpellLevelFilterInput(m, key)
+	}
+
+	// Handle encounter builder input (when in encounter builder panel)
+	if m.ActivePanel == EncounterBuilder {
+		return handleEncounterBuilderInput(m, msg)
 	}
 
 	// Check if we have a specific handler for this key

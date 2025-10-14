@@ -72,6 +72,20 @@ func InitialModel() Model {
 		SelectedConditionIdx:     0,
 		SelectedConditionNameIdx: 0,
 		ShowHelpPopup:            false,
+		// Encounter Builder defaults
+		PartySize:              4,
+		PartyLevel:             3,
+		EncounterMonsters:      []EncounterMonster{},
+		SelectedEncounterIndex: -1,
+		SavedEncounters:        []Encounter{},
+		EncounterListMode:      false,
+		EncounterNameInput:     "",
+		ShowEncounterPrompt:    false,
+		EncounterBuilderMode:   "party_setup",
+		EncounterCRFilter:        "",
+		EncounterFilterActive:    false,
+		EncounterSelectedSaved:   -1,
+		AddingMonsterToEncounter: false,
 	}
 }
 
@@ -158,62 +172,76 @@ func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 	// Top row height (Dice and Initiative)
 	topHeight := (availableHeight - 4) / 2
 
-	// Bottom row height (Spells, Monsters, Notes)
+	// Bottom row height (Spells, Monsters, Notes, Encounter Builder)
 	bottomHeight := availableHeight - topHeight - 4
 
 	// Width allocation based on active panel
 	switch m.ActivePanel {
 	case DiceRoller:
 		// Dice enlarged
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth*6/10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth*4/10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth*4/10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth*4/10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth*2/10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 6 / 10, Height: topHeight}
+		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 4 / 10, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
 
 	case InitiativeTracker:
 		// Initiative enlarged
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth*4/10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth*6/10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth*4/10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth*4/10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth*2/10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 4 / 10, Height: topHeight}
+		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 6 / 10, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
 
 	case Spells:
 		// Spells enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth*5/10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth*5/10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth*5/10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth*3/10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth*2/10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
 
 	case Monsters:
 		// Monsters enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth*5/10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth*5/10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth*3/10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth*5/10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth*2/10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
 
 	case Notes:
 		// Notes enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth*5/10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth*5/10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth*3/10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth*3/10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth*4/10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
+		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+
+	case EncounterBuilder:
+		// Encounter Builder enlarged - top row splits evenly
+		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
 	}
 
 	return dimensions
 }
 
-// arrangeInGrid arranges the five panels in custom layout
+// arrangeInGrid arranges the six panels in custom layout
 func (m Model) arrangeInGrid(panelViews []string) string {
 	// Top row: Dice (0) and Initiative (1)
 	topRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[0], panelViews[1])
 
-	// Bottom row: Spells (2), Monsters (3), Notes (4)
-	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3], panelViews[4])
+	// Bottom row: Spells (2), Monsters (3), Notes (4), Encounter Builder (5)
+	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3], panelViews[4], panelViews[5])
 
 	return lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
 }
