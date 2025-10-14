@@ -157,3 +157,4 @@ func parseMonsterAC(acStr string) int {
 	}
 	return ac
 }
+

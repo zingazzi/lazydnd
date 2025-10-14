@@ -60,3 +60,4 @@ func RenderGeneratorPopup(m Model) string {
 
 	return popupStyle.Render(content.String())
 }
+

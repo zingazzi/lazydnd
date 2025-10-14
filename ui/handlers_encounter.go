@@ -200,6 +200,19 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterNameInput = ""
 		return m, nil
 
+	case "t", "T":
+		// View saved templates
+		// Load templates first
+		savedEncs, err := encounters.LoadEncounters("")
+		if err != nil {
+			SetError(&m, fmt.Sprintf("Failed to load templates: %v", err))
+			return m, nil
+		}
+		m.SavedEncounters = convertToUIEncounters(savedEncs)
+		m.EncounterSelectedSaved = 0
+		m.EncounterBuilderMode = "templates"
+		return m, nil
+
 	default:
 		// Let other handlers process unhandled keys (like tab for navigation)
 		return m, nil
@@ -315,7 +328,7 @@ func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case "esc":
+	case "q", "Q", "esc":
 		// Back to templates list
 		m.EncounterBuilderMode = "templates"
 		return m, nil

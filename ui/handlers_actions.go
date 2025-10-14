@@ -182,6 +182,12 @@ func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
+	// Handle Initiative Tracker name input mode (typing player/monster names)
+	if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+		m.InitiativeInput += msg.String() // Add "h" or "H" to the name
+		return m, nil
+	}
+
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "h"), nil
@@ -220,6 +226,12 @@ func handleK(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += "k"
+		return m, nil
+	}
+
+	// Handle Initiative Tracker name input mode (typing player/monster names)
+	if m.InitiativeInputMode && m.ActivePanel == InitiativeTracker {
+		m.InitiativeInput += msg.String() // Add "k" or "K" to the name
 		return m, nil
 	}
 

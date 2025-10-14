@@ -157,6 +157,35 @@ var NotesHelp = []HelpKey{
 	{"  Type", "Add/edit text"},
 	{"  Enter", "New line (save with Esc)"},
 	{"  Esc", "Save and exit"},
+}
+
+// EncounterBuilderHelp contains help text for the Encounter Builder panel
+var EncounterBuilderHelp = []HelpKey{
+	{"Party Setup:", ""},
+	{"  +/-", "Adjust party size"},
+	{"  ↑/↓", "Adjust party level"},
+	{"  n", "Proceed to encounter builder"},
+	{"  g", "Auto-generate encounter"},
+	{"", ""},
+	{"Building Encounter:", ""},
+	{"  m", "Add monster to encounter"},
+	{"  +/-", "Adjust monster quantity"},
+	{"  d", "Remove selected monster"},
+	{"  s", "Save encounter template"},
+	{"  l", "Load encounter into initiative"},
+	{"  Esc", "Clear current encounter"},
+	{"  t", "View saved templates"},
+	{"", ""},
+	{"Templates List:", ""},
+	{"  ↑/↓", "Select template"},
+	{"  Enter", "View template details"},
+	{"  d", "Delete template"},
+	{"  Esc", "Back to builder"},
+	{"", ""},
+	{"Template Details:", ""},
+	{"  l", "Load into initiative tracker"},
+	{"  d", "Delete this template"},
+	{"  q/Esc", "Back to templates list"},
 	{"", ""},
 	{"In Search Mode:", ""},
 	{"  Type", "Search text"},
@@ -181,6 +210,8 @@ func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 		return MonstersHelp
 	case Notes:
 		return NotesHelp
+	case EncounterBuilder:
+		return EncounterBuilderHelp
 	default:
 		return []HelpKey{}
 	}

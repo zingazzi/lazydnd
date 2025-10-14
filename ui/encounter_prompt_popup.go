@@ -47,3 +47,4 @@ func RenderEncounterPromptPopup(m Model) string {
 
 	return boxStyle.Render(content)
 }
+
