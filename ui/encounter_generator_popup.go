@@ -11,11 +11,11 @@ import (
 // RenderGeneratorPopup renders the encounter generator configuration popup
 func RenderGeneratorPopup(m Model) string {
 	difficulties := []string{"easy", "medium", "hard", "deadly"}
-	
+
 	var content strings.Builder
 	content.WriteString("⚔️  Generate Encounter\n\n")
 	content.WriteString(fmt.Sprintf("Party: %d × Level %d\n\n", m.PartySize, m.PartyLevel))
-	
+
 	// Difficulty selection
 	content.WriteString("Difficulty:\n")
 	for i, diff := range difficulties {
@@ -26,7 +26,7 @@ func RenderGeneratorPopup(m Model) string {
 		content.WriteString(fmt.Sprintf("%s%s\n", prefix, strings.Title(diff)))
 	}
 	content.WriteString("\n")
-	
+
 	// Environment selection
 	content.WriteString("Environment:\n")
 	for i, env := range m.AvailableEnvironments {
@@ -39,11 +39,11 @@ func RenderGeneratorPopup(m Model) string {
 		}
 		content.WriteString(fmt.Sprintf("%s%s\n", prefix, env))
 	}
-	
+
 	if len(m.AvailableEnvironments) > 8 {
 		content.WriteString("  ...\n")
 	}
-	
+
 	content.WriteString("\n")
 	content.WriteString("Commands:\n")
 	content.WriteString("  [↑/↓]   Navigate\n")
@@ -60,4 +60,3 @@ func RenderGeneratorPopup(m Model) string {
 
 	return popupStyle.Render(content.String())
 }
-

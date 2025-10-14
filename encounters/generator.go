@@ -88,7 +88,7 @@ func GenerateEncounter(req GenerateEncounterRequest) GenerateEncounterResult {
 	}
 
 	analysis := CalculateDifficulty(partyLevels, []string{})
-	
+
 	var targetXP int
 	switch strings.ToLower(req.Difficulty) {
 	case "easy":
@@ -107,7 +107,7 @@ func GenerateEncounter(req GenerateEncounterRequest) GenerateEncounterResult {
 
 	// Filter monsters by environment and appropriate CR
 	filteredMonsters := filterMonstersByEnvironmentAndCR(req.Monsters, req.Environment, req.PartyLevel)
-	
+
 	if len(filteredMonsters) == 0 {
 		result.EnvironmentMsg = "No suitable monsters found for " + string(req.Environment)
 		return result
@@ -126,7 +126,7 @@ func GenerateEncounter(req GenerateEncounterRequest) GenerateEncounterResult {
 				totalMonsterXP += m.XP
 			}
 		}
-		
+
 		finalAnalysis := CalculateDifficulty(partyLevels, crs)
 		result.TotalXP = totalMonsterXP
 		result.AdjustedXP = finalAnalysis.AdjustedXP
@@ -139,28 +139,28 @@ func GenerateEncounter(req GenerateEncounterRequest) GenerateEncounterResult {
 // filterMonstersByEnvironmentAndCR filters monsters by environment and appropriate CR
 func filterMonstersByEnvironmentAndCR(monsters []MonsterInfo, env Environment, partyLevel int) []MonsterInfo {
 	filtered := []MonsterInfo{}
-	
+
 	// Determine CR range based on party level
 	minCR := maxInt(0, partyLevel-4)
 	maxCR := partyLevel + 4
-	
+
 	for _, monster := range monsters {
 		// Check CR range
 		cr := parseCRToInt(monster.CR)
 		if cr < minCR || cr > maxCR {
 			continue
 		}
-		
+
 		// Check environment (if not "Any")
 		if env != EnvAny {
 			if !monsterMatchesEnvironment(monster, env) {
 				continue
 			}
 		}
-		
+
 		filtered = append(filtered, monster)
 	}
-	
+
 	return filtered
 }
 
@@ -220,11 +220,11 @@ func generateBalancedEncounter(monsters []MonsterInfo, targetXP int, partyLevel 
 // generateSmallGroup creates a small group encounter
 func generateSmallGroup(monsters []MonsterInfo, targetXP int, minCount, maxCount int) []EncounterMonster {
 	count := minCount + rand.Intn(maxCount-minCount+1)
-	
+
 	// Account for multiplier (2-4 monsters = 2x multiplier)
 	baseXP := int(float64(targetXP) / 2.0)
 	perMonsterXP := baseXP / count
-	
+
 	monster := findMonsterNearXP(monsters, perMonsterXP, 999)
 	if monster != nil {
 		return []EncounterMonster{{
@@ -237,18 +237,18 @@ func generateSmallGroup(monsters []MonsterInfo, targetXP int, minCount, maxCount
 			XP:       monster.XP,
 		}}
 	}
-	
+
 	return []EncounterMonster{}
 }
 
 // generateHorde creates a horde encounter
 func generateHorde(monsters []MonsterInfo, targetXP int, minCount, maxCount int) []EncounterMonster {
 	count := minCount + rand.Intn(maxCount-minCount+1)
-	
+
 	// Account for multiplier (7-10 monsters = 2.5x multiplier)
 	baseXP := int(float64(targetXP) / 2.5)
 	perMonsterXP := baseXP / count
-	
+
 	monster := findMonsterNearXP(monsters, perMonsterXP, 999)
 	if monster != nil {
 		return []EncounterMonster{{
@@ -261,7 +261,7 @@ func generateHorde(monsters []MonsterInfo, targetXP int, minCount, maxCount int)
 			XP:       monster.XP,
 		}}
 	}
-	
+
 	return []EncounterMonster{}
 }
 
@@ -269,21 +269,21 @@ func generateHorde(monsters []MonsterInfo, targetXP int, minCount, maxCount int)
 func findMonsterNearXP(monsters []MonsterInfo, targetXP int, maxCR int) *MonsterInfo {
 	var best *MonsterInfo
 	bestDiff := 999999
-	
+
 	for i := range monsters {
 		m := &monsters[i]
 		cr := parseCRToInt(m.CR)
 		if cr > maxCR {
 			continue
 		}
-		
+
 		diff := abs(m.XP - targetXP)
 		if diff < bestDiff {
 			bestDiff = diff
 			best = m
 		}
 	}
-	
+
 	return best
 }
 
@@ -291,16 +291,16 @@ func findMonsterNearXP(monsters []MonsterInfo, targetXP int, maxCR int) *Monster
 func monsterMatchesEnvironment(monster MonsterInfo, env Environment) bool {
 	meta := strings.ToLower(monster.Meta)
 	envStr := strings.ToLower(string(env))
-	
+
 	// Check meta field for environment keywords
 	if strings.Contains(meta, envStr) {
 		return true
 	}
-	
+
 	// Additional environment matching logic
 	switch env {
 	case EnvForest:
-		return strings.Contains(meta, "forest") || 
+		return strings.Contains(meta, "forest") ||
 		       strings.Contains(meta, "wood") ||
 		       strings.Contains(meta, "beast") ||
 		       strings.Contains(meta, "fey")
@@ -345,7 +345,7 @@ func monsterMatchesEnvironment(monster MonsterInfo, env Environment) bool {
 		       strings.Contains(meta, "grassland") ||
 		       strings.Contains(meta, "horse")
 	}
-	
+
 	return false
 }
 
@@ -421,4 +421,3 @@ func maxInt(a, b int) int {
 	}
 	return b
 }
-
