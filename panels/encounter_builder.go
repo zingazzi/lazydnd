@@ -63,12 +63,13 @@ func renderPartySetup(partySize, partyLevel, width, height int) string {
 	b.WriteString(fmt.Sprintf("Party Size: %d players\n", partySize))
 	b.WriteString(fmt.Sprintf("Party Level: %d\n\n", partyLevel))
 	b.WriteString("Commands:\n")
-	b.WriteString("  [1-9]     Set party size\n")
+	b.WriteString("  [1-9]       Set party size\n")
 	b.WriteString("  [Shift+1-9] Set party level (1-9)\n")
-	b.WriteString("  [0]       Set party level 10\n")
-	b.WriteString("  [-/+]     Adjust party level\n")
-	b.WriteString("  [n]       Next: Build encounter\n")
-	b.WriteString("  [t]       View saved templates\n")
+	b.WriteString("  [0]         Set party level 10\n")
+	b.WriteString("  [-/+]       Adjust party level\n")
+	b.WriteString("  [n]         Next: Build encounter\n")
+	b.WriteString("  [g]         Generate encounter\n")
+	b.WriteString("  [t]         View saved templates\n")
 
 	return b.String()
 }

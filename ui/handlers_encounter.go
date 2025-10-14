@@ -94,6 +94,13 @@ func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.SavedEncounters = convertToUIEncounters(savedEncs)
 		}
 		return m, nil
+
+	case "g", "G":
+		// Open generator popup
+		m.EncounterGenerating = true
+		m.EncounterDifficultyIndex = 1 // Medium
+		m.EncounterEnvironmentIndex = 0 // Any
+		return m, nil
 	}
 
 	return m, nil

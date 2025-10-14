@@ -113,6 +113,11 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleEncounterPromptInput(m, key)
 	}
 
+	// Handle encounter generator popup
+	if m.EncounterGenerating {
+		return handleGeneratorPopupInput(m, msg)
+	}
+
 	// Handle action popup input (but not Enter key - that goes to handleEnter)
 	if m.ShowActionPopup && key != "enter" {
 		return handleActionPopupInput(m, key)

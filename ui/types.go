@@ -147,10 +147,16 @@ type Model struct {
 	EncounterNameInput     string             // Input for saving encounter
 	ShowEncounterPrompt    bool               // Show save prompt
 	EncounterBuilderMode   string             // "party_setup", "building", "templates"
-	EncounterCRFilter        string // CR filter string
-	EncounterFilterActive    bool   // Whether CR filter is being edited
-	EncounterSelectedSaved   int    // Selected saved encounter index
-	AddingMonsterToEncounter bool   // Track if we're adding a monster to an encounter
+	EncounterCRFilter         string   // CR filter string
+	EncounterFilterActive     bool     // Whether CR filter is being edited
+	EncounterSelectedSaved    int      // Selected saved encounter index
+	AddingMonsterToEncounter  bool     // Track if we're adding a monster to an encounter
+	EncounterEnvironment      string   // Selected environment for generation
+	EncounterDifficulty       string   // Selected difficulty for generation
+	EncounterGenerating       bool     // Whether in generation mode
+	EncounterEnvironmentIndex int      // Selected environment index
+	EncounterDifficultyIndex  int      // Selected difficulty index
+	AvailableEnvironments     []string // List of environments
 
 	// Debug mode
 	DebugMode         bool

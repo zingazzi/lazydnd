@@ -82,10 +82,16 @@ func InitialModel() Model {
 		EncounterNameInput:     "",
 		ShowEncounterPrompt:    false,
 		EncounterBuilderMode:   "party_setup",
-		EncounterCRFilter:        "",
-		EncounterFilterActive:    false,
-		EncounterSelectedSaved:   -1,
-		AddingMonsterToEncounter: false,
+		EncounterCRFilter:         "",
+		EncounterFilterActive:     false,
+		EncounterSelectedSaved:    -1,
+		AddingMonsterToEncounter:  false,
+		EncounterEnvironment:      "Any",
+		EncounterDifficulty:       "medium",
+		EncounterGenerating:       false,
+		EncounterEnvironmentIndex: 0,
+		EncounterDifficultyIndex:  1, // medium
+		AvailableEnvironments:     []string{"Any", "Forest", "Mountain", "Desert", "Swamp", "Underdark", "Urban", "Coast", "Arctic", "Jungle", "Plains"},
 	}
 }
 
@@ -115,6 +121,11 @@ func (m Model) View() string {
 	// Show quick HP popup
 	if m.ShowQuickHPPopup {
 		return m.renderQuickHPPopupOverlay(mainView)
+	}
+
+	// Show encounter generator popup
+	if m.EncounterGenerating {
+		return m.renderGeneratorPopupOverlay(mainView)
 	}
 
 	// Show rename popup if active (highest priority)
@@ -265,6 +276,14 @@ func (m Model) renderLoadPopupOverlay(mainView string) string {
 // renderQuickHPPopupOverlay renders the quick HP popup over the main view
 func (m Model) renderQuickHPPopupOverlay(mainView string) string {
 	popup := RenderQuickHPPopup(m)
+
+	// Place popup over main view with centered positioning
+	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+}
+
+// renderGeneratorPopupOverlay renders the encounter generator popup over the main view
+func (m Model) renderGeneratorPopupOverlay(mainView string) string {
+	popup := RenderGeneratorPopup(m)
 
 	// Place popup over main view with centered positioning
 	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
