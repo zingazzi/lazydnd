@@ -139,7 +139,8 @@ func CalculateDifficulty(partyLevels []int, monsterCRs []string) EncounterAnalys
 	// Calculate monster XP
 	totalMonsterXP := 0
 	for _, cr := range monsterCRs {
-		if xp, exists := crToXP[cr]; exists {
+		cleanCR := cleanCRString(cr)
+		if xp, exists := crToXP[cleanCR]; exists {
 			totalMonsterXP += xp
 		}
 	}
@@ -179,10 +180,23 @@ func CalculateDifficulty(partyLevels []int, monsterCRs []string) EncounterAnalys
 
 // GetCRXP returns the XP value for a given CR
 func GetCRXP(cr string) int {
-	if xp, exists := crToXP[cr]; exists {
+	// Clean CR string - remove XP suffix like "1/2 (100 XP)" -> "1/2"
+	cleanCR := cleanCRString(cr)
+	if xp, exists := crToXP[cleanCR]; exists {
 		return xp
 	}
 	return 0
+}
+
+// cleanCRString removes the XP suffix from CR strings
+func cleanCRString(cr string) string {
+	// Find opening parenthesis and strip everything from there
+	for i, char := range cr {
+		if char == '(' || char == ' ' {
+			return cr[:i]
+		}
+	}
+	return cr
 }
 
 // GetDifficultyColor returns a color code for the difficulty level

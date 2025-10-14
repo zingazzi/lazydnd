@@ -123,6 +123,11 @@ func (m Model) View() string {
 		return m.renderQuickHPPopupOverlay(mainView)
 	}
 
+	// Show encounter prompt (save)
+	if m.ShowEncounterPrompt {
+		return m.renderEncounterPromptOverlay(mainView)
+	}
+
 	// Show encounter generator popup
 	if m.EncounterGenerating {
 		return m.renderGeneratorPopupOverlay(mainView)
@@ -276,6 +281,14 @@ func (m Model) renderLoadPopupOverlay(mainView string) string {
 // renderQuickHPPopupOverlay renders the quick HP popup over the main view
 func (m Model) renderQuickHPPopupOverlay(mainView string) string {
 	popup := RenderQuickHPPopup(m)
+
+	// Place popup over main view with centered positioning
+	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+}
+
+// renderEncounterPromptOverlay renders the encounter save prompt popup over the main view
+func (m Model) renderEncounterPromptOverlay(mainView string) string {
+	popup := RenderEncounterPromptPopup(m)
 
 	// Place popup over main view with centered positioning
 	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))

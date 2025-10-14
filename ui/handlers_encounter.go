@@ -14,6 +14,11 @@ import (
 
 // handleEncounterBuilderInput handles all input for the encounter builder panel
 func handleEncounterBuilderInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	// Don't handle if we're in a search mode from another panel
+	if m.MonsterSearchMode || m.SpellSearchMode {
+		return m, nil
+	}
+
 	switch m.EncounterBuilderMode {
 	case "party_setup":
 		return handlePartySetupInput(m, msg)
@@ -21,12 +26,15 @@ func handleEncounterBuilderInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleBuildingInput(m, msg)
 	case "templates":
 		return handleTemplatesInput(m, msg)
+	case "template_detail":
+		return handleTemplateDetailInput(m, msg)
 	default:
 		return m, nil
 	}
 }
 
 // handlePartySetupInput handles input in party setup mode
+// Returns (model, cmd, handled) - if not handled, let other handlers process it
 func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
@@ -101,9 +109,11 @@ func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterDifficultyIndex = 1 // Medium
 		m.EncounterEnvironmentIndex = 0 // Any
 		return m, nil
-	}
 
-	return m, nil
+	default:
+		// Let other handlers process unhandled keys (like tab for navigation)
+		return m, nil
+	}
 }
 
 // handleBuildingInput handles input in encounter building mode
@@ -189,9 +199,11 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.ShowEncounterPrompt = true
 		m.EncounterNameInput = ""
 		return m, nil
-	}
 
-	return m, nil
+	default:
+		// Let other handlers process unhandled keys (like tab for navigation)
+		return m, nil
+	}
 }
 
 // handleTemplatesInput handles input in templates viewing mode
@@ -218,14 +230,9 @@ func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 
 	case "enter":
-		// Load selected template
+		// View selected template details
 		if m.EncounterSelectedSaved >= 0 && m.EncounterSelectedSaved < len(m.SavedEncounters) {
-			selected := m.SavedEncounters[m.EncounterSelectedSaved]
-			m.EncounterMonsters = selected.Monsters
-			m.SelectedEncounterIndex = 0
-			m.EncounterBuilderMode = "building"
-			m.EncounterListMode = false
-			SetSuccess(&m, fmt.Sprintf("Loaded template: %s", selected.Name))
+			m.EncounterBuilderMode = "template_detail"
 		}
 		return m, nil
 
@@ -263,9 +270,59 @@ func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterMonsters = []EncounterMonster{}
 		m.SelectedEncounterIndex = -1
 		return m, nil
-	}
 
-	return m, nil
+	default:
+		// Let other handlers process unhandled keys (like tab for navigation)
+		return m, nil
+	}
+}
+
+// handleTemplateDetailInput handles input when viewing a template's details
+func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch msg.String() {
+	case "l", "L", "enter":
+		// Load selected template
+		if m.EncounterSelectedSaved >= 0 && m.EncounterSelectedSaved < len(m.SavedEncounters) {
+			selected := m.SavedEncounters[m.EncounterSelectedSaved]
+			m.EncounterMonsters = selected.Monsters
+			m.SelectedEncounterIndex = 0
+			m.EncounterBuilderMode = "building"
+			m.EncounterListMode = false
+			SetSuccess(&m, fmt.Sprintf("Loaded template: %s", selected.Name))
+		}
+		return m, nil
+
+	case "d", "D", "delete", "backspace", "x", "X":
+		// Delete this template
+		if m.EncounterSelectedSaved >= 0 && m.EncounterSelectedSaved < len(m.SavedEncounters) {
+			selected := m.SavedEncounters[m.EncounterSelectedSaved]
+			err := encounters.DeleteEncounter(selected.Name, "")
+			if err != nil {
+				SetError(&m, fmt.Sprintf("Failed to delete: %v", err))
+			} else {
+				// Reload encounters
+				savedEncs, err := encounters.LoadEncounters("")
+				if err == nil {
+					m.SavedEncounters = convertToUIEncounters(savedEncs)
+					if m.EncounterSelectedSaved >= len(m.SavedEncounters) {
+						m.EncounterSelectedSaved = len(m.SavedEncounters) - 1
+					}
+				}
+				SetSuccess(&m, fmt.Sprintf("Deleted template: %s", selected.Name))
+				// Go back to templates list
+				m.EncounterBuilderMode = "templates"
+			}
+		}
+		return m, nil
+
+	case "esc":
+		// Back to templates list
+		m.EncounterBuilderMode = "templates"
+		return m, nil
+
+	default:
+		return m, nil
+	}
 }
 
 // deployEncounterToInitiative deploys all monsters from encounter to initiative tracker
@@ -417,6 +474,9 @@ func AddMonsterToEncounter(m Model, monsterName string) Model {
 	m.ActivePanel = EncounterBuilder
 	m.EncounterBuilderMode = "building"
 	m.MonsterSearchMode = false
+	m.MonsterSearchInput = ""
+	m.MonsterSuggestions = []string{}
+	m.MonsterSuggestionIndex = -1
 
 	SetSuccess(&m, fmt.Sprintf("Added %s to encounter", monsterName))
 	return m

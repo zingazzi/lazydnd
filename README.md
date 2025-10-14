@@ -11,10 +11,12 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 🎨 **Color-Coded HP** - HP display changes color based on health (green/orange/red)
 ✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
 🐲 **Monsters Panel** - Search and view detailed monster stat blocks with fuzzy search
+📝 **Notes Panel** - Track session notes, NPCs, quests with Markdown-style formatting
+⚡ **Encounter Builder** - Pre-plan balanced encounters with CR calculator, auto-generator, and templates
 💾 **Campaign Save/Load** - Save your game state and resume later
 🔄 **Auto-Save** - Automatic saving every 5 minutes
 🔗 **Monster Integration** - Link monsters to initiative with full action support
-⚡ **Instant Transitions** - Lightning-fast panel switching with zero latency
+🏃 **Instant Transitions** - Lightning-fast panel switching with zero latency
 ❌ **UI Error Messages** - Clear error notifications displayed in the UI, not just terminal
 
 ## Installation
@@ -595,6 +597,147 @@ You can add your own custom monsters or override existing ones:
 - Multiple JSON files can be placed in the directory
 - Invalid JSON files will be skipped with a warning
 - Example custom monsters are available at `~/.config/lazydnd/custom_monsters/example_custom_monsters.json` after first run
+
+---
+
+#### 📝 Panel 5: Notes
+
+**Keybindings:**
+| Key | Action |
+|-----|--------|
+| `Enter` | Start editing notes |
+| `Ctrl+F` | Search notes |
+| Type text | Edit session notes with Markdown-style formatting |
+| `Esc` | Exit edit/search mode |
+
+**Features:**
+- ✅ **Session Notes**: Track plot points, NPC names, quest details
+- ✅ **Markdown-Style Formatting**: Bold, italics, headers, lists
+- ✅ **Fuzzy Search**: Quickly find notes with Ctrl+F
+- ✅ **Auto-Save**: Notes automatically saved with campaign
+- ✅ **Multi-Line Support**: Full text editor for long notes
+- ✅ **Scrollable**: Navigate long notes with ↑↓
+
+**Quick Markdown:**
+- `**bold**` for **bold**
+- `*italic*` for *italic*
+- `# Heading` for headings
+- `- item` for lists
+
+**Example Use Cases:**
+- Track NPC names and relationships
+- Record quest objectives and progress
+- Note down player decisions
+- Keep session summaries
+- Track loot and rewards
+
+---
+
+#### ⚔️ Panel 6: Encounter Builder
+
+**Keybindings:**
+| Key | Action |
+|-----|--------|
+| `1-9` | Set party size (1-9 players) |
+| `Shift+1-9` | Set party level (1-9) |
+| `+` / `-` | Adjust party level or monster quantity |
+| `n` | Next to building mode |
+| `t` | View saved templates |
+| `g` | Generate encounter (auto-balanced) |
+| `m` | Add monster from monster list |
+| `↑` `↓` | Navigate monster list |
+| `Delete` | Remove selected monster |
+| `s` | Save as template |
+| `d` | Deploy to Initiative Tracker |
+| `Esc` | Cancel/go back |
+
+**Features:**
+- ✅ **Party Setup**: Configure party size (1-20) and level (1-20)
+- ✅ **Real-Time CR Calculation**: Automatic difficulty assessment (Trivial/Easy/Medium/Hard/Deadly)
+- ✅ **XP Budget Tracker**: See total and adjusted XP based on encounter size
+- ✅ **Encounter Multiplier**: Automatically applies D&D 5e encounter multipliers
+- ✅ **Monster Selection**: Add monsters from the full monster database
+- ✅ **Quantity Adjustment**: +/- to add/remove duplicate monsters
+- ✅ **Template System**: Save encounters for reuse (e.g., "Goblin Ambush", "Dragon's Lair")
+- ✅ **One-Click Deploy**: Send entire encounter to Initiative Tracker instantly
+- ✅ **Smart Generator**: Auto-generate balanced encounters by difficulty and environment
+
+**How to Use:**
+
+**1. Set Up Your Party:**
+- Press `1-9` to set party size (e.g., `5` for 5 players)
+- Press `Shift+1` through `Shift+9` to set level (e.g., `Shift+3` for level 3)
+- Or use `+`/`-` to adjust level incrementally
+- Party setup shows: `Party: 5 × Level 3`
+
+**2. Build an Encounter:**
+- Press `n` to enter building mode
+- Press `m` to add monsters from the database
+- Navigate with `↑`/`↓` and press `Enter` to select
+- Use `+`/`-` to adjust monster quantities
+- Real-time difficulty updates as you add monsters:
+  - **Trivial** (gray): Below easy threshold
+  - **Easy** (green): ¼ of daily XP budget
+  - **Medium** (yellow): ½ of daily XP budget
+  - **Hard** (orange): ¾ of daily XP budget
+  - **Deadly** (red): Equal to or beyond daily XP budget
+
+**3. Deploy to Combat:**
+- Press `d` to deploy all monsters to Initiative Tracker
+- Each monster added with full stats (HP, AC, actions)
+- Automatically numbered if multiple (Goblin 1, Goblin 2, etc.)
+- Roll initiative and start combat!
+
+**4. Save as Template:**
+- Press `s` to save encounter as template
+- Enter a name (e.g., "Forest Ambush")
+- Template saved for future use
+- Press `t` to view and load saved templates
+
+**5. Auto-Generate Encounters:**
+- Press `g` to open the encounter generator
+- Select **Difficulty**: Easy, Medium, Hard, Deadly
+- Select **Environment**: Forest, Dungeon, Mountain, Urban, etc.
+- Press `Enter` to generate
+- Smart algorithm creates balanced encounters using:
+  - CR/XP balancing based on party strength
+  - Environment-appropriate monsters
+  - Multiple strategies (solo boss, small group, horde)
+
+**CR/XP Calculation:**
+The Encounter Builder follows D&D 5e DMG rules:
+- **XP Thresholds** per player level (Easy/Medium/Hard/Deadly)
+- **Encounter Multipliers** based on monster count:
+  - 1 monster: ×1.0
+  - 2 monsters: ×1.5
+  - 3-6 monsters: ×2.0
+  - 7-10 monsters: ×2.5
+  - 11-14 monsters: ×3.0
+  - 15+ monsters: ×4.0
+- **Adjusted XP** = Total Monster XP × Multiplier
+- Difficulty determined by comparing adjusted XP to party thresholds
+
+**Example:**
+```
+Party: 4 × Level 3
+- Easy threshold: 300 XP
+- Medium threshold: 600 XP
+- Hard threshold: 900 XP
+- Deadly threshold: 1,400 XP
+
+Encounter: 5× Goblin (CR 1/4, 50 XP each)
+- Total Monster XP: 250 XP
+- Multiplier: ×2.0 (5 monsters)
+- Adjusted XP: 500 XP
+- Difficulty: Medium
+```
+
+**Pro Tips:**
+- Start with generator (`g`) for quick balanced encounters
+- Manually adjust by adding/removing monsters
+- Save common encounters as templates
+- Deploy directly to initiative for instant combat
+- Encounter Builder doesn't affect initiative until you deploy
 
 ---
 

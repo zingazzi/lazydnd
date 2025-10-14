@@ -31,6 +31,8 @@ func GetEncounterBuilderContent(
 		content = renderEncounterBuilder(partySize, partyLevel, encounterMonsters, selectedIndex, crFilter, width, height)
 	case "templates":
 		content = renderTemplates(savedEncounters, encounterListMode, selectedSaved, width, height)
+	case "template_detail":
+		content = renderTemplateDetail(savedEncounters, selectedSaved, partySize, partyLevel, width, height)
 	default:
 		content = renderPartySetup(partySize, partyLevel, width, height)
 	}
@@ -59,17 +61,8 @@ func renderPartySetup(partySize, partyLevel, width, height int) string {
 	var b strings.Builder
 
 	b.WriteString("⚔️  Party Setup\n\n")
-	b.WriteString("Configure your adventuring party:\n\n")
 	b.WriteString(fmt.Sprintf("Party Size: %d players\n", partySize))
-	b.WriteString(fmt.Sprintf("Party Level: %d\n\n", partyLevel))
-	b.WriteString("Commands:\n")
-	b.WriteString("  [1-9]       Set party size\n")
-	b.WriteString("  [Shift+1-9] Set party level (1-9)\n")
-	b.WriteString("  [0]         Set party level 10\n")
-	b.WriteString("  [-/+]       Adjust party level\n")
-	b.WriteString("  [n]         Next: Build encounter\n")
-	b.WriteString("  [g]         Generate encounter\n")
-	b.WriteString("  [t]         View saved templates\n")
+	b.WriteString(fmt.Sprintf("Party Level: %d\n", partyLevel))
 
 	return b.String()
 }
@@ -142,17 +135,6 @@ func renderEncounterBuilder(
 		}
 	}
 
-	b.WriteString("\n")
-	b.WriteString("Commands:\n")
-	b.WriteString("  [m]       Add monster from list\n")
-	b.WriteString("  [↑/↓]     Select monster\n")
-	b.WriteString("  [+/-]     Adjust quantity\n")
-	b.WriteString("  [delete]  Remove monster\n")
-	b.WriteString("  [s]       Save as template\n")
-	b.WriteString("  [d]       Deploy to initiative\n")
-	b.WriteString("  [c]       Clear encounter\n")
-	b.WriteString("  [p]       Back to party setup\n")
-
 	return b.String()
 }
 
@@ -167,8 +149,7 @@ func renderTemplates(
 	b.WriteString("⚔️  Saved Encounter Templates\n\n")
 
 	if len(savedEncounters) == 0 {
-		b.WriteString("No saved encounters yet.\n\n")
-		b.WriteString("Create an encounter and press [s] to save it.\n")
+		b.WriteString("  (none)\n")
 	} else {
 		for i, enc := range savedEncounters {
 			prefix := "  "
@@ -186,13 +167,73 @@ func renderTemplates(
 		}
 	}
 
+	return b.String()
+}
+
+func renderTemplateDetail(
+	savedEncounters []Encounter,
+	selectedSaved int,
+	partySize, partyLevel int,
+	width, height int,
+) string {
+	var b strings.Builder
+
+	if selectedSaved < 0 || selectedSaved >= len(savedEncounters) {
+		b.WriteString("⚔️  No Template Selected\n\n")
+		b.WriteString("Press [esc] to go back\n")
+		return b.String()
+	}
+
+	enc := savedEncounters[selectedSaved]
+
+	b.WriteString(fmt.Sprintf("⚔️  %s\n\n", enc.Name))
+
+	// Count total monsters and calculate XP
+	totalMonsters := 0
+	totalXP := 0
+	for _, m := range enc.Monsters {
+		totalMonsters += m.Quantity
+		totalXP += m.XP * m.Quantity
+	}
+
+	b.WriteString(fmt.Sprintf("Total Monsters: %d\n", totalMonsters))
+	b.WriteString(fmt.Sprintf("Total XP: %d\n\n", totalXP))
+
+	// Show monsters
+	b.WriteString("Monsters:\n")
+	for _, m := range enc.Monsters {
+		b.WriteString(fmt.Sprintf("  %dx %s (CR %s, %d XP, AC %d, HP %d)\n",
+			m.Quantity, m.Name, m.CR, m.XP, m.AC, m.HP))
+	}
+
 	b.WriteString("\n")
-	b.WriteString("Commands:\n")
-	b.WriteString("  [↑/↓]     Select template\n")
-	b.WriteString("  [enter]   Load template\n")
-	b.WriteString("  [delete]  Delete template\n")
-	b.WriteString("  [p]       Back to party setup\n")
-	b.WriteString("  [n]       New encounter\n")
+
+	// If we have party info, calculate difficulty
+	if partySize > 0 && partyLevel > 0 {
+		b.WriteString("For your current party:\n")
+		b.WriteString(fmt.Sprintf("Party: %d × Level %d\n", partySize, partyLevel))
+
+		// Calculate difficulty
+		partyLevels := make([]int, partySize)
+		for i := 0; i < partySize; i++ {
+			partyLevels[i] = partyLevel
+		}
+
+		monsterCRs := []string{}
+		for _, m := range enc.Monsters {
+			for i := 0; i < m.Quantity; i++ {
+				monsterCRs = append(monsterCRs, m.CR)
+			}
+		}
+
+		// We need to import the encounters package
+		// For now, show basic info
+		multiplier := getMultiplier(len(monsterCRs))
+		adjustedXP := int(float64(totalXP) * multiplier)
+
+		b.WriteString(fmt.Sprintf("Adjusted XP: %d (×%.1f multiplier)\n", adjustedXP, multiplier))
+		b.WriteString(fmt.Sprintf("Difficulty: %s\n", estimateDifficulty(partySize, partyLevel, adjustedXP)))
+	}
 
 	return b.String()
 }
