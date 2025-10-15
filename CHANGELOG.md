@@ -1,5 +1,82 @@
 # CHANGELOG
 
+## 2.12.0
+- **⚔️ Encounter Builder - Panel 6** 🎉
+  - **Party Setup**:
+    - Configure party size (1-20 players) with number keys `1-9`
+    - Set party level (1-20) with `Shift+1-9` or `+/-` keys
+    - Real-time party info display: `Party: 5 × Level 3`
+  - **CR/XP Calculator**:
+    - Automatic difficulty assessment: Trivial, Easy, Medium, Hard, Deadly
+    - D&D 5e DMG XP thresholds per player level
+    - Encounter multipliers based on monster count (×1.0 to ×4.0)
+    - Real-time adjusted XP calculation with color-coded difficulty
+  - **Monster Management**:
+    - Add monsters from full database (press `m`)
+    - Adjust quantities with `+/-` keys
+    - View full encounter composition with CR, HP, AC, XP
+    - Navigate monster list with `↑↓`
+    - Delete monsters with `Delete` key
+  - **Template System**:
+    - Save encounters as templates (press `s`)
+    - Load saved encounters (press `t`)
+    - Reusable for common encounters (e.g., "Goblin Ambush", "Dragon's Lair")
+  - **One-Click Deploy**:
+    - Press `d` to send entire encounter to Initiative Tracker
+    - All monsters added with full stats and actions
+    - Automatic numbering for duplicates (Goblin 1, Goblin 2, etc.)
+  - **Smart Generator** (press `g`):
+    - **Auto-Generate Balanced Encounters**: Select difficulty and environment
+    - **Difficulty Options**: Easy, Medium, Hard, Deadly
+    - **Environment Options**: Forest, Dungeon, Mountain, Desert, Swamp, Urban, Underwater, Arctic, Underdark, Planar
+    - **Smart Algorithms**:
+      - Solo Boss: Single high-CR monster
+      - Small Group: 2-5 monsters with tactical variety
+      - Horde: 6+ monsters for overwhelming encounters
+    - **Environment Filtering**: Only suggests monsters that fit the chosen environment
+    - **XP Balancing**: Ensures encounter matches desired difficulty
+  - **UI/UX Features**:
+    - Dynamic panel layout (enlarges when active, shrinks when inactive)
+    - Three modes: Party Setup, Building, Templates
+    - Color-coded difficulty (gray/green/yellow/orange/red)
+    - Clear command hints for each mode
+    - Saves with campaign data
+  - **Bug Fixes**:
+    - Fixed XP calculation for monsters with CR format "1/2 (100 XP)" → cleaned to "1/2"
+    - Fixed key handling conflicts between panels (numbers, +/-, s, d)
+    - Fixed save popup not rendering (created `encounter_prompt_popup.go`)
+    - Fixed Tab navigation for 6-panel layout
+
+- **Config System Cleanup & New Toggles** ⚙️
+  - **Removed Unused Config Keys**:
+    - ❌ `animate_transitions` - Was never implemented, removed to simplify config
+    - ❌ `config_directory` - Hardcoded to `~/.config/lazydnd`, no need for customization
+  - **Implemented Active Config Toggles**:
+    - ✅ `show_help_hints` - Toggle keyboard shortcuts in status bar
+      - When `true`: Shows full status bar with panel commands and shared shortcuts
+      - When `false`: Minimal status bar with only campaign name and panel name
+    - ✅ `round_counter` - Toggle round counter display in Initiative Tracker
+      - When `true`: Shows "⚔️ Round X / Y minutes Z seconds"
+      - When `false`: Hides round counter (but tracking still works internally)
+    - ✅ `compact_mode` - Reduce padding and spacing throughout UI
+      - Reduces panel padding from 2 to 1
+      - Reduces title/input/status padding to 0
+      - Creates more compact, space-efficient layout
+  - **Added Missing Config Keys**:
+    - ✅ `critical_hit_enabled` - Added to config.example.json (was missing)
+    - ✅ `critical_hit_mode` - Added to config.example.json (was missing)
+  - **Documentation**:
+    - Updated CONFIGURATION.md to mark implemented vs. future features
+    - Marked 5 InitiativeTracker settings as "future feature - always enabled"
+    - Marked 2 Display settings (`line_wrap`, `max_line_length`) as "future feature"
+  - **Benefits**:
+    - 🎯 Cleaner, more accurate config file
+    - ⚡ Faster UI with compact mode
+    - 🎨 Customizable interface with working toggles
+    - 📋 Clear documentation of what works vs. planned features
+
+- Minor bug fix
+
 ## 2.11.0
 - **Quick HP Adjustment Shortcuts** ⚡
   - **New Keybindings**: Press `+` or `-` for instant HP adjustments
