@@ -42,3 +42,4 @@ func estimateDifficulty(partySize, partyLevel, adjustedXP int) string {
 	return "Deadly"
 }
 
+

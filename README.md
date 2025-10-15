@@ -291,8 +291,9 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 | `Ctrl+Y` | Redo HP change |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
-| `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
-| `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode, monsters only) |
+| `H` | Edit Max HP - set new maximum HP value (in edit mode) |
+| `k` | Edit AC - set armor class (in edit mode) |
+| `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode) |
 | `+` or `=` | **Quick Add HP** - Fast healing popup (works with single or multi-target) |
 | `-` | **Quick Remove HP** - Fast damage popup (works with single or multi-target) |
 | `R` | Toggle Reaction - Shift+R to mark reaction as used/available (in edit mode) |
@@ -314,8 +315,9 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
-- ✅ **HP Tracking**: Real-time HP management for monsters
-- ✅ **Max HP Editing**: Adjust maximum HP values for monsters (Shift+H)
+- ✅ **HP Tracking**: Real-time HP management for monsters and players
+- ✅ **Max HP Editing**: Adjust maximum HP values for anyone (Shift+H)
+- ✅ **AC Editing**: Edit armor class for players and monsters (press 'k')
 - ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
 - ✅ **Temporary HP**: Track temp HP separately, displayed in cyan (+5)
 - ✅ **Reaction Tracker**: Mark reactions as used [✗] or available [✓], auto-resets on turn (works for players & monsters)
@@ -635,21 +637,43 @@ You can add your own custom monsters or override existing ones:
 
 #### ⚔️ Panel 6: Encounter Builder
 
-**Keybindings:**
+**Party Setup Mode:**
 | Key | Action |
 |-----|--------|
 | `1-9` | Set party size (1-9 players) |
-| `Shift+1-9` | Set party level (1-9) |
-| `+` / `-` | Adjust party level or monster quantity |
-| `n` | Next to building mode |
+| `+` / `-` | Adjust party level (1-20) |
+| `n` | Next: Start building encounter |
 | `t` | View saved templates |
-| `g` | Generate encounter (auto-balanced) |
+| `g` | Auto-generate encounter |
+
+**Building Encounter Mode:**
+| Key | Action |
+|-----|--------|
 | `m` | Add monster from monster list |
-| `↑` `↓` | Navigate monster list |
-| `Delete` | Remove selected monster |
-| `s` | Save as template |
-| `d` | Deploy to Initiative Tracker |
-| `Esc` | Cancel/go back |
+| `↑` `↓` | Navigate monsters in encounter |
+| `+` / `-` | Adjust selected monster quantity |
+| `x` | Remove selected monster |
+| `c` | Clear entire encounter |
+| `s` | Save encounter as template |
+| `l` (or `d`) | Load entire encounter to Initiative Tracker |
+| `t` | View saved templates |
+| `p` | Back to party setup |
+
+**Templates List Mode:**
+| Key | Action |
+|-----|--------|
+| `↑` `↓` | Navigate saved templates |
+| `Enter` | View template details |
+| `x` | Delete selected template |
+| `n` | Create new blank encounter |
+| `Esc` | Back to building mode |
+
+**Template Details Mode:**
+| Key | Action |
+|-----|--------|
+| `l` or `Enter` | Load template into encounter builder |
+| `x` | Delete this template |
+| `Esc` | Back to templates list |
 
 **Features:**
 - ✅ **Party Setup**: Configure party size (1-20) and level (1-20)
@@ -665,16 +689,17 @@ You can add your own custom monsters or override existing ones:
 **How to Use:**
 
 **1. Set Up Your Party:**
-- Press `1-9` to set party size (e.g., `5` for 5 players)
-- Press `Shift+1` through `Shift+9` to set level (e.g., `Shift+3` for level 3)
-- Or use `+`/`-` to adjust level incrementally
+- Press `1-9` to set party size directly (e.g., `5` for 5 players)
+- Use `+`/`-` to adjust party level (1-20)
 - Party setup shows: `Party: 5 × Level 3`
 
 **2. Build an Encounter:**
 - Press `n` to enter building mode
 - Press `m` to add monsters from the database
-- Navigate with `↑`/`↓` and press `Enter` to select
-- Use `+`/`-` to adjust monster quantities
+- In monster list, navigate with `↑`/`↓` and press `Enter` to select
+- Back in encounter, use `↑`/`↓` to select monsters
+- Use `+`/`-` to adjust selected monster quantity
+- Press `x` to remove selected monster
 - Real-time difficulty updates as you add monsters:
   - **Trivial** (gray): Below easy threshold
   - **Easy** (green): ¼ of daily XP budget
@@ -683,16 +708,19 @@ You can add your own custom monsters or override existing ones:
   - **Deadly** (red): Equal to or beyond daily XP budget
 
 **3. Deploy to Combat:**
-- Press `d` to deploy all monsters to Initiative Tracker
+- Press `l` (or `d`) to load all monsters to Initiative Tracker
 - Each monster added with full stats (HP, AC, actions)
 - Automatically numbered if multiple (Goblin 1, Goblin 2, etc.)
 - Roll initiative and start combat!
 
-**4. Save as Template:**
+**4. Save & Load Templates:**
 - Press `s` to save encounter as template
-- Enter a name (e.g., "Forest Ambush")
-- Template saved for future use
-- Press `t` to view and load saved templates
+- Enter a name (e.g., "Forest Ambush") - if editing existing template, name is pre-filled
+- Template saved to `~/.lazydnd/encounters/`
+- Press `t` to view saved templates
+- Use `↑`/`↓` to select, `Enter` to view details
+- Press `l` or `Enter` to load template
+- Press `x` to delete a template
 
 **5. Auto-Generate Encounters:**
 - Press `g` to open the encounter generator

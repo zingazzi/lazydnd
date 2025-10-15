@@ -146,6 +146,7 @@ type Model struct {
 	EncounterListMode      bool               // Viewing saved encounters list
 	EncounterNameInput     string             // Input for saving encounter
 	ShowEncounterPrompt    bool               // Show save prompt
+	LoadedTemplateName     string             // Name of currently loaded template (for overwriting)
 	EncounterBuilderMode   string             // "party_setup", "building", "templates"
 	EncounterCRFilter         string   // CR filter string
 	EncounterFilterActive     bool     // Whether CR filter is being edited

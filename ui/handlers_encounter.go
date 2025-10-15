@@ -94,7 +94,7 @@ func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "t", "T":
 		// View saved templates
 		m.EncounterBuilderMode = "templates"
-		m.EncounterListMode = true
+		m.EncounterListMode = true // Enable list mode for visual selection
 		m.EncounterSelectedSaved = 0
 		// Load saved encounters
 		savedEncs, err := encounters.LoadEncounters("")
@@ -179,6 +179,7 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		// Clear encounter
 		m.EncounterMonsters = []EncounterMonster{}
 		m.SelectedEncounterIndex = -1
+		m.LoadedTemplateName = "" // Clear loaded template name when clearing encounter
 		return m, nil
 
 	case "p", "P":
@@ -186,8 +187,8 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterBuilderMode = "party_setup"
 		return m, nil
 
-	case "d", "D":
-		// Deploy to initiative tracker
+	case "d", "D", "l", "L":
+		// Deploy/Load to initiative tracker
 		if len(m.EncounterMonsters) == 0 {
 			SetError(&m, "No monsters in encounter to deploy")
 			return m, nil
@@ -197,7 +198,12 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "s", "S":
 		// Show save prompt
 		m.ShowEncounterPrompt = true
-		m.EncounterNameInput = ""
+		// Pre-fill with loaded template name if editing an existing template
+		if m.LoadedTemplateName != "" {
+			m.EncounterNameInput = m.LoadedTemplateName
+		} else {
+			m.EncounterNameInput = ""
+		}
 		return m, nil
 
 	case "t", "T":
@@ -211,6 +217,7 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.SavedEncounters = convertToUIEncounters(savedEncs)
 		m.EncounterSelectedSaved = 0
 		m.EncounterBuilderMode = "templates"
+		m.EncounterListMode = true // Enable list mode for visual selection
 		return m, nil
 
 	default:
@@ -282,6 +289,13 @@ func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterListMode = false
 		m.EncounterMonsters = []EncounterMonster{}
 		m.SelectedEncounterIndex = -1
+		m.LoadedTemplateName = "" // Clear loaded template name for new encounter
+		return m, nil
+
+	case "esc", "b", "B":
+		// Back to building mode
+		m.EncounterBuilderMode = "building"
+		m.EncounterListMode = false
 		return m, nil
 
 	default:
@@ -301,6 +315,7 @@ func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 			m.SelectedEncounterIndex = 0
 			m.EncounterBuilderMode = "building"
 			m.EncounterListMode = false
+			m.LoadedTemplateName = selected.Name // Remember the loaded template name
 			SetSuccess(&m, fmt.Sprintf("Loaded template: %s", selected.Name))
 		}
 		return m, nil
@@ -328,9 +343,10 @@ func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case "q", "Q", "esc":
+	case "esc", "b", "B":
 		// Back to templates list
 		m.EncounterBuilderMode = "templates"
+		m.EncounterListMode = true
 		return m, nil
 
 	default:
@@ -569,6 +585,7 @@ func handleEncounterPromptInput(m Model, key string) (Model, tea.Cmd) {
 			SetError(&m, fmt.Sprintf("Failed to save: %v", err))
 		} else {
 			SetSuccess(&m, fmt.Sprintf("Saved encounter: %s", m.EncounterNameInput))
+			m.LoadedTemplateName = m.EncounterNameInput // Update loaded template name after saving
 			m.ShowEncounterPrompt = false
 			m.EncounterNameInput = ""
 		}
