@@ -108,6 +108,7 @@ func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterGenerating = true
 		m.EncounterDifficultyIndex = 1 // Medium
 		m.EncounterEnvironmentIndex = 0 // Any
+		m.EncounterGeneratorFocus = "difficulty" // Start with difficulty focused
 		return m, nil
 
 	default:
@@ -218,6 +219,14 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.EncounterSelectedSaved = 0
 		m.EncounterBuilderMode = "templates"
 		m.EncounterListMode = true // Enable list mode for visual selection
+		return m, nil
+
+	case "g", "G":
+		// Open generator popup (from building mode)
+		m.EncounterGenerating = true
+		m.EncounterDifficultyIndex = 1 // Medium
+		m.EncounterEnvironmentIndex = 0 // Any
+		m.EncounterGeneratorFocus = "difficulty" // Start with difficulty focused
 		return m, nil
 
 	default:

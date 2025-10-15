@@ -14,33 +14,47 @@ import (
 func handleGeneratorPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	key := msg.String()
 
+	// Allow 'q' to quit the application (handled by global handler)
+	if key == "q" {
+		return m, tea.Quit
+	}
+
 	switch key {
 	case "esc":
 		m.EncounterGenerating = false
 		return m, nil
 
+	case "tab":
+		// Switch focus between difficulty and environment
+		if m.EncounterGeneratorFocus == "difficulty" {
+			m.EncounterGeneratorFocus = "environment"
+		} else {
+			m.EncounterGeneratorFocus = "difficulty"
+		}
+		return m, nil
+
 	case "up", "k":
-		if m.EncounterDifficultyIndex > 0 {
-			m.EncounterDifficultyIndex--
+		if m.EncounterGeneratorFocus == "difficulty" {
+			if m.EncounterDifficultyIndex > 0 {
+				m.EncounterDifficultyIndex--
+			}
+		} else if m.EncounterGeneratorFocus == "environment" {
+			if m.EncounterEnvironmentIndex > 0 {
+				m.EncounterEnvironmentIndex--
+			}
 		}
 		return m, nil
 
 	case "down", "j":
-		difficulties := 4 // easy, medium, hard, deadly
-		if m.EncounterDifficultyIndex < difficulties-1 {
-			m.EncounterDifficultyIndex++
-		}
-		return m, nil
-
-	case "left", "h":
-		if m.EncounterEnvironmentIndex > 0 {
-			m.EncounterEnvironmentIndex--
-		}
-		return m, nil
-
-	case "right", "l":
-		if m.EncounterEnvironmentIndex < len(m.AvailableEnvironments)-1 {
-			m.EncounterEnvironmentIndex++
+		if m.EncounterGeneratorFocus == "difficulty" {
+			difficulties := 4 // easy, medium, hard, deadly
+			if m.EncounterDifficultyIndex < difficulties-1 {
+				m.EncounterDifficultyIndex++
+			}
+		} else if m.EncounterGeneratorFocus == "environment" {
+			if m.EncounterEnvironmentIndex < len(m.AvailableEnvironments)-1 {
+				m.EncounterEnvironmentIndex++
+			}
 		}
 		return m, nil
 
@@ -157,5 +171,3 @@ func parseMonsterAC(acStr string) int {
 	}
 	return ac
 }
-
-

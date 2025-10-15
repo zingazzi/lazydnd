@@ -139,10 +139,11 @@ func GenerateEncounter(req GenerateEncounterRequest) GenerateEncounterResult {
 // filterMonstersByEnvironmentAndCR filters monsters by environment and appropriate CR
 func filterMonstersByEnvironmentAndCR(monsters []MonsterInfo, env Environment, partyLevel int) []MonsterInfo {
 	filtered := []MonsterInfo{}
+	fallbackFiltered := []MonsterInfo{} // Fallback: monsters that match CR but not environment
 
-	// Determine CR range based on party level
-	minCR := maxInt(0, partyLevel-4)
-	maxCR := partyLevel + 4
+	// Determine CR range based on party level (more lenient range)
+	minCR := 0  // Always include low-CR monsters
+	maxCR := partyLevel + 5  // Include slightly higher CR monsters
 
 	for _, monster := range monsters {
 		// Check CR range
@@ -151,14 +152,29 @@ func filterMonstersByEnvironmentAndCR(monsters []MonsterInfo, env Environment, p
 			continue
 		}
 
+		// Add to fallback list (all CR-appropriate monsters)
+		fallbackFiltered = append(fallbackFiltered, monster)
+
 		// Check environment (if not "Any")
 		if env != EnvAny {
-			if !monsterMatchesEnvironment(monster, env) {
+			// If monster has no meta info, include it (more permissive)
+			if monster.Meta == "" {
+				filtered = append(filtered, monster)
 				continue
 			}
+			// If monster has meta, check if it matches environment
+			if monsterMatchesEnvironment(monster, env) {
+				filtered = append(filtered, monster)
+			}
+		} else {
+			filtered = append(filtered, monster)
 		}
+	}
 
-		filtered = append(filtered, monster)
+	// If no monsters match the environment, use fallback (all CR-appropriate monsters)
+	// This ensures we always have monsters to generate encounters
+	if len(filtered) == 0 && len(fallbackFiltered) > 0 {
+		return fallbackFiltered
 	}
 
 	return filtered
@@ -351,7 +367,10 @@ func monsterMatchesEnvironment(monster MonsterInfo, env Environment) bool {
 
 // parseCRToInt converts CR string to approximate integer for comparison
 func parseCRToInt(cr string) int {
-	switch cr {
+	// Clean the CR string (remove XP suffix if present)
+	cleanCR := cleanCRString(cr)
+
+	switch cleanCR {
 	case "0":
 		return 0
 	case "1/8":
@@ -359,7 +378,7 @@ func parseCRToInt(cr string) int {
 	case "1/4":
 		return 0
 	case "1/2":
-		return 0
+		return 1  // Changed to 1 so it's included in low-level encounters
 	case "1":
 		return 1
 	case "2":

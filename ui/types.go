@@ -157,6 +157,7 @@ type Model struct {
 	EncounterGenerating       bool     // Whether in generation mode
 	EncounterEnvironmentIndex int      // Selected environment index
 	EncounterDifficultyIndex  int      // Selected difficulty index
+	EncounterGeneratorFocus   string   // "difficulty" or "environment" - which field is focused
 	AvailableEnvironments     []string // List of environments
 
 	// Debug mode
