@@ -87,6 +87,25 @@ func GetMonsterCount() int {
 	return len(monsters)
 }
 
+// GetMonsterByName searches for a monster by name
+func GetMonsterByName(name string) *Monster {
+	if err := LoadMonsters(); err != nil {
+		return nil
+	}
+
+	monsterMutex.Lock()
+	defer monsterMutex.Unlock()
+
+	nameLower := strings.ToLower(name)
+	for i := range monsters {
+		if strings.ToLower(monsters[i].Name) == nameLower {
+			return &monsters[i]
+		}
+	}
+
+	return nil
+}
+
 // getCustomMonstersDir returns the path to the custom monsters directory
 func getCustomMonstersDir() (string, error) {
 	homeDir, err := os.UserHomeDir()

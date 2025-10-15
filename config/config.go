@@ -54,17 +54,15 @@ type InitiativeConfig struct {
 
 // DisplayConfig for display settings
 type DisplayConfig struct {
-	ShowHelpHints      bool `json:"show_help_hints"`     // Show help hints at bottom
-	CompactMode        bool `json:"compact_mode"`        // Use compact display
-	AnimateTransitions bool `json:"animate_transitions"` // Animate panel transitions
-	LineWrap           bool `json:"line_wrap"`           // Wrap long text lines
-	MaxLineLength      int  `json:"max_line_length"`     // Maximum line length before wrap
+	ShowHelpHints bool `json:"show_help_hints"` // Show help hints at bottom
+	CompactMode   bool `json:"compact_mode"`    // Use compact display
+	LineWrap      bool `json:"line_wrap"`       // Wrap long text lines (future feature)
+	MaxLineLength int  `json:"max_line_length"` // Maximum line length before wrap (future feature)
 }
 
 // PathsConfig for file and directory paths
 type PathsConfig struct {
 	SaveDirectory   string `json:"save_directory"`   // Directory for campaign saves (empty = default ~/.lazydnd)
-	ConfigDirectory string `json:"config_directory"` // Config directory (empty = default ~/.config/lazydnd)
 	BackupEnabled   bool   `json:"backup_enabled"`   // Enable automatic backups
 	BackupDirectory string `json:"backup_directory"` // Directory for backups (empty = saves/.backups)
 	MaxBackups      int    `json:"max_backups"`      // Maximum number of backups to keep per campaign
@@ -99,15 +97,13 @@ func Default() *Config {
 			RoundCounter:    true,
 		},
 		Display: DisplayConfig{
-			ShowHelpHints:      true,
-			CompactMode:        false,
-			AnimateTransitions: false,
-			LineWrap:           true,
-			MaxLineLength:      50,
+			ShowHelpHints: true,
+			CompactMode:   false,
+			LineWrap:      true,
+			MaxLineLength: 50,
 		},
 		Paths: PathsConfig{
 			SaveDirectory:   "", // Empty = use default ~/.lazydnd
-			ConfigDirectory: "", // Empty = use default ~/.config/lazydnd
 			BackupEnabled:   true,
 			BackupDirectory: "", // Empty = use saves/.backups
 			MaxBackups:      10,

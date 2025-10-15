@@ -63,6 +63,20 @@ Control the application's color scheme. Colors use hex format (`#RRGGBB`).
 - Border: `#666666` (gray)
 - Highlight: `#AAAAAA` (light gray)
 
+**Monokai:**
+- Primary: `#66D9EF` (cyan)
+- Border: `#75715E` (brown-gray)
+- Highlight: `#A6E22E` (lime green)
+- Error: `#F92672` (pink-red)
+- Success: `#A6E22E` (lime green)
+
+**Tokyo Night:**
+- Primary: `#7aa2f7` (bright blue)
+- Border: `#414868` (dark blue-gray)
+- Highlight: `#9ece6a` (green)
+- Error: `#f7768e` (red)
+- Success: `#9ece6a` (green)
+
 ### Auto-Save Settings
 
 Configure campaign auto-save behavior:
@@ -88,7 +102,7 @@ Customize dice rolling behavior:
 {
   "dice_roller": {
     "history_size": 15,         // Number of rolls to keep in history
-    "show_individual": true,    // Show individual die results  
+    "show_individual": true,    // Show individual die results
     "minimum_value": 1          // Minimum roll value (D&D standard)
   }
 }
@@ -165,15 +179,15 @@ Customize file locations:
 
 - `config_directory`: Custom config location (rarely needed)
   - Empty string: Use default `~/.config/lazydnd`
-  
+
 - `backup_enabled`: Create automatic backups
   - `true`: Create backup before each save
   - `false`: No automatic backups
-  
+
 - `backup_directory`: Where to store backups
   - Empty string: Use `[save_directory]/.backups`
   - Custom path: Absolute path to backup folder
-  
+
 - `max_backups`: Number of backups to keep
   - Range: 1-100 (recommended: 5-20)
   - Oldest backups deleted when limit reached
@@ -213,6 +227,94 @@ Disable backups:
 ```
 
 ## Example Configurations
+
+### Monokai Theme
+
+```json
+{
+  "theme": {
+    "primary_color": "#66D9EF",
+    "border_color": "#75715E",
+    "highlight_color": "#A6E22E",
+    "error_color": "#F92672",
+    "success_color": "#A6E22E"
+  },
+  "auto_save": {
+    "enabled": true,
+    "interval_minutes": 5
+  },
+  "dice_roller": {
+    "history_size": 15,
+    "show_individual": true,
+    "minimum_value": 1,
+    "critical_hit_enabled": true,
+    "critical_hit_mode": "double"
+  },
+  "initiative_tracker": {
+    "auto_sort": true,
+    "show_hp": true,
+    "show_ac": true,
+    "highlight_active": true,
+    "round_counter": true
+  },
+  "display": {
+    "show_help_hints": true,
+    "compact_mode": false,
+    "line_wrap": true,
+    "max_line_length": 50
+  },
+  "paths": {
+    "save_directory": "",
+    "backup_enabled": true,
+    "backup_directory": "",
+    "max_backups": 10
+  }
+}
+```
+
+### Tokyo Night Theme
+
+```json
+{
+  "theme": {
+    "primary_color": "#7aa2f7",
+    "border_color": "#414868",
+    "highlight_color": "#9ece6a",
+    "error_color": "#f7768e",
+    "success_color": "#9ece6a"
+  },
+  "auto_save": {
+    "enabled": true,
+    "interval_minutes": 5
+  },
+  "dice_roller": {
+    "history_size": 15,
+    "show_individual": true,
+    "minimum_value": 1,
+    "critical_hit_enabled": true,
+    "critical_hit_mode": "double"
+  },
+  "initiative_tracker": {
+    "auto_sort": true,
+    "show_hp": true,
+    "show_ac": true,
+    "highlight_active": true,
+    "round_counter": true
+  },
+  "display": {
+    "show_help_hints": true,
+    "compact_mode": false,
+    "line_wrap": true,
+    "max_line_length": 50
+  },
+  "paths": {
+    "save_directory": "",
+    "backup_enabled": true,
+    "backup_directory": "",
+    "max_backups": 10
+  }
+}
+```
 
 ### Minimalist Setup
 
@@ -403,4 +505,3 @@ If you encounter issues with configuration:
 ---
 
 **Note:** Configuration is loaded once at startup. Changes require restarting LazyDnD to take effect.
-
