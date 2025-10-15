@@ -19,6 +19,9 @@ func handleEncounterBuilderInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 	}
 
+	key := msg.String()
+	DebugLog("ENCOUNTER BUILDER: Mode=%s, Key=%s", m.EncounterBuilderMode, key)
+
 	switch m.EncounterBuilderMode {
 	case "party_setup":
 		return handlePartySetupInput(m, msg)
@@ -237,7 +240,10 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleTemplatesInput handles input in templates viewing mode
 func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
+	key := msg.String()
+	DebugLog("TEMPLATES LIST: Key=%s, Mode=%s", key, m.EncounterBuilderMode)
+
+	switch key {
 	case "up", "k":
 		if len(m.SavedEncounters) > 0 {
 			if m.EncounterSelectedSaved <= 0 {
@@ -261,7 +267,9 @@ func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "enter":
 		// View selected template details
 		if m.EncounterSelectedSaved >= 0 && m.EncounterSelectedSaved < len(m.SavedEncounters) {
+			DebugLog("TEMPLATES: Switching to template_detail mode")
 			m.EncounterBuilderMode = "template_detail"
+			DebugLog("TEMPLATES: Mode is now: %s", m.EncounterBuilderMode)
 		}
 		return m, nil
 
@@ -315,7 +323,10 @@ func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handleTemplateDetailInput handles input when viewing a template's details
 func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
-	switch msg.String() {
+	key := msg.String()
+	DebugLog("TEMPLATE DETAIL: Key pressed: %s, Mode: %s", key, m.EncounterBuilderMode)
+
+	switch key {
 	case "l", "L", "enter":
 		// Load selected template
 		if m.EncounterSelectedSaved >= 0 && m.EncounterSelectedSaved < len(m.SavedEncounters) {
@@ -354,6 +365,7 @@ func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	case "esc", "b", "B":
 		// Back to templates list
+		DebugLog("TEMPLATE DETAIL: Returning to templates list")
 		m.EncounterBuilderMode = "templates"
 		m.EncounterListMode = true
 		return m, nil

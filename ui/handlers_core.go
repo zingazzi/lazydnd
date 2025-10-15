@@ -155,10 +155,10 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Handle encounter builder input first (when in encounter builder panel AND not in other modes)
-	// EXCEPT for tab navigation and help keys which should always work globally
+	// EXCEPT for tab navigation, help keys, and quit keys which should always work globally
 	if m.ActivePanel == EncounterBuilder && !m.MonsterSearchMode && !m.SpellSearchMode {
-		// Skip encounter builder for tab and help keys - let them go to global handlers
-		if key != "tab" && key != "shift+tab" && key != "?" {
+		// Skip encounter builder for global keys - let them go to global handlers
+		if key != "tab" && key != "shift+tab" && key != "?" && key != "q" && key != "ctrl+c" {
 			return handleEncounterBuilderInput(m, msg)
 		}
 	}
