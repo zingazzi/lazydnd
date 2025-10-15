@@ -79,41 +79,72 @@ func (m Model) renderStatusBar() string {
 	}
 	leftSection := m.Styles.StatusBarTextStyle.Render(strings.Join(leftParts, " "))
 
-	// MIDDLE SECTION: Panel-specific commands
-	panelName := PanelNames[m.ActivePanel]
-	panelCommands := m.getPanelCommands()
-	middleParts := []string{panelName}
-	if panelCommands != "" {
-		middleParts = append(middleParts, "│", panelCommands)
+	// Check if help hints are enabled in config
+	showHelp := m.Config.Display.ShowHelpHints
+
+	// MIDDLE SECTION: Panel-specific commands (if help enabled)
+	var middleSection string
+	if showHelp {
+		panelName := PanelNames[m.ActivePanel]
+		panelCommands := m.getPanelCommands()
+		middleParts := []string{panelName}
+		if panelCommands != "" {
+			middleParts = append(middleParts, "│", panelCommands)
+		}
+		middleSection = m.Styles.StatusBarKeyStyle.Render(strings.Join(middleParts, " "))
+	} else {
+		// Just show panel name without commands
+		middleSection = m.Styles.StatusBarTextStyle.Render(PanelNames[m.ActivePanel])
 	}
-	middleSection := m.Styles.StatusBarKeyStyle.Render(strings.Join(middleParts, " "))
 
-	// RIGHT SECTION: Shared commands
-	rightSection := m.Styles.StatusBarTextStyle.Render("Tab:switch │ ?:help │ Ctrl+S:save │ q:quit")
+	// RIGHT SECTION: Shared commands (if help enabled)
+	var rightSection string
+	if showHelp {
+		rightSection = m.Styles.StatusBarTextStyle.Render("Tab:switch │ ?:help │ Ctrl+S:save │ q:quit")
+	}
 
-	// Calculate spacing for three sections
+	// Calculate spacing for sections
 	leftWidth := lipgloss.Width(leftSection)
 	middleWidth := lipgloss.Width(middleSection)
 	rightWidth := lipgloss.Width(rightSection)
 
-	totalContentWidth := leftWidth + middleWidth + rightWidth
-	availableSpace := m.Width - totalContentWidth - 4 // Account for separators
+	var statusBarContent string
+	if showHelp && rightWidth > 0 {
+		// Three sections with help
+		totalContentWidth := leftWidth + middleWidth + rightWidth
+		availableSpace := m.Width - totalContentWidth - 4 // Account for separators
 
-	// Minimal spacing between sections
-	spacing1 := 2
-	spacing2 := availableSpace - spacing1
-	if spacing2 < 2 {
-		spacing2 = 2
+		// Minimal spacing between sections
+		spacing1 := 2
+		spacing2 := availableSpace - spacing1
+		if spacing2 < 2 {
+			spacing2 = 2
+		}
+
+		statusBarContent = lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			leftSection,
+			strings.Repeat(" ", spacing1),
+			middleSection,
+			strings.Repeat(" ", spacing2),
+			rightSection,
+		)
+	} else {
+		// Two sections without help
+		totalContentWidth := leftWidth + middleWidth
+		availableSpace := m.Width - totalContentWidth - 2
+		spacing := availableSpace / 2
+		if spacing < 2 {
+			spacing = 2
+		}
+
+		statusBarContent = lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			leftSection,
+			strings.Repeat(" ", spacing),
+			middleSection,
+		)
 	}
-
-	statusBarContent := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		leftSection,
-		strings.Repeat(" ", spacing1),
-		middleSection,
-		strings.Repeat(" ", spacing2),
-		rightSection,
-	)
 
 	// Apply full-width background style
 	statusBar := m.Styles.StatusBarStyle.

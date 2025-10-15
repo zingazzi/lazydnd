@@ -109,6 +109,7 @@ var InitiativeTrackerHelp = []HelpKey{
 	{"  i", "Edit initiative value"},
 	{"  h", "Edit HP (+heal/-damage)"},
 	{"  Shift+H", "Edit Max HP (absolute)"},
+	{"  k", "Edit AC (armor class)"},
 	{"  Shift+T", "Edit Temp HP (absolute)"},
 	{"  s", "Roll saving throws (monsters only)"},
 	{"  l", "View linked monster details"},
@@ -156,15 +157,39 @@ var NotesHelp = []HelpKey{
 	{"  Type", "Add/edit text"},
 	{"  Enter", "New line (save with Esc)"},
 	{"  Esc", "Save and exit"},
+}
+
+// EncounterBuilderHelp contains help text for the Encounter Builder panel
+var EncounterBuilderHelp = []HelpKey{
+	{"Party Setup:", ""},
+	{"  1-9", "Set party size (1-9 players)"},
+	{"  +/-", "Adjust party level (1-20)"},
+	{"  n", "Next: Start building encounter"},
+	{"  t", "View saved templates"},
+	{"  g", "Auto-generate encounter"},
 	{"", ""},
-	{"In Search Mode:", ""},
-	{"  Type", "Search text"},
-	{"  Esc", "Exit search"},
+	{"Building Encounter:", ""},
+	{"  m", "Add monster from list"},
+	{"  ↑/↓", "Navigate monsters in encounter"},
+	{"  +/-", "Adjust selected monster quantity"},
+	{"  x", "Remove selected monster"},
+	{"  c", "Clear entire encounter"},
+	{"  s", "Save as template"},
+	{"  l (or d)", "Load to initiative tracker"},
+	{"  t", "View saved templates"},
+	{"  p", "Back to party setup"},
 	{"", ""},
-	{"Markdown Support:", ""},
-	{"  # Text", "Heading"},
-	{"  - Item", "Bullet point"},
-	{"  **text**", "Bold (simplified)"},
+	{"Templates List:", ""},
+	{"  ↑/↓", "Select template"},
+	{"  Enter", "View template details"},
+	{"  x", "Delete template"},
+	{"  n", "New blank encounter"},
+	{"  Esc", "Back to building"},
+	{"", ""},
+	{"Template Details:", ""},
+	{"  l/Enter", "Load into encounter builder"},
+	{"  x", "Delete this template"},
+	{"  Esc", "Back to templates list"},
 }
 
 // GetPanelHelpKeys returns the help keys for a specific panel
@@ -180,6 +205,8 @@ func GetPanelHelpKeys(panelType PanelType) []HelpKey {
 		return MonstersHelp
 	case Notes:
 		return NotesHelp
+	case EncounterBuilder:
+		return EncounterBuilderHelp
 	default:
 		return []HelpKey{}
 	}

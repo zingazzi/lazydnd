@@ -13,7 +13,9 @@
   "dice_roller": {
     "history_size": 15,
     "show_individual": true,
-    "minimum_value": 1
+    "minimum_value": 1,
+    "critical_hit_enabled": true,
+    "critical_hit_mode": "double"
   },
   "initiative_tracker": {
     "auto_sort": true,
@@ -25,16 +27,13 @@
   "display": {
     "show_help_hints": true,
     "compact_mode": false,
-    "animate_transitions": false,
     "line_wrap": true,
     "max_line_length": 50
   },
   "paths": {
     "save_directory": "",
-    "config_directory": "",
     "backup_enabled": true,
     "backup_directory": "",
     "max_backups": 10
   }
 }
-

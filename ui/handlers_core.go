@@ -49,6 +49,7 @@ var keyHandlers = map[string]KeyHandler{
 	"i": handleI,
 	"h": handleH,
 	"H": handleH, // Shift+H for max HP editing
+	"k": handleK, // k for AC editing
 	"a": handleA,
 	"d": handleD,
 	"l": handleL,
@@ -108,6 +109,16 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleQuickHPInput(m, key)
 	}
 
+	// Handle encounter name prompt input
+	if m.ShowEncounterPrompt {
+		return handleEncounterPromptInput(m, key)
+	}
+
+	// Handle encounter generator popup
+	if m.EncounterGenerating {
+		return handleGeneratorPopupInput(m, msg)
+	}
+
 	// Handle action popup input (but not Enter key - that goes to handleEnter)
 	if m.ShowActionPopup && key != "enter" {
 		return handleActionPopupInput(m, key)
@@ -143,7 +154,16 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSpellLevelFilterInput(m, key)
 	}
 
-	// Check if we have a specific handler for this key
+	// Handle encounter builder input first (when in encounter builder panel AND not in other modes)
+	// EXCEPT for tab navigation and help keys which should always work globally
+	if m.ActivePanel == EncounterBuilder && !m.MonsterSearchMode && !m.SpellSearchMode {
+		// Skip encounter builder for tab and help keys - let them go to global handlers
+		if key != "tab" && key != "shift+tab" && key != "?" {
+			return handleEncounterBuilderInput(m, msg)
+		}
+	}
+
+	// Check if we have a specific handler for this key (like tab for navigation, quit, etc.)
 	if handler, exists := keyHandlers[key]; exists {
 		return handler(m, msg)
 	}

@@ -16,6 +16,7 @@ var panelContentProviders = map[PanelType]PanelContentProvider{
 	Spells:            getSpellsContent,
 	Monsters:          getMonstersContent,
 	Notes:             getNotesContent,
+	EncounterBuilder:  getEncounterBuilderContent,
 }
 
 // getPanelContent returns the content for a specific panel
@@ -72,6 +73,7 @@ func getInitiativeTrackerContent(m Model) string {
 		m.RoundCounter,
 		m.MultiTargetMode,
 		m.SelectedTargets,
+		m.Config.InitiativeTracker.RoundCounter,
 	)
 }
 
@@ -195,4 +197,59 @@ func getMonstersHelpText(m Model) string {
 func getNotesHelpText(m Model) string {
 	text := NotesInlineHelp(m.NotesEditMode, m.NotesSearchMode)
 	return "\n" + m.Styles.HelpStyle.Render(text)
+}
+
+// getEncounterBuilderContent gets content for the encounter builder panel
+func getEncounterBuilderContent(m Model) string {
+	// Convert ui.Encounter to panels.Encounter
+	panelEncounters := make([]panels.Encounter, len(m.SavedEncounters))
+	for i, enc := range m.SavedEncounters {
+		panelMonsters := make([]panels.EncounterMonster, len(enc.Monsters))
+		for j, mon := range enc.Monsters {
+			panelMonsters[j] = panels.EncounterMonster{
+				Name:     mon.Name,
+				CR:       mon.CR,
+				HP:       mon.HP,
+				MaxHP:    mon.MaxHP,
+				AC:       mon.AC,
+				Quantity: mon.Quantity,
+				XP:       mon.XP,
+			}
+		}
+		panelEncounters[i] = panels.Encounter{
+			Name:     enc.Name,
+			Monsters: panelMonsters,
+		}
+	}
+
+	// Convert ui.EncounterMonster to panels.EncounterMonster
+	panelCurrentMonsters := make([]panels.EncounterMonster, len(m.EncounterMonsters))
+	for i, mon := range m.EncounterMonsters {
+		panelCurrentMonsters[i] = panels.EncounterMonster{
+			Name:     mon.Name,
+			CR:       mon.CR,
+			HP:       mon.HP,
+			MaxHP:    mon.MaxHP,
+			AC:       mon.AC,
+			Quantity: mon.Quantity,
+			XP:       mon.XP,
+		}
+	}
+
+	return panels.GetEncounterBuilderContent(
+		m.EncounterBuilderMode,
+		m.PartySize,
+		m.PartyLevel,
+		panelCurrentMonsters,
+		m.SelectedEncounterIndex,
+		panelEncounters,
+		m.EncounterListMode,
+		m.EncounterSelectedSaved,
+		m.EncounterCRFilter,
+		m.Width,
+		m.Height,
+		m.Styles.ActivePanelStyle,
+		m.Styles.InactivePanelStyle,
+		m.Styles.PanelTitleStyle,
+	)
 }

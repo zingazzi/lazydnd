@@ -98,13 +98,13 @@ func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
 }
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool, showRoundCounter bool) string {
 	var contentLines []string
 
 	// Removed instruction text for cleaner interface
 
-	// Show round counter and elapsed time if combat has started
-	if roundCounter > 0 {
+	// Show round counter and elapsed time if combat has started (if enabled in config)
+	if showRoundCounter && roundCounter > 0 {
 		totalSeconds := roundCounter * 6
 		minutes := totalSeconds / 60
 		seconds := totalSeconds % 60
@@ -157,6 +157,8 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 				prompt = "HP Change (+heal/-damage): "
 			case "maxhp":
 				prompt = "Max HP: "
+			case "ac":
+				prompt = "AC: "
 			case "temphp":
 				prompt = "Temporary HP: "
 			case "delete":
@@ -654,7 +656,24 @@ func ParseInput(input string, inputType string) (interface{}, error) {
 			return nil, fmt.Errorf("must be at least 1")
 		}
 		if val > 9999 {
-			return nil, fmt.Errorf("max HP too high (max 9999)")
+			return nil, fmt.Errorf("must be at most 9999")
+		}
+		return val, nil
+
+	case "ac":
+		input = strings.TrimSpace(input)
+		if input == "" {
+			return nil, fmt.Errorf("enter a number")
+		}
+		val, err := strconv.Atoi(input)
+		if err != nil {
+			return nil, fmt.Errorf("must be a number")
+		}
+		if val < 0 {
+			return nil, fmt.Errorf("must be at least 0")
+		}
+		if val > 99 {
+			return nil, fmt.Errorf("AC too high (max 99)")
 		}
 		return val, nil
 

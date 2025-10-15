@@ -11,10 +11,12 @@ A lazygit-inspired terminal UI for managing your D&D game sessions, built with G
 🎨 **Color-Coded HP** - HP display changes color based on health (green/orange/red)
 ✨ **Spells Panel** - Search and browse D&D 5e spells with fuzzy search
 🐲 **Monsters Panel** - Search and view detailed monster stat blocks with fuzzy search
+📝 **Notes Panel** - Track session notes, NPCs, quests with Markdown-style formatting
+⚡ **Encounter Builder** - Pre-plan balanced encounters with CR calculator, auto-generator, and templates
 💾 **Campaign Save/Load** - Save your game state and resume later
 🔄 **Auto-Save** - Automatic saving every 5 minutes
 🔗 **Monster Integration** - Link monsters to initiative with full action support
-⚡ **Instant Transitions** - Lightning-fast panel switching with zero latency
+🏃 **Instant Transitions** - Lightning-fast panel switching with zero latency
 ❌ **UI Error Messages** - Clear error notifications displayed in the UI, not just terminal
 
 ## Installation
@@ -289,8 +291,9 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 | `Ctrl+Y` | Redo HP change |
 | `i` | Edit initiative value (in edit mode) |
 | `h` | Edit HP - add/remove HP with +/- (in edit mode) |
-| `H` | Edit Max HP - set new maximum HP value (in edit mode, monsters only) |
-| `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode, monsters only) |
+| `H` | Edit Max HP - set new maximum HP value (in edit mode) |
+| `k` | Edit AC - set armor class (in edit mode) |
+| `T` | Set Temp HP - Shift+T to set temporary hit points (in edit mode) |
 | `+` or `=` | **Quick Add HP** - Fast healing popup (works with single or multi-target) |
 | `-` | **Quick Remove HP** - Fast damage popup (works with single or multi-target) |
 | `R` | Toggle Reaction - Shift+R to mark reaction as used/available (in edit mode) |
@@ -312,8 +315,9 @@ See [PRESET_MACROS.md](PRESET_MACROS.md) for full list!
 - ✅ **Action Integration**: Press 'a' on linked monsters to see available actions
 - ✅ **Quick Actions**: Select action to auto-roll damage in Dice Roller
 - ✅ **Saving Throws & Skills**: Press 's' to roll all saves and skill checks for monsters
-- ✅ **HP Tracking**: Real-time HP management for monsters
-- ✅ **Max HP Editing**: Adjust maximum HP values for monsters (Shift+H)
+- ✅ **HP Tracking**: Real-time HP management for monsters and players
+- ✅ **Max HP Editing**: Adjust maximum HP values for anyone (Shift+H)
+- ✅ **AC Editing**: Edit armor class for players and monsters (press 'k')
 - ✅ **Color-Coded HP**: HP changes color - Green (> 50%), Orange (25-50%), Red (< 25%)
 - ✅ **Temporary HP**: Track temp HP separately, displayed in cyan (+5)
 - ✅ **Reaction Tracker**: Mark reactions as used [✗] or available [✓], auto-resets on turn (works for players & monsters)
@@ -595,6 +599,173 @@ You can add your own custom monsters or override existing ones:
 - Multiple JSON files can be placed in the directory
 - Invalid JSON files will be skipped with a warning
 - Example custom monsters are available at `~/.config/lazydnd/custom_monsters/example_custom_monsters.json` after first run
+
+---
+
+#### 📝 Panel 5: Notes
+
+**Keybindings:**
+| Key | Action |
+|-----|--------|
+| `Enter` | Start editing notes |
+| `Ctrl+F` | Search notes |
+| Type text | Edit session notes with Markdown-style formatting |
+| `Esc` | Exit edit/search mode |
+
+**Features:**
+- ✅ **Session Notes**: Track plot points, NPC names, quest details
+- ✅ **Markdown-Style Formatting**: Bold, italics, headers, lists
+- ✅ **Fuzzy Search**: Quickly find notes with Ctrl+F
+- ✅ **Auto-Save**: Notes automatically saved with campaign
+- ✅ **Multi-Line Support**: Full text editor for long notes
+- ✅ **Scrollable**: Navigate long notes with ↑↓
+
+**Quick Markdown:**
+- `**bold**` for **bold**
+- `*italic*` for *italic*
+- `# Heading` for headings
+- `- item` for lists
+
+**Example Use Cases:**
+- Track NPC names and relationships
+- Record quest objectives and progress
+- Note down player decisions
+- Keep session summaries
+- Track loot and rewards
+
+---
+
+#### ⚔️ Panel 6: Encounter Builder
+
+**Party Setup Mode:**
+| Key | Action |
+|-----|--------|
+| `1-9` | Set party size (1-9 players) |
+| `+` / `-` | Adjust party level (1-20) |
+| `n` | Next: Start building encounter |
+| `t` | View saved templates |
+| `g` | Auto-generate encounter |
+
+**Building Encounter Mode:**
+| Key | Action |
+|-----|--------|
+| `m` | Add monster from monster list |
+| `↑` `↓` | Navigate monsters in encounter |
+| `+` / `-` | Adjust selected monster quantity |
+| `x` | Remove selected monster |
+| `c` | Clear entire encounter |
+| `s` | Save encounter as template |
+| `l` (or `d`) | Load entire encounter to Initiative Tracker |
+| `t` | View saved templates |
+| `p` | Back to party setup |
+
+**Templates List Mode:**
+| Key | Action |
+|-----|--------|
+| `↑` `↓` | Navigate saved templates |
+| `Enter` | View template details |
+| `x` | Delete selected template |
+| `n` | Create new blank encounter |
+| `Esc` | Back to building mode |
+
+**Template Details Mode:**
+| Key | Action |
+|-----|--------|
+| `l` or `Enter` | Load template into encounter builder |
+| `x` | Delete this template |
+| `Esc` | Back to templates list |
+
+**Features:**
+- ✅ **Party Setup**: Configure party size (1-20) and level (1-20)
+- ✅ **Real-Time CR Calculation**: Automatic difficulty assessment (Trivial/Easy/Medium/Hard/Deadly)
+- ✅ **XP Budget Tracker**: See total and adjusted XP based on encounter size
+- ✅ **Encounter Multiplier**: Automatically applies D&D 5e encounter multipliers
+- ✅ **Monster Selection**: Add monsters from the full monster database
+- ✅ **Quantity Adjustment**: +/- to add/remove duplicate monsters
+- ✅ **Template System**: Save encounters for reuse (e.g., "Goblin Ambush", "Dragon's Lair")
+- ✅ **One-Click Deploy**: Send entire encounter to Initiative Tracker instantly
+- ✅ **Smart Generator**: Auto-generate balanced encounters by difficulty and environment
+
+**How to Use:**
+
+**1. Set Up Your Party:**
+- Press `1-9` to set party size directly (e.g., `5` for 5 players)
+- Use `+`/`-` to adjust party level (1-20)
+- Party setup shows: `Party: 5 × Level 3`
+
+**2. Build an Encounter:**
+- Press `n` to enter building mode
+- Press `m` to add monsters from the database
+- In monster list, navigate with `↑`/`↓` and press `Enter` to select
+- Back in encounter, use `↑`/`↓` to select monsters
+- Use `+`/`-` to adjust selected monster quantity
+- Press `x` to remove selected monster
+- Real-time difficulty updates as you add monsters:
+  - **Trivial** (gray): Below easy threshold
+  - **Easy** (green): ¼ of daily XP budget
+  - **Medium** (yellow): ½ of daily XP budget
+  - **Hard** (orange): ¾ of daily XP budget
+  - **Deadly** (red): Equal to or beyond daily XP budget
+
+**3. Deploy to Combat:**
+- Press `l` (or `d`) to load all monsters to Initiative Tracker
+- Each monster added with full stats (HP, AC, actions)
+- Automatically numbered if multiple (Goblin 1, Goblin 2, etc.)
+- Roll initiative and start combat!
+
+**4. Save & Load Templates:**
+- Press `s` to save encounter as template
+- Enter a name (e.g., "Forest Ambush") - if editing existing template, name is pre-filled
+- Template saved to `~/.lazydnd/encounters/`
+- Press `t` to view saved templates
+- Use `↑`/`↓` to select, `Enter` to view details
+- Press `l` or `Enter` to load template
+- Press `x` to delete a template
+
+**5. Auto-Generate Encounters:**
+- Press `g` to open the encounter generator
+- Select **Difficulty**: Easy, Medium, Hard, Deadly
+- Select **Environment**: Forest, Dungeon, Mountain, Urban, etc.
+- Press `Enter` to generate
+- Smart algorithm creates balanced encounters using:
+  - CR/XP balancing based on party strength
+  - Environment-appropriate monsters
+  - Multiple strategies (solo boss, small group, horde)
+
+**CR/XP Calculation:**
+The Encounter Builder follows D&D 5e DMG rules:
+- **XP Thresholds** per player level (Easy/Medium/Hard/Deadly)
+- **Encounter Multipliers** based on monster count:
+  - 1 monster: ×1.0
+  - 2 monsters: ×1.5
+  - 3-6 monsters: ×2.0
+  - 7-10 monsters: ×2.5
+  - 11-14 monsters: ×3.0
+  - 15+ monsters: ×4.0
+- **Adjusted XP** = Total Monster XP × Multiplier
+- Difficulty determined by comparing adjusted XP to party thresholds
+
+**Example:**
+```
+Party: 4 × Level 3
+- Easy threshold: 300 XP
+- Medium threshold: 600 XP
+- Hard threshold: 900 XP
+- Deadly threshold: 1,400 XP
+
+Encounter: 5× Goblin (CR 1/4, 50 XP each)
+- Total Monster XP: 250 XP
+- Multiplier: ×2.0 (5 monsters)
+- Adjusted XP: 500 XP
+- Difficulty: Medium
+```
+
+**Pro Tips:**
+- Start with generator (`g`) for quick balanced encounters
+- Manually adjust by adding/removing monsters
+- Save common encounters as templates
+- Deploy directly to initiative for instant combat
+- Encounter Builder doesn't affect initiative until you deploy
 
 ---
 
