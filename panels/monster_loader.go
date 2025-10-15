@@ -300,6 +300,19 @@ func matchesCRFilter(monsterCR string, filter string) bool {
 }
 
 // SearchMonsters returns monster names that match the search term and CR filter
+// GetAllMonstersForEncounter returns all monster names without limit (for encounter generation)
+func GetAllMonstersForEncounter() []string {
+	if err := LoadMonsters(); err != nil {
+		return []string{}
+	}
+
+	names := make([]string, 0, len(monsters))
+	for _, monster := range monsters {
+		names = append(names, monster.Name)
+	}
+	return names
+}
+
 func SearchMonsters(searchTerm string, crFilter string) []string {
 	if err := LoadMonsters(); err != nil {
 		return []string{}

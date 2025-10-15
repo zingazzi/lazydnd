@@ -74,15 +74,18 @@ func generateEncounter(m Model) Model {
 	selectedDifficulty := difficulties[m.EncounterDifficultyIndex]
 	selectedEnvironment := m.AvailableEnvironments[m.EncounterEnvironmentIndex]
 
-	// Load all monsters
+	// Load all monsters for encounter generation (no limit)
 	err := panels.LoadMonsters()
 	if err != nil {
+		DebugLog("ENCOUNTER GEN: Failed to load monsters: %v", err)
 		SetError(&m, "Failed to load monsters")
 		return m
 	}
 
-	// Convert monsters to MonsterInfo
-	allMonsters := panels.SearchMonsters("", "") // Get all monsters
+	// Get all monsters (using dedicated function that returns ALL monsters)
+	allMonsters := panels.GetAllMonstersForEncounter()
+	DebugLog("ENCOUNTER GEN: Total monsters loaded: %d", len(allMonsters))
+
 	monsterInfos := []encounters.MonsterInfo{}
 
 	for _, name := range allMonsters {
@@ -107,6 +110,10 @@ func generateEncounter(m Model) Model {
 		})
 	}
 
+	DebugLog("ENCOUNTER GEN: MonsterInfos created: %d", len(monsterInfos))
+	DebugLog("ENCOUNTER GEN: Party level: %d, Party size: %d", m.PartyLevel, m.PartySize)
+	DebugLog("ENCOUNTER GEN: Difficulty: %s, Environment: %s", selectedDifficulty, selectedEnvironment)
+
 	// Generate encounter
 	result := encounters.GenerateEncounter(encounters.GenerateEncounterRequest{
 		PartySize:   m.PartySize,
@@ -115,6 +122,9 @@ func generateEncounter(m Model) Model {
 		Environment: encounters.Environment(selectedEnvironment),
 		Monsters:    monsterInfos,
 	})
+
+	DebugLog("ENCOUNTER GEN: Generation result - Monsters count: %d", len(result.Monsters))
+	DebugLog("ENCOUNTER GEN: EnvironmentMsg: %s", result.EnvironmentMsg)
 
 	// Convert result to UI EncounterMonsters
 	m.EncounterMonsters = []EncounterMonster{}
@@ -140,7 +150,11 @@ func generateEncounter(m Model) Model {
 	if len(result.Monsters) > 0 {
 		SetSuccess(&m, "Generated "+result.ActualDiff+" encounter!")
 	} else {
-		SetError(&m, "No suitable monsters found for "+selectedEnvironment)
+		if result.EnvironmentMsg != "" {
+			SetError(&m, result.EnvironmentMsg)
+		} else {
+			SetError(&m, "Could not generate encounter - try different settings")
+		}
 	}
 
 	return m

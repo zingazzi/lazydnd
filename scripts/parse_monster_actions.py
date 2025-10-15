@@ -1,4 +1,3 @@
-# /Users/marcozingoni/Playgound/lazydnd/parse_monster_actions.py
 #!/usr/bin/env python3
 """
 Parse monster actions from HTML format and create structured ActionList
