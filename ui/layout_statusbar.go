@@ -50,6 +50,23 @@ func (m Model) getPanelCommands() string {
 			return "Enter:search Esc:exit"
 		}
 		return "e:edit f:search"
+	case EncounterBuilder:
+		// Show different keys based on current mode
+		switch m.EncounterBuilderMode {
+		case "party_setup":
+			return "1-9:size Shift+1-9:level b:building"
+		case "building":
+			if m.ShowEncounterPrompt {
+				return "Enter:confirm Esc:cancel"
+			}
+			return "m:monster +/-:qty g:generate s:save t:templates l:deploy c:clear"
+		case "templates":
+			return "↑↓:select Enter:view Delete:delete b:back"
+		case "template_detail":
+			return "l:load d:delete Esc/b:back"
+		default:
+			return "b:building t:templates"
+		}
 	default:
 		return ""
 	}

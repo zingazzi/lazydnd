@@ -155,16 +155,25 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	// Handle encounter builder input first (when in encounter builder panel AND not in other modes)
-	// EXCEPT for tab navigation and help keys which should always work globally
+	// EXCEPT for tab navigation, help keys, and quit keys which should always work globally
 	if m.ActivePanel == EncounterBuilder && !m.MonsterSearchMode && !m.SpellSearchMode {
-		// Skip encounter builder for tab and help keys - let them go to global handlers
-		if key != "tab" && key != "shift+tab" && key != "?" {
+		// Skip encounter builder for global keys - let them go to global handlers
+		if key != "tab" && key != "shift+tab" && key != "?" && key != "q" && key != "ctrl+c" {
 			return handleEncounterBuilderInput(m, msg)
 		}
 	}
 
 	// Check if we have a specific handler for this key (like tab for navigation, quit, etc.)
 	if handler, exists := keyHandlers[key]; exists {
+		// For certain keys like + and -, prioritize input mode over quick HP shortcuts
+		// This allows typing formulas like "2d6+5" in the dice roller
+		if (key == "+" || key == "=" || key == "-" || key == "_") &&
+		   (m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode ||
+		    m.NotesEditMode || m.MonsterSearchMode || m.SpellSearchMode) {
+			// In input mode, treat these as regular characters
+			return handleDefaultInput(m, msg)
+		}
+		// Otherwise, use the specific handler
 		return handler(m, msg)
 	}
 

@@ -805,6 +805,46 @@ Encounter: 5× Goblin (CR 1/4, 50 XP each)
 - ❌ Dice history (session-specific)
 - ❌ Current panel or scroll position
 
+## Custom Content Creation
+
+### Monster Creator Tool
+
+LazyDnD includes an interactive command-line tool to create custom monsters in the correct JSON format.
+
+**Usage:**
+```bash
+./scripts/create_monster.py
+```
+
+**Features:**
+- 🎯 Interactive step-by-step prompts
+- 🧮 Auto-calculates ability modifiers
+- ⚔️ Support for melee, ranged, and special actions
+- ✅ Input validation with sensible defaults
+- 👀 Preview before saving
+- 📦 Ready-to-use JSON output
+
+**Quick Example:**
+```bash
+cd lazydnd
+./scripts/create_monster.py
+# Follow the prompts to create your monster
+# Save the output to a file
+# Add to ~/.lazydnd/custom_monsters.json
+```
+
+**Documentation:**
+- [Scripts README](scripts/README.md) - Tool overview and usage
+- [Monster Creation Guide](scripts/MONSTER_CREATION_GUIDE.md) - Detailed field reference and examples
+
+**Adding Custom Monsters:**
+1. Create your monster with `./scripts/create_monster.py`
+2. Save directly to `~/.lazydnd/monsters/` when prompted (recommended)
+3. Restart LazyDnD
+4. Your monster appears in the Monsters panel!
+
+**Note:** LazyDnD automatically loads all `.json` files from `~/.lazydnd/monsters/` - one file per monster for easy management!
+
 ## Requirements
 
 - Go 1.19 or higher

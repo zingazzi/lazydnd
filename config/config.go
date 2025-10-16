@@ -62,10 +62,11 @@ type DisplayConfig struct {
 
 // PathsConfig for file and directory paths
 type PathsConfig struct {
-	SaveDirectory   string `json:"save_directory"`   // Directory for campaign saves (empty = default ~/.lazydnd)
-	BackupEnabled   bool   `json:"backup_enabled"`   // Enable automatic backups
-	BackupDirectory string `json:"backup_directory"` // Directory for backups (empty = saves/.backups)
-	MaxBackups      int    `json:"max_backups"`      // Maximum number of backups to keep per campaign
+	SaveDirectory     string `json:"save_directory"`     // Directory for campaign saves (empty = default ~/.lazydnd)
+	MonsterDirectory  string `json:"monster_directory"`  // Directory for custom monsters (empty = default ~/.lazydnd/monsters)
+	BackupEnabled     bool   `json:"backup_enabled"`     // Enable automatic backups
+	BackupDirectory   string `json:"backup_directory"`   // Directory for backups (empty = saves/.backups)
+	MaxBackups        int    `json:"max_backups"`        // Maximum number of backups to keep per campaign
 }
 
 // Default returns the default configuration
@@ -103,10 +104,11 @@ func Default() *Config {
 			MaxLineLength: 50,
 		},
 		Paths: PathsConfig{
-			SaveDirectory:   "", // Empty = use default ~/.lazydnd
-			BackupEnabled:   true,
-			BackupDirectory: "", // Empty = use saves/.backups
-			MaxBackups:      10,
+			SaveDirectory:    "", // Empty = use default ~/.lazydnd
+			MonsterDirectory: "", // Empty = use default ~/.lazydnd/monsters
+			BackupEnabled:    true,
+			BackupDirectory:  "", // Empty = use saves/.backups
+			MaxBackups:       10,
 		},
 	}
 }
@@ -258,6 +260,21 @@ func (c *Config) GetSaveDirectory() (string, error) {
 	}
 
 	return filepath.Join(homeDir, ".lazydnd"), nil
+}
+
+// GetMonsterDirectory returns the custom monsters directory path
+func (c *Config) GetMonsterDirectory() (string, error) {
+	if c.Paths.MonsterDirectory != "" {
+		return expandPath(c.Paths.MonsterDirectory), nil
+	}
+
+	// Use default ~/.lazydnd/monsters
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	return filepath.Join(homeDir, ".lazydnd", "monsters"), nil
 }
 
 // GetBackupDirectory returns the backup directory path
