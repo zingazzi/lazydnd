@@ -107,12 +107,13 @@ func GetMonsterByName(name string) *Monster {
 }
 
 // getCustomMonstersDir returns the path to the custom monsters directory
+// Custom monsters are stored in ~/.lazydnd/monsters/
 func getCustomMonstersDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(homeDir, ".config", "lazydnd", "custom_monsters"), nil
+	return filepath.Join(homeDir, ".lazydnd", "monsters"), nil
 }
 
 // loadMonstersFromFile loads monsters from a specific JSON file
