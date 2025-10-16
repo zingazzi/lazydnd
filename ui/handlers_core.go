@@ -165,6 +165,15 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 	// Check if we have a specific handler for this key (like tab for navigation, quit, etc.)
 	if handler, exists := keyHandlers[key]; exists {
+		// For certain keys like + and -, prioritize input mode over quick HP shortcuts
+		// This allows typing formulas like "2d6+5" in the dice roller
+		if (key == "+" || key == "=" || key == "-" || key == "_") &&
+		   (m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode ||
+		    m.NotesEditMode || m.MonsterSearchMode || m.SpellSearchMode) {
+			// In input mode, treat these as regular characters
+			return handleDefaultInput(m, msg)
+		}
+		// Otherwise, use the specific handler
 		return handler(m, msg)
 	}
 
