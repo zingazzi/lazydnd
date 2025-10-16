@@ -162,7 +162,7 @@ Customize file locations:
 {
   "paths": {
     "save_directory": "",       // Campaign save location (empty = ~/.lazydnd)
-    "config_directory": "",     // Config location (empty = ~/.config/lazydnd)
+    "monster_directory": "",    // Custom monsters location (empty = ~/.lazydnd/monsters)
     "backup_enabled": true,     // Enable automatic backups
     "backup_directory": "",     // Backup location (empty = saves/.backups)
     "max_backups": 10          // Maximum backups per campaign
@@ -177,8 +177,12 @@ Customize file locations:
   - Supports `~` expansion: `~/Documents/DnD/LazyDnD`
   - Supports environment variables: `$HOME/dnd-saves`
 
-- `config_directory`: Custom config location (rarely needed)
-  - Empty string: Use default `~/.config/lazydnd`
+- `monster_directory`: Custom monsters location
+  - Empty string: Use default `~/.lazydnd/monsters`
+  - Custom path: Absolute path to your monster collection
+  - All `.json` files in this directory are loaded automatically
+  - Supports `~` expansion: `~/Documents/DnD/Monsters`
+  - Supports environment variables: `$HOME/custom-monsters`
 
 - `backup_enabled`: Create automatic backups
   - `true`: Create backup before each save
@@ -213,6 +217,24 @@ Use cloud storage (Dropbox/Google Drive):
     "backup_directory": "~/Dropbox/DnD/LazyDnD/backups",
     "backup_enabled": true,
     "max_backups": 20
+  }
+}
+```
+
+Custom monster directory:
+```json
+{
+  "paths": {
+    "monster_directory": "~/Documents/DnD/CustomMonsters"
+  }
+}
+```
+
+Shared monster library (team of DMs):
+```json
+{
+  "paths": {
+    "monster_directory": "~/Dropbox/DnD-Team/SharedMonsters"
   }
 }
 ```
@@ -265,6 +287,7 @@ Disable backups:
   },
   "paths": {
     "save_directory": "",
+    "monster_directory": "",
     "backup_enabled": true,
     "backup_directory": "",
     "max_backups": 10
@@ -309,6 +332,7 @@ Disable backups:
   },
   "paths": {
     "save_directory": "",
+    "monster_directory": "",
     "backup_enabled": true,
     "backup_directory": "",
     "max_backups": 10

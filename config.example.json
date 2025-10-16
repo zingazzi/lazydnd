@@ -32,6 +32,7 @@
   },
   "paths": {
     "save_directory": "",
+    "monster_directory": "",
     "backup_enabled": true,
     "backup_directory": "",
     "max_backups": 10

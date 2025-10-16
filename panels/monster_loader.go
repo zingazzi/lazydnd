@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/sahilm/fuzzy"
+	"lazydnd/config"
 )
 
 // MonsterAction represents a single action a monster can take
@@ -107,12 +108,20 @@ func GetMonsterByName(name string) *Monster {
 }
 
 // getCustomMonstersDir returns the path to the custom monsters directory
+// Custom monsters are stored in the configured directory (default: ~/.lazydnd/monsters/)
 func getCustomMonstersDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	// Load config to get custom monster directory
+	cfg, err := config.Load()
 	if err != nil {
-		return "", err
+		// If config fails to load, use default path
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(homeDir, ".lazydnd", "monsters"), nil
 	}
-	return filepath.Join(homeDir, ".config", "lazydnd", "custom_monsters"), nil
+	
+	return cfg.GetMonsterDirectory()
 }
 
 // loadMonstersFromFile loads monsters from a specific JSON file
@@ -300,6 +309,19 @@ func matchesCRFilter(monsterCR string, filter string) bool {
 }
 
 // SearchMonsters returns monster names that match the search term and CR filter
+// GetAllMonstersForEncounter returns all monster names without limit (for encounter generation)
+func GetAllMonstersForEncounter() []string {
+	if err := LoadMonsters(); err != nil {
+		return []string{}
+	}
+
+	names := make([]string, 0, len(monsters))
+	for _, monster := range monsters {
+		names = append(names, monster.Name)
+	}
+	return names
+}
+
 func SearchMonsters(searchTerm string, crFilter string) []string {
 	if err := LoadMonsters(); err != nil {
 		return []string{}
