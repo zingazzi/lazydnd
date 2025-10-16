@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## 2.13.0
+- **Status Bar Improvements** 🎨
+  - **Campaign Name Display**: Shows current campaign name in status bar
+  - **Panel-Specific Commands**: Dynamic command hints based on active panel and mode
+  - **Configurable Help Hints**: Can be disabled via `display.show_help_hints` config
+  - **Better Layout**: Improved spacing and alignment of status sections
+  - **Error Banner**: Added red error banner above status bar for important messages
+
+- **Text Content Centralization** 📝
+  - Moved all UI text to dedicated `text_content.go` file
+  - Organized text by component (status bar, help popup, panels)
+  - Added constants for application info (name, version)
+  - Structured help text for each panel's commands
+  - Easier maintenance and future localization support
+
+- **Configuration Documentation** 📖
+  - Added comprehensive `CONFIGURATION.md` guide
+  - Detailed explanation of all config options
+  - Example configurations for different themes
+  - Path configuration examples for saves/backups
+  - Added minimalist and power user presets
+
+- **Build System Improvements** 🔧
+  - Added version extraction from git tags
+  - Automated changelog extraction for releases
+  - Better version handling in dev builds
+
 ## 2.12.0
 - **⚔️ Encounter Builder - Panel 6** 🎉
   - **Party Setup**:
