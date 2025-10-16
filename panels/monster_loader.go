@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/sahilm/fuzzy"
+	"lazydnd/config"
 )
 
 // MonsterAction represents a single action a monster can take
@@ -107,13 +108,20 @@ func GetMonsterByName(name string) *Monster {
 }
 
 // getCustomMonstersDir returns the path to the custom monsters directory
-// Custom monsters are stored in ~/.lazydnd/monsters/
+// Custom monsters are stored in the configured directory (default: ~/.lazydnd/monsters/)
 func getCustomMonstersDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	// Load config to get custom monster directory
+	cfg, err := config.Load()
 	if err != nil {
-		return "", err
+		// If config fails to load, use default path
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(homeDir, ".lazydnd", "monsters"), nil
 	}
-	return filepath.Join(homeDir, ".lazydnd", "monsters"), nil
+	
+	return cfg.GetMonsterDirectory()
 }
 
 // loadMonstersFromFile loads monsters from a specific JSON file
