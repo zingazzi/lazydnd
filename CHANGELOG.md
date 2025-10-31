@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v2.14.0
+- **Add legendary action counter**
+	- use l and shift+L to consume/restore legendary action
+	- auto restore all legendary action at the end of the turn
+
 ## 2.13.0
 - **Status Bar Improvements** 🎨
   - **Campaign Name Display**: Shows current campaign name in status bar
