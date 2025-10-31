@@ -10,8 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sahilm/fuzzy"
 	"lazydnd/config"
+
+	"github.com/sahilm/fuzzy"
 )
 
 // MonsterAction represents a single action a monster can take
@@ -120,7 +121,7 @@ func getCustomMonstersDir() (string, error) {
 		}
 		return filepath.Join(homeDir, ".lazydnd", "monsters"), nil
 	}
-	
+
 	return cfg.GetMonsterDirectory()
 }
 
@@ -576,4 +577,59 @@ func ExtractMonsterStats(monsterName string) (hp int, ac int, err error) {
 	}
 
 	return hp, ac, nil
+}
+
+// ParseLegendaryActionCount extracts the number of legendary actions from a monster's LegendaryActions text
+// Looks for patterns like "can take 3 legendary actions" or "takes 3 legendary actions"
+// Returns 0 if no legendary actions found or cannot parse
+func ParseLegendaryActionCount(legendaryActionsText string) int {
+	if legendaryActionsText == "" {
+		return 0
+	}
+
+	// Look for pattern like "can take 3 legendary actions" or "takes 3 legendary actions"
+	// Convert to lowercase for case-insensitive matching
+	text := strings.ToLower(legendaryActionsText)
+
+	// Try to find number before "legendary action"
+	// Look for "take X legendary" or "takes X legendary"
+	legendaryIndex := strings.Index(text, "legendary")
+	if legendaryIndex == -1 {
+		return 0
+	}
+
+	// Look backwards from "legendary" to find a number
+	// Search back up to 30 characters
+	searchStart := legendaryIndex - 30
+	if searchStart < 0 {
+		searchStart = 0
+	}
+	prefix := text[searchStart:legendaryIndex]
+
+	// Extract the last number before "legendary"
+	var numStr strings.Builder
+	for i := len(prefix) - 1; i >= 0; i-- {
+		char := prefix[i]
+		if char >= '0' && char <= '9' {
+			// Prepend digit
+			numStr.WriteByte(char)
+		} else if numStr.Len() > 0 {
+			// Found a non-digit after digits, stop
+			break
+		}
+	}
+
+	// Reverse the string since we built it backwards
+	numStrBytes := []byte(numStr.String())
+	for i, j := 0, len(numStrBytes)-1; i < j; i, j = i+1, j-1 {
+		numStrBytes[i], numStrBytes[j] = numStrBytes[j], numStrBytes[i]
+	}
+
+	if len(numStrBytes) > 0 {
+		if count, err := strconv.Atoi(string(numStrBytes)); err == nil && count > 0 {
+			return count
+		}
+	}
+
+	return 0
 }

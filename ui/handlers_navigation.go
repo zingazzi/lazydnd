@@ -306,9 +306,13 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		m.CurrentTurn = nextTurn
 
-		// Reset reaction for the creature whose turn is starting
+		// Reset reaction and restore legendary actions for the creature whose turn is starting
 		if nextTurn >= 0 && nextTurn < len(m.InitiativeList) {
 			m.InitiativeList[nextTurn].ReactionUsed = false
+			// Restore all legendary actions at the start of the monster's turn
+			if m.InitiativeList[nextTurn].Type == "monster" && m.InitiativeList[nextTurn].LegendaryActionsMax > 0 {
+				m.InitiativeList[nextTurn].LegendaryActionsUsed = 0
+			}
 		}
 	}
 

@@ -53,6 +53,7 @@ var keyHandlers = map[string]KeyHandler{
 	"a": handleA,
 	"d": handleD,
 	"l": handleL,
+	"L": handleL, // Shift+L for restoring legendary actions
 	"c": handleC,
 	"s": handleS,
 	"n": handleNextTurn,

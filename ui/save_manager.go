@@ -64,17 +64,19 @@ func SaveCampaign(m Model, campaignName string) error {
 		}
 
 		savedEntries[i] = SavedInitiativeEntry{
-			Name:         entry.Name,
-			Type:         entry.Type,
-			Initiative:   entry.Initiative,
-			HP:           entry.HP,
-			MaxHP:        entry.MaxHP,
-			TempHP:       entry.TempHP,
-			AC:           entry.AC,
-			ReactionUsed: entry.ReactionUsed,
-			MonsterName:  monsterName,
-			InstanceNum:  entry.InstanceNum,
-			BaseName:     entry.BaseName,
+			Name:                entry.Name,
+			Type:                entry.Type,
+			Initiative:          entry.Initiative,
+			HP:                  entry.HP,
+			MaxHP:               entry.MaxHP,
+			TempHP:              entry.TempHP,
+			AC:                  entry.AC,
+			ReactionUsed:        entry.ReactionUsed,
+			MonsterName:         monsterName,
+			InstanceNum:         entry.InstanceNum,
+			BaseName:            entry.BaseName,
+			LegendaryActionsMax: entry.LegendaryActionsMax,
+			LegendaryActionsUsed: entry.LegendaryActionsUsed,
 		}
 	}
 
@@ -212,23 +214,29 @@ func LoadCampaign(filename string) (SaveState, []InitiativeEntry, error) {
 	initiativeList := make([]InitiativeEntry, len(saveState.InitiativeList))
 	for i, saved := range saveState.InitiativeList {
 		entry := InitiativeEntry{
-			Name:         saved.Name,
-			Type:         saved.Type,
-			Initiative:   saved.Initiative,
-			HP:           saved.HP,
-			MaxHP:        saved.MaxHP,
-			TempHP:       saved.TempHP,
-			AC:           saved.AC,
-			ReactionUsed: saved.ReactionUsed,
-			InstanceNum:  saved.InstanceNum,
-			BaseName:     saved.BaseName,
-			MonsterName:  saved.MonsterName,
+			Name:                saved.Name,
+			Type:                saved.Type,
+			Initiative:          saved.Initiative,
+			HP:                  saved.HP,
+			MaxHP:               saved.MaxHP,
+			TempHP:              saved.TempHP,
+			AC:                  saved.AC,
+			ReactionUsed:        saved.ReactionUsed,
+			InstanceNum:         saved.InstanceNum,
+			BaseName:            saved.BaseName,
+			MonsterName:         saved.MonsterName,
+			LegendaryActionsMax: saved.LegendaryActionsMax,
+			LegendaryActionsUsed: saved.LegendaryActionsUsed,
 		}
 
 		// Re-link monster data if available
 		if saved.MonsterName != "" {
 			if monster, exists := monsterMap[saved.MonsterName]; exists {
 				entry.MonsterData = monster
+				// Re-parse legendary actions if not saved (for backwards compatibility)
+				if entry.LegendaryActionsMax == 0 && monster.LegendaryActions != "" {
+					entry.LegendaryActionsMax = panels.ParseLegendaryActionCount(monster.LegendaryActions)
+				}
 			}
 		}
 

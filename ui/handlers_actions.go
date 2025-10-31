@@ -2,6 +2,7 @@
 package ui
 
 import (
+	"fmt"
 	"lazydnd/panels"
 	"reflect"
 	"strings"
@@ -277,19 +278,27 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				// Roll initiative for the monster
 				initiative := panels.RollInitiative()
 
-				// Create initiative entry with full monster data link
-				newEntry := InitiativeEntry{
-					Name:         monsterName,
-					Type:         "monster",
-					Initiative:   initiative,
-					HP:           hp,
-					MaxHP:        hp,
-					AC:           ac,
-					ReactionUsed: false, // Initialize reaction as available
-					MonsterData:  m.SelectedMonster, // Link to full monster data
-					BaseName:     monsterName,
-					MonsterName:  monsterName, // Store for save/load persistence
-				}
+			// Parse legendary actions count
+			legendaryMax := 0
+			if m.SelectedMonster != nil && m.SelectedMonster.LegendaryActions != "" {
+				legendaryMax = panels.ParseLegendaryActionCount(m.SelectedMonster.LegendaryActions)
+			}
+
+			// Create initiative entry with full monster data link
+			newEntry := InitiativeEntry{
+				Name:                monsterName,
+				Type:                "monster",
+				Initiative:          initiative,
+				HP:                  hp,
+				MaxHP:               hp,
+				AC:                  ac,
+				ReactionUsed:        false, // Initialize reaction as available
+				MonsterData:         m.SelectedMonster, // Link to full monster data
+				BaseName:            monsterName,
+				MonsterName:         monsterName, // Store for save/load persistence
+				LegendaryActionsMax: legendaryMax,
+				LegendaryActionsUsed: 0, // Start with all legendary actions available
+			}
 
 				// Add to initiative list
 				m.InitiativeList = append(m.InitiativeList, newEntry)
@@ -349,13 +358,44 @@ func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		return handleSearchModeInput(m, "l"), nil
 	}
 
-	// Show linked monster details in Monster panel
-	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
-		originalIndex := findOriginalIndex(m, m.SelectedEntry)
-		if originalIndex >= 0 && m.InitiativeList[originalIndex].MonsterData != nil {
-			m.SelectedMonster = m.InitiativeList[originalIndex].MonsterData
-			m.ActivePanel = Monsters
+	// Only work in Initiative Tracker
+	if m.ActivePanel != InitiativeTracker || !m.InitiativeListMode || m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
+		return m, nil
+	}
+
+	// Check if this is Shift+L (capital L) for restoring legendary action
+	isShiftL := msg.String() == "L"
+	originalIndex := findOriginalIndex(m, m.SelectedEntry)
+	if originalIndex < 0 {
+		return m, nil
+	}
+
+	entry := &m.InitiativeList[originalIndex]
+
+	// Handle legendary actions for monsters
+	if entry.Type == "monster" && entry.LegendaryActionsMax > 0 {
+		if isShiftL {
+			// Shift+L: Restore one legendary action
+			if entry.LegendaryActionsUsed > 0 {
+				entry.LegendaryActionsUsed--
+				SetSuccess(&m, fmt.Sprintf("Restored legendary action for %s (%d/%d)", entry.Name, entry.LegendaryActionsMax-entry.LegendaryActionsUsed, entry.LegendaryActionsMax))
+			}
+		} else {
+			// l: Use one legendary action
+			if entry.LegendaryActionsUsed < entry.LegendaryActionsMax {
+				entry.LegendaryActionsUsed++
+				SetSuccess(&m, fmt.Sprintf("Used legendary action for %s (%d/%d)", entry.Name, entry.LegendaryActionsMax-entry.LegendaryActionsUsed, entry.LegendaryActionsMax))
+			} else {
+				SetError(&m, fmt.Sprintf("%s has no legendary actions remaining", entry.Name))
+			}
 		}
+		return m, nil
+	}
+
+	// For monsters without legendary actions, or if Shift+L pressed on non-monster, show linked monster details
+	if !isShiftL && entry.MonsterData != nil {
+		m.SelectedMonster = entry.MonsterData
+		m.ActivePanel = Monsters
 	}
 
 	return m, nil
@@ -388,17 +428,19 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 			// Create a duplicate with same stats
 			duplicate := InitiativeEntry{
-				Name:         baseName, // Use base name, will be renumbered
-				Type:         original.Type,
-				Initiative:   original.Initiative,
-				HP:           original.HP,
-				MaxHP:        original.MaxHP,
-				TempHP:       original.TempHP,
-				AC:           original.AC,
-				ReactionUsed: false, // Reset reaction for new duplicate
-				MonsterData:  original.MonsterData,
-				BaseName:     baseName,
-				MonsterName:  original.MonsterName,
+				Name:                baseName, // Use base name, will be renumbered
+				Type:                original.Type,
+				Initiative:          original.Initiative,
+				HP:                  original.HP,
+				MaxHP:               original.MaxHP,
+				TempHP:              original.TempHP,
+				AC:                  original.AC,
+				ReactionUsed:        false, // Reset reaction for new duplicate
+				MonsterData:         original.MonsterData,
+				BaseName:            baseName,
+				MonsterName:         original.MonsterName,
+				LegendaryActionsMax: original.LegendaryActionsMax,
+				LegendaryActionsUsed: 0, // Reset legendary actions for new duplicate
 			}
 
 			// Add to initiative list
