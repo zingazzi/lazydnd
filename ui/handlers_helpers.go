@@ -85,6 +85,13 @@ func processInitiativeInput(m Model) Model {
 			// Complete monster entry
 			m.TempEntry.Initiative = val.(int)
 			m.TempEntry.ReactionUsed = false // Initialize reaction as available
+
+			// Parse legendary actions if monster data is available
+			if m.TempEntry.MonsterData != nil && m.TempEntry.MonsterData.LegendaryActions != "" {
+				m.TempEntry.LegendaryActionsMax = panels.ParseLegendaryActionCount(m.TempEntry.MonsterData.LegendaryActions)
+				m.TempEntry.LegendaryActionsUsed = 0
+			}
+
 			completeInitiativeEntry(&m)
 		}
 	}

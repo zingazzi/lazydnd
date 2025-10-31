@@ -222,16 +222,18 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 
 				// Parse entries into a sortable structure
 				type ParsedEntry struct {
-					Name         string
-					Type         string
-					Initiative   int
-					HP           string
-					MaxHP        string
-					TempHP       string
-					AC           string
-					ReactionUsed string
-					RawEntry     string
-					Conditions   []Condition
+					Name                string
+					Type                string
+					Initiative          int
+					HP                  string
+					MaxHP               string
+					TempHP              string
+					AC                  string
+					ReactionUsed        string
+					LegendaryActionsMax string
+					LegendaryActionsUsed string
+					RawEntry            string
+					Conditions          []Condition
 				}
 
 				var parsedEntries []ParsedEntry
@@ -256,6 +258,8 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					tempHP := extractField(entry, "TempHP:")
 					ac := extractField(entry, "AC:")
 					reactionUsed := extractField(entry, "ReactionUsed:")
+					legendaryMax := extractField(entry, "LegendaryActionsMax:")
+					legendaryUsed := extractField(entry, "LegendaryActionsUsed:")
 
 					// DEBUG: Print what we're about to parse
 					_ = entryIdx // Use the variable to avoid unused error
@@ -327,16 +331,18 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 						}
 
 					parsedEntries = append(parsedEntries, ParsedEntry{
-						Name:         name,
-						Type:         entryType,
-						Initiative:   initiative,
-						HP:           hp,
-						MaxHP:        maxHP,
-						TempHP:       tempHP,
-						AC:           ac,
-						ReactionUsed: reactionUsed,
-						RawEntry:     entry,
-						Conditions:   conditions,
+						Name:                name,
+						Type:                entryType,
+						Initiative:          initiative,
+						HP:                  hp,
+						MaxHP:               maxHP,
+						TempHP:              tempHP,
+						AC:                  ac,
+						ReactionUsed:        reactionUsed,
+						LegendaryActionsMax: legendaryMax,
+						LegendaryActionsUsed: legendaryUsed,
+						RawEntry:            entry,
+						Conditions:          conditions,
 					})
 					}
 				}
@@ -451,9 +457,27 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 						reactionIcon = " [✓]" // Reaction available
 					}
 
-					// Format line with colored HP
+					// Get legendary action counter
+					legendaryCounter := ""
+					legendaryMax := 0
+					legendaryUsed := 0
+					if entry.LegendaryActionsMax != "" {
+						if max, err := strconv.Atoi(entry.LegendaryActionsMax); err == nil && max > 0 {
+							legendaryMax = max
+							if entry.LegendaryActionsUsed != "" {
+								if used, err := strconv.Atoi(entry.LegendaryActionsUsed); err == nil {
+									legendaryUsed = used
+								}
+							}
+							// Show counter at end of name: "[3/3]" format
+							legendaryCounter = fmt.Sprintf(" [%d/%d]", legendaryMax-legendaryUsed, legendaryMax)
+						}
+					}
+
+					// Format line with colored HP and legendary counter
+					displayName := entry.Name + legendaryCounter
 					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
-							checkbox, turnMarker, i+1, entry.Name, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
+							checkbox, turnMarker, i+1, displayName, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
 
 						// Apply style (selected or normal monster style)
 						if listMode && selectedEntry == i {

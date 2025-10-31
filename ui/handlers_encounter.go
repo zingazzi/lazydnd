@@ -402,20 +402,28 @@ func deployEncounterToInitiative(m Model) (Model, tea.Cmd) {
 				displayName = fmt.Sprintf("%s %d", monster.Name, instanceNum)
 			}
 
+			// Parse legendary actions count
+			legendaryMax := 0
+			if monsterData != nil && monsterData.LegendaryActions != "" {
+				legendaryMax = panels.ParseLegendaryActionCount(monsterData.LegendaryActions)
+			}
+
 			entry := InitiativeEntry{
-				Name:         displayName,
-				Type:         "monster",
-				Initiative:   initiative,
-				HP:           monster.HP,
-				MaxHP:        monster.MaxHP,
-				TempHP:       0,
-				AC:           monster.AC,
-				ReactionUsed: false,
-				MonsterData:  monsterData,
-				InstanceNum:  instanceNum,
-				BaseName:     monster.Name,
-				MonsterName:  monster.Name,
-				Conditions:   []Condition{},
+				Name:                displayName,
+				Type:                "monster",
+				Initiative:          initiative,
+				HP:                  monster.HP,
+				MaxHP:               monster.MaxHP,
+				TempHP:              0,
+				AC:                  monster.AC,
+				ReactionUsed:        false,
+				MonsterData:         monsterData,
+				InstanceNum:         instanceNum,
+				BaseName:            monster.Name,
+				MonsterName:         monster.Name,
+				Conditions:          []Condition{},
+				LegendaryActionsMax: legendaryMax,
+				LegendaryActionsUsed: 0, // Start with all legendary actions available
 			}
 
 			m.InitiativeList = append(m.InitiativeList, entry)
