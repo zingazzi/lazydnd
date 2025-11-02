@@ -84,80 +84,59 @@ var keyHandlers = map[string]KeyHandler{
 // HandleNavigation processes navigation-related key presses
 func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	key := msg.String()
+	mode := m.GetInputMode()
 
-	// Handle help popup scrolling
-	if m.ShowHelpPopup {
+	// Handle help popup scrolling (check both new and legacy)
+	if m.Popup.ShowHelp || m.ShowHelpPopup {
 		return handleHelpPopupInput(m, msg)
 	}
 
-	// Handle cast spell popup input (highest priority)
-	if m.ShowCastSpellPrompt && m.CastSpellInputMode {
+	// Handle popups based on input mode (using state machine)
+	switch mode {
+	case ModeCastSpell:
 		return handleCastSpellInput(m, msg)
-	}
-
-	// Handle multi-target popup input (highest priority)
-	if m.ShowMultiTargetPopup {
+	case ModeMultiTarget:
 		return handleMultiTargetPopupInput(m, msg)
-	}
-
-	// Handle condition popup input
-	if m.ShowConditionPopup {
-		return handleConditionPopupInput(m, msg)
-	}
-
-	// Handle quick HP popup input
-	if m.ShowQuickHPPopup {
+	case ModeQuickHP:
 		return handleQuickHPInput(m, key)
-	}
-
-	// Handle encounter name prompt input
-	if m.ShowEncounterPrompt {
-		return handleEncounterPromptInput(m, key)
-	}
-
-	// Handle encounter generator popup
-	if m.EncounterGenerating {
-		return handleGeneratorPopupInput(m, msg)
-	}
-
-	// Handle action popup input (but not Enter key - that goes to handleEnter)
-	if m.ShowActionPopup && key != "enter" {
-		return handleActionPopupInput(m, key)
-	}
-
-	// Handle save popup input
-	if m.ShowSavePopup {
-		return handleSavePopupInput(m, msg)
-	}
-
-	// Handle load popup input
-	if m.ShowLoadPopup {
-		return handleLoadPopupInput(m, msg)
-	}
-
-	// Handle rename popup input
-	if m.ShowRenamePopup {
-		return handleRenamePopupInput(m, msg)
-	}
-
-	// Handle active spell list navigation
-	if m.ActiveSpellListMode && (key == "up" || key == "down") {
-		return handleActiveSpellNavigation(m, key)
-	}
-
-	// Handle CR filter input (when in CR filter mode)
-	if m.MonsterCRFilterMode {
+	case ModeSpellFilter:
+		return handleSpellLevelFilterInput(m, key)
+	case ModeMonsterFilter:
 		return handleCRFilterInput(m, key)
 	}
 
-	// Handle spell level filter input (when in spell level filter mode)
-	if m.SpellLevelFilterMode {
-		return handleSpellLevelFilterInput(m, key)
+	// Handle other popups (check both new and legacy fields)
+	if m.Popup.ShowCondition || m.ShowConditionPopup {
+		return handleConditionPopupInput(m, msg)
+	}
+	if m.Popup.ShowEncounterPrompt || m.ShowEncounterPrompt {
+		return handleEncounterPromptInput(m, key)
+	}
+	if m.Encounter.Generating || m.EncounterGenerating {
+		return handleGeneratorPopupInput(m, msg)
+	}
+	// Handle action popup input (but not Enter key - that goes to handleEnter)
+	if (m.Popup.ShowAction || m.ShowActionPopup) && key != "enter" {
+		return handleActionPopupInput(m, key)
+	}
+	if m.Popup.ShowSave || m.ShowSavePopup {
+		return handleSavePopupInput(m, msg)
+	}
+	if m.Popup.ShowLoad || m.ShowLoadPopup {
+		return handleLoadPopupInput(m, msg)
+	}
+	if m.Popup.ShowRename || m.ShowRenamePopup {
+		return handleRenamePopupInput(m, msg)
+	}
+
+	// Handle active spell list navigation (check both new and legacy)
+	if (m.Spells.ActiveSpellListMode || m.ActiveSpellListMode) && (key == "up" || key == "down") {
+		return handleActiveSpellNavigation(m, key)
 	}
 
 	// Handle encounter builder input first (when in encounter builder panel AND not in other modes)
 	// EXCEPT for tab navigation, help keys, and quit keys which should always work globally
-	if m.ActivePanel == EncounterBuilder && !m.MonsterSearchMode && !m.SpellSearchMode {
+	if m.ActivePanel == EncounterBuilder && mode != ModeMonsterSearch && mode != ModeSpellSearch {
 		// Skip encounter builder for global keys - let them go to global handlers
 		if key != "tab" && key != "shift+tab" && key != "?" && key != "q" && key != "ctrl+c" {
 			return handleEncounterBuilderInput(m, msg)
@@ -168,9 +147,7 @@ func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if handler, exists := keyHandlers[key]; exists {
 		// For certain keys like + and -, prioritize input mode over quick HP shortcuts
 		// This allows typing formulas like "2d6+5" in the dice roller
-		if (key == "+" || key == "=" || key == "-" || key == "_") &&
-		   (m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode ||
-		    m.NotesEditMode || m.MonsterSearchMode || m.SpellSearchMode) {
+		if (key == "+" || key == "=" || key == "-" || key == "_") && m.IsInputMode() {
 			// In input mode, treat these as regular characters
 			return handleDefaultInput(m, msg)
 		}

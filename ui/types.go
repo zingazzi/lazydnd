@@ -25,15 +25,27 @@ type Model struct {
 	ActivePanel     PanelType
 	Width           int
 	Height          int
+	ScrollOffset    map[PanelType]int
+
+	// New state structs (refactored)
+	DiceRoller     DiceRollerState
+	Initiative     InitiativeState
+	Spells         SpellState
+	Monsters       MonsterState
+	Notes          NotesState
+	Encounter      EncounterState
+	Popup          PopupState
+	Global         GlobalState
+
+	// Legacy fields (kept for backward compatibility during migration)
 	DiceInput       string
 	DiceResult      string
 	DiceHistory     []string
 	DiceCommands    []string // Store original commands for history
 	LastDiceCommand string
-	InputMode       bool
-	DiceHistoryMode bool // When true, navigating dice history to select
-	HistoryIndex    int  // Selected index in history (-1 = none)
-	ScrollOffset    map[PanelType]int
+	InputMode       bool // Legacy: use DiceRoller.InputMode
+	DiceHistoryMode bool // Legacy: use DiceRoller.HistoryMode
+	HistoryIndex    int  // Legacy: use DiceRoller.HistoryIndex
 	// Dice macros state
 	DiceMacros      map[string]string // name -> formula (e.g., "fireball" -> "8d6")
 	MacroListMode   bool              // When true, showing macro list to select/delete
@@ -125,9 +137,9 @@ type Model struct {
 	HPUndoStack []HPHistoryEntry
 	HPRedoStack []HPHistoryEntry
 
-	// Error display
-	ErrorMessage string // Current error message to display in UI
-	ErrorVisible bool   // Whether to show the error banner
+	// Error display (legacy: use Global.ErrorMessage/ErrorVisible)
+	ErrorMessage string // Legacy: use Global.ErrorMessage
+	ErrorVisible bool   // Legacy: use Global.ErrorVisible
 
 	// Notes state
 	NotesContent      string // Main notes content

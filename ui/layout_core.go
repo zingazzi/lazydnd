@@ -8,7 +8,145 @@ import (
 // InitialModel creates the initial application model
 func InitialModel() Model {
 	return Model{
-		ActivePanel:              DiceRoller,
+		ActivePanel:  DiceRoller,
+		Width:        0,
+		Height:       0,
+		ScrollOffset: make(map[PanelType]int),
+
+		// Initialize new state structs
+		DiceRoller: DiceRollerState{
+			Input:            "",
+			Result:           "",
+			History:          []string{},
+			Commands:         []string{},
+			LastCommand:      "",
+			InputMode:        false,
+			HistoryMode:      false,
+			HistoryIndex:     -1,
+			Macros:           getDefaultDiceMacros(),
+			MacroListMode:    false,
+			SelectedMacro:    -1,
+			ShowMacroPrompt:  false,
+			MacroNameInput:   "",
+			MacroFormulaInput: "",
+			MacroInputStep:   0,
+		},
+		Initiative: InitiativeState{
+			List:                []InitiativeEntry{},
+			Input:               "",
+			InputMode:           false,
+			InputType:           "",
+			SelectedEntry:       -1,
+			TempEntry:           InitiativeEntry{},
+			EditMode:            false,
+			EditType:            "",
+			ListMode:            false,
+			CurrentTurn:         -1,
+			RoundCounter:        0,
+			ShowQuickHPPopup:    false,
+			QuickHPInput:        "",
+			QuickHPMode:         "",
+			MultiTargetMode:     false,
+			SelectedTargets:     make(map[int]bool),
+			ShowMultiTargetPopup: false,
+			MultiTargetInput:    "",
+			MultiTargetType:     "damage",
+			MultiTargetSaveMode: false,
+			TargetSaveResults:   make(map[int]string),
+			HPUndoStack:         []HPHistoryEntry{},
+			HPRedoStack:         []HPHistoryEntry{},
+		},
+		Spells: SpellState{
+			SearchInput:         "",
+			SearchMode:          false,
+			SelectedSpell:       nil,
+			Suggestions:         []string{},
+			SuggestionIndex:     -1,
+			LevelFilter:         "",
+			LevelFilterMode:     false,
+			ActiveSpells:        []ActiveSpell{},
+			ActiveSpellIndex:    -1,
+			ActiveSpellListMode: false,
+			ShowCastSpellPrompt: false,
+			CastSpellInput:      "",
+			CastSpellInputMode:  false,
+			SpellToCast:         nil,
+		},
+		Monsters: MonsterState{
+			SearchInput:     "",
+			SearchMode:      false,
+			SelectedMonster: nil,
+			Suggestions:     []string{},
+			SuggestionIndex: -1,
+			CRFilter:        "",
+			CRFilterMode:    false,
+		},
+		Notes: NotesState{
+			Content:     "",
+			Input:       "",
+			EditMode:    false,
+			SearchMode:  false,
+			SearchInput: "",
+			SearchResult: []int{},
+		},
+		Encounter: EncounterState{
+			PartySize:            4,
+			PartyLevel:           3,
+			Monsters:             []EncounterMonster{},
+			SelectedIndex:        -1,
+			SavedEncounters:      []Encounter{},
+			ListMode:             false,
+			NameInput:            "",
+			ShowPrompt:           false,
+			LoadedTemplateName:   "",
+			BuilderMode:          "party_setup",
+			CRFilter:             "",
+			FilterActive:         false,
+			SelectedSaved:        -1,
+			AddingMonster:        false,
+			Environment:          "Any",
+			Difficulty:           "medium",
+			Generating:           false,
+			EnvironmentIndex:     0,
+			DifficultyIndex:      1, // medium
+			GeneratorFocus:       "",
+			AvailableEnvironments: []string{"Any", "Forest", "Mountain", "Desert", "Swamp", "Underdark", "Urban", "Coast", "Arctic", "Jungle", "Plains"},
+		},
+		Popup: PopupState{
+			ShowHelp:                false,
+			HelpScrollOffset:        0,
+			ShowAction:              false,
+			ActionActions:           []MonsterAction{},
+			ActionIndex:             0,
+			ActionMonster:           "",
+			ActionAdvantage:         false,
+			ActionDisadvantage:      false,
+			ShowSavingThrow:         false,
+			ShowCondition:           false,
+			ConditionMode:           "",
+			ConditionInput:          "",
+			ConditionDurationInput:  "",
+			ConditionInputStep:      0,
+			SelectedConditionIdx:    0,
+			SelectedConditionNameIdx: 0,
+			ShowSave:                false,
+			ShowLoad:                false,
+			ShowRename:              false,
+			SaveInput:               "",
+			CurrentCampaignFile:     "",
+			CurrentCampaignName:     "",
+			ShowEncounterPrompt:     false,
+		},
+		Global: GlobalState{
+			DebugMode:         false,
+			CampaignList:      []string{},
+			CampaignListIndex: 0,
+			LastAutoSave:      "",
+			ErrorMessage:      "",
+			ErrorVisible:      false,
+		},
+
+		// Initialize legacy fields for backward compatibility
 		DiceInput:                "",
 		DiceResult:               "",
 		DiceHistory:              []string{},
@@ -17,7 +155,6 @@ func InitialModel() Model {
 		InputMode:                false,
 		DiceHistoryMode:          false,
 		HistoryIndex:             -1,
-		ScrollOffset:             make(map[PanelType]int),
 		DiceMacros:               getDefaultDiceMacros(),
 		MacroListMode:            false,
 		SelectedMacro:            -1,
@@ -72,26 +209,39 @@ func InitialModel() Model {
 		SelectedConditionIdx:     0,
 		SelectedConditionNameIdx: 0,
 		ShowHelpPopup:            false,
-		// Encounter Builder defaults
-		PartySize:              4,
-		PartyLevel:             3,
-		EncounterMonsters:      []EncounterMonster{},
-		SelectedEncounterIndex: -1,
-		SavedEncounters:        []Encounter{},
-		EncounterListMode:      false,
-		EncounterNameInput:     "",
-		ShowEncounterPrompt:    false,
-		EncounterBuilderMode:   "party_setup",
-		EncounterCRFilter:         "",
-		EncounterFilterActive:     false,
-		EncounterSelectedSaved:    -1,
-		AddingMonsterToEncounter:  false,
-		EncounterEnvironment:      "Any",
-		EncounterDifficulty:       "medium",
-		EncounterGenerating:       false,
+		PartySize:                4,
+		PartyLevel:               3,
+		EncounterMonsters:        []EncounterMonster{},
+		SelectedEncounterIndex:   -1,
+		SavedEncounters:          []Encounter{},
+		EncounterListMode:        false,
+		EncounterNameInput:       "",
+		ShowEncounterPrompt:      false,
+		EncounterBuilderMode:     "party_setup",
+		EncounterCRFilter:        "",
+		EncounterFilterActive:    false,
+		EncounterSelectedSaved:   -1,
+		AddingMonsterToEncounter: false,
+		EncounterEnvironment:     "Any",
+		EncounterDifficulty:      "medium",
+		EncounterGenerating:      false,
 		EncounterEnvironmentIndex: 0,
-		EncounterDifficultyIndex:  1, // medium
-		AvailableEnvironments:     []string{"Any", "Forest", "Mountain", "Desert", "Swamp", "Underdark", "Urban", "Coast", "Arctic", "Jungle", "Plains"},
+		EncounterDifficultyIndex:  1,
+		AvailableEnvironments:    []string{"Any", "Forest", "Mountain", "Desert", "Swamp", "Underdark", "Urban", "Coast", "Arctic", "Jungle", "Plains"},
+		HPUndoStack:              []HPHistoryEntry{},
+		HPRedoStack:              []HPHistoryEntry{},
+		ErrorMessage:             "",
+		ErrorVisible:             false,
+		NotesContent:             "",
+		NotesInput:               "",
+		NotesEditMode:            false,
+		NotesSearchMode:          false,
+		NotesSearchInput:         "",
+		NotesSearchResult:        []int{},
+		DebugMode:                false,
+		CampaignList:             []string{},
+		CampaignListIndex:        0,
+		LastAutoSave:             "",
 	}
 }
 
@@ -108,63 +258,63 @@ func (m Model) View() string {
 
 	mainView := lipgloss.JoinVertical(lipgloss.Left, grid, statusBar)
 
-	// Show save popup if active (highest priority)
-	if m.ShowSavePopup {
+	// Show save popup if active (highest priority) - check both new and legacy
+	if m.Popup.ShowSave || m.ShowSavePopup {
 		return m.renderSavePopupOverlay(mainView)
 	}
 
-	// Show load popup if active (highest priority)
-	if m.ShowLoadPopup {
+	// Show load popup if active (highest priority) - check both new and legacy
+	if m.Popup.ShowLoad || m.ShowLoadPopup {
 		return m.renderLoadPopupOverlay(mainView)
 	}
 
-	// Show quick HP popup
-	if m.ShowQuickHPPopup {
+	// Show quick HP popup - check both new and legacy
+	if m.Initiative.ShowQuickHPPopup || m.ShowQuickHPPopup {
 		return m.renderQuickHPPopupOverlay(mainView)
 	}
 
-	// Show encounter prompt (save)
-	if m.ShowEncounterPrompt {
+	// Show encounter prompt (save) - check both new and legacy
+	if m.Popup.ShowEncounterPrompt || m.ShowEncounterPrompt {
 		return m.renderEncounterPromptOverlay(mainView)
 	}
 
-	// Show encounter generator popup
-	if m.EncounterGenerating {
+	// Show encounter generator popup - check both new and legacy
+	if m.Encounter.Generating || m.EncounterGenerating {
 		return m.renderGeneratorPopupOverlay(mainView)
 	}
 
-	// Show rename popup if active (highest priority)
-	if m.ShowRenamePopup {
+	// Show rename popup if active (highest priority) - check both new and legacy
+	if m.Popup.ShowRename || m.ShowRenamePopup {
 		return m.renderRenamePopupOverlay(mainView)
 	}
 
-	// Show cast spell popup if active (takes priority over other popups)
-	if m.ShowCastSpellPrompt {
+	// Show cast spell popup if active (takes priority over other popups) - check both new and legacy
+	if m.Spells.ShowCastSpellPrompt || m.ShowCastSpellPrompt {
 		return renderCastSpellPopupOverlay(m, mainView)
 	}
 
-	// Show multi-target popup if active (takes priority over other popups)
-	if m.ShowMultiTargetPopup {
+	// Show multi-target popup if active (takes priority over other popups) - check both new and legacy
+	if m.Initiative.ShowMultiTargetPopup || m.ShowMultiTargetPopup {
 		return renderMultiTargetPopupOverlay(m, mainView)
 	}
 
-	// Show condition popup if active (takes priority over other popups)
-	if m.ShowConditionPopup {
+	// Show condition popup if active (takes priority over other popups) - check both new and legacy
+	if m.Popup.ShowCondition || m.ShowConditionPopup {
 		return renderConditionPopupOverlay(m, mainView)
 	}
 
-	// Show saving throw popup if active (takes priority over action popup)
-	if m.ShowSavingThrowPopup {
+	// Show saving throw popup if active (takes priority over action popup) - check both new and legacy
+	if m.Popup.ShowSavingThrow || m.ShowSavingThrowPopup {
 		return m.renderSavingThrowPopupOverlay(mainView)
 	}
 
-	// Show action popup if active (takes priority over help popup)
-	if m.ShowActionPopup {
+	// Show action popup if active (takes priority over help popup) - check both new and legacy
+	if m.Popup.ShowAction || m.ShowActionPopup {
 		return m.renderActionPopupOverlay(mainView)
 	}
 
-	// Show help popup if active
-	if m.ShowHelpPopup {
+	// Show help popup if active - check both new and legacy
+	if m.Popup.ShowHelp || m.ShowHelpPopup {
 		return m.renderHelpPopupOverlay(mainView)
 	}
 
