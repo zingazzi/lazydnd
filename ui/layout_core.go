@@ -2,6 +2,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -321,6 +323,16 @@ func (m Model) View() string {
 	return mainView
 }
 
+// Layout constants
+const (
+	MinPanelWidth   = 20 // Minimum panel width
+	MinPanelHeight  = 8  // Minimum panel height
+	StatusBarHeight = 2  // Status bar height
+	GridSpacing     = 2  // Space between panels
+	TopMargin       = 1  // Margin at the top of the grid
+	RightMargin     = 1  // Margin on the right side of the grid
+)
+
 // PanelDimensions holds calculated panel dimensions
 type PanelDimensions struct {
 	Width  int
@@ -329,17 +341,35 @@ type PanelDimensions struct {
 
 // calculatePanelDimensions calculates panel dimensions with dynamic sizing
 func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
-	// Reserve 2 lines for status bar at the bottom
-	availableHeight := m.Height - 2
-	availableWidth := m.Width - 10 // Account for borders and spacing
+	// Calculate available space (account for margins)
+	availableHeight := m.Height - StatusBarHeight - TopMargin
+	availableWidth := m.Width - GridSpacing - RightMargin
+
+	// Ensure minimum sizes
+	if availableWidth < MinPanelWidth*2 {
+		availableWidth = MinPanelWidth * 2
+	}
+	if availableHeight < MinPanelHeight*2 {
+		availableHeight = MinPanelHeight * 2
+	}
 
 	dimensions := make(map[PanelType]PanelDimensions)
 
 	// Top row height (Dice and Initiative)
-	topHeight := (availableHeight - 4) / 2
+	topHeight := (availableHeight - GridSpacing) / 2
 
 	// Bottom row height (Spells, Monsters, Notes, Encounter Builder)
-	bottomHeight := availableHeight - topHeight - 4
+	bottomHeight := availableHeight - topHeight - GridSpacing
+
+	// Ensure minimum heights
+	if topHeight < MinPanelHeight {
+		topHeight = MinPanelHeight
+		bottomHeight = availableHeight - topHeight - GridSpacing
+	}
+	if bottomHeight < MinPanelHeight {
+		bottomHeight = MinPanelHeight
+		topHeight = availableHeight - bottomHeight - GridSpacing
+	}
 
 	// Width allocation based on active panel
 	switch m.ActivePanel {
@@ -398,6 +428,18 @@ func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
 	}
 
+	// Enforce minimum dimensions for all panels
+	for panelType := range dimensions {
+		dim := dimensions[panelType]
+		if dim.Width < MinPanelWidth {
+			dim.Width = MinPanelWidth
+		}
+		if dim.Height < MinPanelHeight {
+			dim.Height = MinPanelHeight
+		}
+		dimensions[panelType] = dim
+	}
+
 	return dimensions
 }
 
@@ -409,7 +451,22 @@ func (m Model) arrangeInGrid(panelViews []string) string {
 	// Bottom row: Spells (2), Monsters (3), Notes (4), Encounter Builder (5)
 	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3], panelViews[4], panelViews[5])
 
-	return lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+	// Combine rows
+	grid := lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+
+	// Add top margin
+	if TopMargin > 0 {
+		grid = strings.Repeat("\n", TopMargin) + grid
+	}
+
+	// Add right margin by wrapping in a style with right padding
+	if RightMargin > 0 {
+		// Use lipgloss to add right padding
+		gridStyle := lipgloss.NewStyle().PaddingRight(RightMargin)
+		grid = gridStyle.Render(grid)
+	}
+
+	return grid
 }
 
 // renderSavePopupOverlay renders the save popup over the main view
