@@ -11,6 +11,11 @@ var (
 	autoSaveCounter  int
 )
 
+// HandleAutoSave performs autosave if conditions are met (exported for TView)
+func HandleAutoSave(m Model) Model {
+	return handleAutoSave(m)
+}
+
 // handleAutoSave performs autosave if conditions are met
 func handleAutoSave(m Model) Model {
 	// Only autosave if:

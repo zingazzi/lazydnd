@@ -342,12 +342,18 @@ type PanelDimensions struct {
 // calculatePanelDimensions calculates panel dimensions with dynamic sizing
 func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 	// Calculate available space (account for margins)
+	// Target row width: terminal width minus right margin
+	// Note: Each panel width includes its borders (2 chars: left + right)
+	// When panels are joined, adjacent borders are separate, so we need to account for them
+	// Top row has 2 panels = 1 border between them (already included in panel widths)
+	// Bottom row has 4 panels = 3 borders between them (already included in panel widths)
+	// Since borders are already in panel widths, targetRowWidth is just m.Width - RightMargin
+	targetRowWidth := m.Width - RightMargin
 	availableHeight := m.Height - StatusBarHeight - TopMargin
-	availableWidth := m.Width - GridSpacing - RightMargin
 
 	// Ensure minimum sizes
-	if availableWidth < MinPanelWidth*2 {
-		availableWidth = MinPanelWidth * 2
+	if targetRowWidth < MinPanelWidth*2 {
+		targetRowWidth = MinPanelWidth * 2
 	}
 	if availableHeight < MinPanelHeight*2 {
 		availableHeight = MinPanelHeight * 2
@@ -372,60 +378,73 @@ func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 	}
 
 	// Width allocation based on active panel
+	// Use targetRowWidth and calculate last panel as remainder to ensure exact fit
 	switch m.ActivePanel {
 	case DiceRoller:
 		// Dice enlarged
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 6 / 10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 4 / 10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: targetRowWidth * 6 / 10, Height: topHeight}
+		// Initiative Tracker gets remainder to ensure exact fit
+		dimensions[InitiativeTracker] = PanelDimensions{Width: targetRowWidth - dimensions[DiceRoller].Width, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		// Encounter Builder gets remainder to ensure exact fit
+		dimensions[EncounterBuilder] = PanelDimensions{Width: targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width, Height: bottomHeight}
 
 	case InitiativeTracker:
 		// Initiative enlarged
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 4 / 10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 6 / 10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 3 / 10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: targetRowWidth * 4 / 10, Height: topHeight}
+		// Initiative Tracker gets remainder to ensure exact fit
+		dimensions[InitiativeTracker] = PanelDimensions{Width: targetRowWidth - dimensions[DiceRoller].Width, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		// Encounter Builder gets remainder to ensure exact fit
+		dimensions[EncounterBuilder] = PanelDimensions{Width: targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width, Height: bottomHeight}
 
 	case Spells:
 		// Spells enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		// Initiative Tracker gets remainder to ensure exact fit
+		dimensions[InitiativeTracker] = PanelDimensions{Width: targetRowWidth - dimensions[DiceRoller].Width, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: targetRowWidth * 4 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		// Encounter Builder gets remainder to ensure exact fit
+		dimensions[EncounterBuilder] = PanelDimensions{Width: targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width, Height: bottomHeight}
 
 	case Monsters:
 		// Monsters enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		// Initiative Tracker gets remainder to ensure exact fit
+		dimensions[InitiativeTracker] = PanelDimensions{Width: targetRowWidth - dimensions[DiceRoller].Width, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: targetRowWidth * 4 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		// Encounter Builder gets remainder to ensure exact fit
+		dimensions[EncounterBuilder] = PanelDimensions{Width: targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width, Height: bottomHeight}
 
 	case Notes:
 		// Notes enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
-		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		// Initiative Tracker gets remainder to ensure exact fit
+		dimensions[InitiativeTracker] = PanelDimensions{Width: targetRowWidth - dimensions[DiceRoller].Width, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: targetRowWidth * 4 / 10, Height: bottomHeight}
+		// Encounter Builder gets remainder to ensure exact fit
+		dimensions[EncounterBuilder] = PanelDimensions{Width: targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width, Height: bottomHeight}
 
 	case EncounterBuilder:
 		// Encounter Builder enlarged - top row splits evenly
-		dimensions[DiceRoller] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[InitiativeTracker] = PanelDimensions{Width: availableWidth * 5 / 10, Height: topHeight}
-		dimensions[Spells] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[Monsters] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[Notes] = PanelDimensions{Width: availableWidth * 2 / 10, Height: bottomHeight}
-		dimensions[EncounterBuilder] = PanelDimensions{Width: availableWidth * 4 / 10, Height: bottomHeight}
+		dimensions[DiceRoller] = PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		// Initiative Tracker gets remainder to ensure exact fit
+		dimensions[InitiativeTracker] = PanelDimensions{Width: targetRowWidth - dimensions[DiceRoller].Width, Height: topHeight}
+		dimensions[Spells] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Monsters] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[Notes] = PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		// Encounter Builder gets remainder to ensure exact fit
+		dimensions[EncounterBuilder] = PanelDimensions{Width: targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width, Height: bottomHeight}
 	}
 
 	// Enforce minimum dimensions for all panels
@@ -438,6 +457,100 @@ func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 			dim.Height = MinPanelHeight
 		}
 		dimensions[panelType] = dim
+	}
+
+	// Both rows should now sum to exactly targetRowWidth since we calculate last panel as remainder
+	// Verify and ensure minimum widths are maintained, then enforce exact row width
+	initTracker := dimensions[InitiativeTracker]
+	if initTracker.Width < MinPanelWidth {
+		initTracker.Width = MinPanelWidth
+		dimensions[InitiativeTracker] = initTracker
+		// Recalculate DiceRoller to maintain total
+		diceRoller := dimensions[DiceRoller]
+		diceRoller.Width = targetRowWidth - initTracker.Width
+		if diceRoller.Width < MinPanelWidth {
+			diceRoller.Width = MinPanelWidth
+		}
+		dimensions[DiceRoller] = diceRoller
+	}
+	encounterBuilder := dimensions[EncounterBuilder]
+	if encounterBuilder.Width < MinPanelWidth {
+		encounterBuilder.Width = MinPanelWidth
+		dimensions[EncounterBuilder] = encounterBuilder
+		// Recalculate other bottom panels proportionally to maintain total
+		remainingWidth := targetRowWidth - encounterBuilder.Width
+		// Redistribute remaining width proportionally
+		totalRatio := 3 + 3 + 2 // Spells + Monsters + Notes ratios
+		spells := dimensions[Spells]
+		spells.Width = remainingWidth * 3 / totalRatio
+		if spells.Width < MinPanelWidth {
+			spells.Width = MinPanelWidth
+		}
+		dimensions[Spells] = spells
+		monsters := dimensions[Monsters]
+		monsters.Width = remainingWidth * 3 / totalRatio
+		if monsters.Width < MinPanelWidth {
+			monsters.Width = MinPanelWidth
+		}
+		dimensions[Monsters] = monsters
+		notes := dimensions[Notes]
+		notes.Width = remainingWidth - spells.Width - monsters.Width
+		if notes.Width < MinPanelWidth {
+			notes.Width = MinPanelWidth
+		}
+		dimensions[Notes] = notes
+	}
+
+	// Final verification: ensure both rows sum to exactly targetRowWidth
+	// This accounts for borders between panels (each panel width includes its borders)
+	topRowSum := dimensions[DiceRoller].Width + dimensions[InitiativeTracker].Width
+	if topRowSum != targetRowWidth {
+		// Adjust Initiative Tracker to make exact fit
+		initTracker = dimensions[InitiativeTracker]
+		initTracker.Width = targetRowWidth - dimensions[DiceRoller].Width
+		if initTracker.Width < MinPanelWidth {
+			initTracker.Width = MinPanelWidth
+			// If still too small, adjust DiceRoller
+			diceRoller := dimensions[DiceRoller]
+			diceRoller.Width = targetRowWidth - initTracker.Width
+			dimensions[DiceRoller] = diceRoller
+		}
+		dimensions[InitiativeTracker] = initTracker
+	}
+
+	bottomRowSum := dimensions[Spells].Width + dimensions[Monsters].Width + dimensions[Notes].Width + dimensions[EncounterBuilder].Width
+	if bottomRowSum != targetRowWidth {
+		// Adjust Encounter Builder to make exact fit
+		encounterBuilder = dimensions[EncounterBuilder]
+		encounterBuilder.Width = targetRowWidth - dimensions[Spells].Width - dimensions[Monsters].Width - dimensions[Notes].Width
+		if encounterBuilder.Width < MinPanelWidth {
+			encounterBuilder.Width = MinPanelWidth
+			// If still too small, we need to reduce other panels proportionally
+			// This is a fallback - should rarely happen
+			remainingWidth := targetRowWidth - encounterBuilder.Width
+			totalRatio := 3 + 3 + 2 // Spells + Monsters + Notes ratios
+			spells := dimensions[Spells]
+			spells.Width = remainingWidth * 3 / totalRatio
+			if spells.Width < MinPanelWidth {
+				spells.Width = MinPanelWidth
+			}
+			dimensions[Spells] = spells
+			monsters := dimensions[Monsters]
+			monsters.Width = remainingWidth * 3 / totalRatio
+			if monsters.Width < MinPanelWidth {
+				monsters.Width = MinPanelWidth
+			}
+			dimensions[Monsters] = monsters
+			notes := dimensions[Notes]
+			notes.Width = remainingWidth - spells.Width - monsters.Width
+			if notes.Width < MinPanelWidth {
+				notes.Width = MinPanelWidth
+			}
+			dimensions[Notes] = notes
+			// Recalculate Encounter Builder with new values
+			encounterBuilder.Width = targetRowWidth - spells.Width - monsters.Width - notes.Width
+		}
+		dimensions[EncounterBuilder] = encounterBuilder
 	}
 
 	return dimensions
@@ -459,11 +572,14 @@ func (m Model) arrangeInGrid(panelViews []string) string {
 		grid = strings.Repeat("\n", TopMargin) + grid
 	}
 
-	// Add right margin by wrapping in a style with right padding
+	// Add right margin by appending spaces to each line (preserves borders)
 	if RightMargin > 0 {
-		// Use lipgloss to add right padding
-		gridStyle := lipgloss.NewStyle().PaddingRight(RightMargin)
-		grid = gridStyle.Render(grid)
+		lines := strings.Split(grid, "\n")
+		marginSpaces := strings.Repeat(" ", RightMargin)
+		for i, line := range lines {
+			lines[i] = line + marginSpaces
+		}
+		grid = strings.Join(lines, "\n")
 	}
 
 	return grid

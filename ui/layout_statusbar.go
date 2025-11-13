@@ -74,6 +74,11 @@ func (m Model) getPanelCommands() string {
 
 // renderStatusBar renders the status bar at the bottom of the screen
 func (m Model) renderStatusBar() string {
+	return m.RenderStatusBar()
+}
+
+// RenderStatusBar renders the status bar at the bottom of the screen (exported for TView)
+func (m Model) RenderStatusBar() string {
 	var result string
 
 	// Render error banner if there's an error
