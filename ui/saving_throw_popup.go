@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // SavingThrowResult holds the result of a saving throw roll
@@ -28,23 +26,12 @@ type SkillCheckResult struct {
 	Total    int
 }
 
-// renderSavingThrowPopupOverlay renders the saving throw popup over the main view
+// renderSavingThrowPopupOverlay is deprecated - TView handles overlays
 func (m Model) renderSavingThrowPopupOverlay(mainView string) string {
-	popup := RenderSavingThrowPopup(m)
-
-	// Place popup centered over the main view
-	return lipgloss.Place(
-		m.Width,
-		m.Height,
-		lipgloss.Center,
-		lipgloss.Center,
-		popup,
-		lipgloss.WithWhitespaceChars("░"),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color("#333333")),
-	)
+	return mainView
 }
 
-// RenderSavingThrowPopup renders a popup showing saving throw rolls for a monster
+// RenderSavingThrowPopup renders a popup showing saving throw rolls for a monster (plain text for TView)
 func RenderSavingThrowPopup(m Model) string {
 	if m.SelectedEntry < 0 || m.SelectedEntry >= len(m.InitiativeList) {
 		return ""
@@ -89,16 +76,7 @@ func RenderSavingThrowPopup(m Model) string {
 
 	// Build popup content
 	content := buildSavingThrowContent(entry.Name, results, skillChecks)
-
-	// Style the popup
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#FFD700")).
-		Padding(1, 2).
-		Width(50).
-		Align(lipgloss.Center)
-
-	return popupStyle.Render(content)
+	return content
 }
 
 // rollSavingThrow rolls a d20 and adds the modifier
@@ -140,8 +118,6 @@ func rollSavingThrow(ability, modifierStr string, savingThrowTotals map[string]i
 }
 
 // parseSavingThrowBonuses parses the "Saving Throws" field from monster data
-// Format: "Str +6, Dex +4, Con +8" or "Dex +5, Wis +3"
-// Returns a map of ability -> total bonus (includes base modifier + proficiency)
 func parseSavingThrowBonuses(savingThrowsStr string) map[string]int {
 	bonuses := make(map[string]int)
 
@@ -171,8 +147,6 @@ func parseSavingThrowBonuses(savingThrowsStr string) map[string]int {
 }
 
 // parseSkillBonuses parses the "Skills" field from monster data
-// Format: "Stealth +6, Perception +3" or "History +12, Perception +10"
-// Returns a map of skill -> total bonus
 func parseSkillBonuses(skillsStr string) map[string]int {
 	bonuses := make(map[string]int)
 
@@ -215,46 +189,24 @@ func rollSkillCheck(skillName string, bonus int) SkillCheckResult {
 	}
 }
 
-// getRollStyle returns the appropriate style based on the roll value
-func getRollStyle(roll int) lipgloss.Style {
-	if roll == 20 {
-		return lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00")).Bold(true)
-	} else if roll == 1 {
-		return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")).Bold(true)
-	}
-	return lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF"))
-}
-
-// buildSavingThrowContent formats the saving throw results and skill checks
+// buildSavingThrowContent formats the saving throw results and skill checks (plain text)
 func buildSavingThrowContent(monsterName string, results []SavingThrowResult, skillChecks []SkillCheckResult) string {
 	var lines []string
 
 	// Title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FFD700")).
-		Align(lipgloss.Center)
-
-	lines = append(lines, titleStyle.Render("🎲 SAVING THROWS & SKILLS 🎲"))
+	lines = append(lines, "🎲 SAVING THROWS & SKILLS 🎲")
 	lines = append(lines, "")
-	lines = append(lines, lipgloss.NewStyle().Bold(true).Render(monsterName))
+	lines = append(lines, monsterName)
 	lines = append(lines, strings.Repeat("─", 46))
 	lines = append(lines, "")
 
 	// Column headers
-	headerStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#888888"))
-
 	header := fmt.Sprintf("%-8s  %-10s  %-12s  %-8s", "Ability", "Roll", "Modifier", "Total")
-	lines = append(lines, headerStyle.Render(header))
+	lines = append(lines, header)
 	lines = append(lines, strings.Repeat("─", 46))
 
 	// Results
 	for _, result := range results {
-		// Style based on roll value
-		rollStyle := getRollStyle(result.Roll)
-
 		// Format modifier with + or -
 		modStr := fmt.Sprintf("%+d", result.Modifier)
 
@@ -264,15 +216,21 @@ func buildSavingThrowContent(monsterName string, results []SavingThrowResult, sk
 			profIndicator = " ⭐"
 		}
 
-		line := fmt.Sprintf("%-8s  %-10s  %-12s  ",
-			result.Ability,
-			rollStyle.Render(fmt.Sprintf("d20: %d", result.Roll)),
-			modStr,
-		)
+		// Format roll (highlight crits with symbols)
+		rollStr := fmt.Sprintf("d20: %d", result.Roll)
+		if result.Roll == 20 {
+			rollStr = fmt.Sprintf("d20: %d ★", result.Roll)
+		} else if result.Roll == 1 {
+			rollStr = fmt.Sprintf("d20: %d ✗", result.Roll)
+		}
 
-		// Total with special styling
-		totalStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFD700"))
-		line += totalStyle.Render(fmt.Sprintf("%d", result.Total)) + profIndicator
+		line := fmt.Sprintf("%-8s  %-10s  %-12s  %-8d%s",
+			result.Ability,
+			rollStr,
+			modStr,
+			result.Total,
+			profIndicator,
+		)
 
 		lines = append(lines, line)
 	}
@@ -282,31 +240,28 @@ func buildSavingThrowContent(monsterName string, results []SavingThrowResult, sk
 		lines = append(lines, "")
 		lines = append(lines, strings.Repeat("─", 46))
 		lines = append(lines, "")
-
-		// Skill checks header
-		skillHeaderStyle := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#00CED1"))
-		lines = append(lines, skillHeaderStyle.Render("SKILL CHECKS"))
+		lines = append(lines, "SKILL CHECKS")
 		lines = append(lines, "")
 
 		// Skill checks results
 		for _, skill := range skillChecks {
-			// Style based on roll value
-			rollStyle := getRollStyle(skill.Roll)
-
 			// Format modifier
 			modStr := fmt.Sprintf("%+d", skill.Modifier)
 
-			line := fmt.Sprintf("%-8s  %-10s  %-12s  ",
-				skill.Skill,
-				rollStyle.Render(fmt.Sprintf("d20: %d", skill.Roll)),
-				modStr,
-			)
+			// Format roll
+			rollStr := fmt.Sprintf("d20: %d", skill.Roll)
+			if skill.Roll == 20 {
+				rollStr = fmt.Sprintf("d20: %d ★", skill.Roll)
+			} else if skill.Roll == 1 {
+				rollStr = fmt.Sprintf("d20: %d ✗", skill.Roll)
+			}
 
-			// Total with special styling
-			totalStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#00CED1"))
-			line += totalStyle.Render(fmt.Sprintf("%d", skill.Total))
+			line := fmt.Sprintf("%-8s  %-10s  %-12s  %-8d",
+				skill.Skill,
+				rollStr,
+				modStr,
+				skill.Total,
+			)
 
 			lines = append(lines, line)
 		}
@@ -314,27 +269,12 @@ func buildSavingThrowContent(monsterName string, results []SavingThrowResult, sk
 
 	lines = append(lines, "")
 	lines = append(lines, strings.Repeat("─", 46))
-
-	// Help text
-	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Italic(true)
-
-	lines = append(lines, helpStyle.Render("⭐ = Proficient    Enter to reroll    Esc to close"))
+	lines = append(lines, "⭐ = Proficient    Enter to reroll    Esc to close")
 
 	return strings.Join(lines, "\n")
 }
 
-// renderErrorPopup renders an error message popup
+// renderErrorPopup renders an error message popup (plain text)
 func renderErrorPopup(message string) string {
-	content := fmt.Sprintf("❌ %s", message)
-
-	style := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#FF0000")).
-		Padding(1, 2).
-		Width(50).
-		Align(lipgloss.Center)
-
-	return style.Render(content + "\n\nPress Esc to close")
+	return fmt.Sprintf("❌ %s\n\nPress Esc to close", message)
 }

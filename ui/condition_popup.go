@@ -4,8 +4,6 @@ package ui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Common D&D 5e conditions for quick selection
@@ -27,65 +25,36 @@ var CommonConditions = []string{
 	"Unconscious",
 }
 
-// RenderConditionPopup renders the condition management popup
+// RenderConditionPopup renders the condition management popup (plain text for TView)
 func RenderConditionPopup(m Model) string {
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#7D56F4")).
-		Padding(1, 2).
-		Width(70).
-		Background(lipgloss.Color("#1a1a1a"))
-
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#7D56F4")).
-		Align(lipgloss.Center).
-		Width(66)
-
-	inputBoxStyle := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("#7D56F4")).
-		Padding(0, 1).
-		Width(64).
-		Foreground(lipgloss.Color("#FAFAFA"))
-
-	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Italic(true).
-		Width(66)
-
-	conditionStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FAFAFA"))
-
-	selectedStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FAFAFA")).
-		Background(lipgloss.Color("#7D56F4")).
-		Bold(true)
-
-	// Build content
 	var content strings.Builder
 
 	// Get selected entry name(s)
 	entryName := ""
 	if m.MultiTargetMode {
 		// Multi-target mode: show count
-		selectedCount := len(m.SelectedTargets)
+		selectedCount := 0
+		for _, selected := range m.SelectedTargets {
+			if selected {
+				selectedCount++
+			}
+		}
 		entryName = fmt.Sprintf("%d targets selected", selectedCount)
 	} else if m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		entryName = m.InitiativeList[m.SelectedEntry].Name
 	}
 
 	if m.ConditionPopupMode == "list" {
-		// List mode: show current conditions with better formatting
-		content.WriteString(titleStyle.Render(fmt.Sprintf("🔮 Conditions - %s", entryName)) + "\n\n")
+		// List mode: show current conditions
+		content.WriteString(fmt.Sprintf("🔮 Conditions - %s\n\n", entryName))
 
 		// In multi-target mode, don't show existing conditions (just allow adding)
 		if m.MultiTargetMode {
-			content.WriteString(helpStyle.Render("Press 'a' to add a condition to all targets") + "\n\n")
+			content.WriteString("Press 'a' to add a condition to all targets\n\n")
 		} else if m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 			if len(m.InitiativeList[m.SelectedEntry].Conditions) == 0 {
-				content.WriteString(helpStyle.Render("No active conditions") + "\n")
-				content.WriteString(helpStyle.Render("Press 'a' to add a condition") + "\n\n")
+				content.WriteString("No active conditions\n")
+				content.WriteString("Press 'a' to add a condition\n\n")
 			} else {
 				content.WriteString("Active Conditions:\n\n")
 				for i, cond := range m.InitiativeList[m.SelectedEntry].Conditions {
@@ -125,9 +94,9 @@ func RenderConditionPopup(m Model) string {
 					}
 
 					if i == m.SelectedConditionIdx {
-						content.WriteString(selectedStyle.Render("► "+line) + "\n")
+						content.WriteString(fmt.Sprintf("► %s\n", line))
 					} else {
-						content.WriteString(conditionStyle.Render("  "+line) + "\n")
+						content.WriteString(fmt.Sprintf("  %s\n", line))
 					}
 				}
 				content.WriteString("\n")
@@ -136,14 +105,14 @@ func RenderConditionPopup(m Model) string {
 
 		// Show appropriate help text based on mode
 		if m.MultiTargetMode {
-			content.WriteString(helpStyle.Render("a: add new • Esc: close"))
+			content.WriteString("a: add new • Esc: close")
 		} else {
-			content.WriteString(helpStyle.Render("↑↓: navigate • d: remove • a: add new • Esc: close"))
+			content.WriteString("↑↓: navigate • d: remove • a: add new • Esc: close")
 		}
 
 	} else if m.ConditionPopupMode == "add" {
 		// Add mode: select from list
-		content.WriteString(titleStyle.Render(fmt.Sprintf("➕ Add Condition - %s", entryName)) + "\n\n")
+		content.WriteString(fmt.Sprintf("➕ Add Condition - %s\n\n", entryName))
 
 		if m.ConditionInputStep == 0 {
 			// Step 1: Select condition from list
@@ -176,9 +145,9 @@ func RenderConditionPopup(m Model) string {
 				}
 
 				if i == m.SelectedConditionNameIdx {
-					content.WriteString(selectedStyle.Render("► "+line) + "\n")
+					content.WriteString(fmt.Sprintf("► %s\n", line))
 				} else {
-					content.WriteString(conditionStyle.Render("  "+line) + "\n")
+					content.WriteString(fmt.Sprintf("  %s\n", line))
 				}
 			}
 			content.WriteString("\n")
@@ -186,12 +155,12 @@ func RenderConditionPopup(m Model) string {
 			// Add option for custom condition
 			customLine := "✏️  Custom condition..."
 			if m.SelectedConditionNameIdx == len(CommonConditions) {
-				content.WriteString(selectedStyle.Render("► "+customLine) + "\n\n")
+				content.WriteString(fmt.Sprintf("► %s\n\n", customLine))
 			} else {
-				content.WriteString(conditionStyle.Render("  "+customLine) + "\n\n")
+				content.WriteString(fmt.Sprintf("  %s\n\n", customLine))
 			}
 
-			content.WriteString(helpStyle.Render("↑↓: navigate • Enter: select • Esc: cancel"))
+			content.WriteString("↑↓: navigate • Enter: select • Esc: cancel")
 
 		} else if m.ConditionInputStep == 1 {
 			// Step 2: Enter duration
@@ -204,36 +173,23 @@ func RenderConditionPopup(m Model) string {
 
 			content.WriteString(fmt.Sprintf("Condition: %s\n\n", selectedCondition))
 			content.WriteString("Duration (in rounds):\n")
-			content.WriteString(helpStyle.Render("(Enter 0 for indefinite duration)") + "\n")
-			content.WriteString(inputBoxStyle.Render(m.ConditionDurationInput+"│") + "\n\n")
+			content.WriteString("(Enter 0 for indefinite duration)\n")
+			content.WriteString(fmt.Sprintf("[%s█]\n\n", m.ConditionDurationInput))
 
-			content.WriteString(helpStyle.Render("Enter: apply • Esc: cancel"))
+			content.WriteString("Enter: apply • Esc: cancel")
 
 		} else if m.ConditionInputStep == 2 {
 			// Step 3: Custom condition name
 			content.WriteString("Enter custom condition name:\n")
-			content.WriteString(inputBoxStyle.Render(m.ConditionInput+"│") + "\n\n")
-			content.WriteString(helpStyle.Render("Enter: next • Esc: cancel"))
+			content.WriteString(fmt.Sprintf("[%s█]\n\n", m.ConditionInput))
+			content.WriteString("Enter: next • Esc: cancel")
 		}
 	}
 
-	return popupStyle.Render(content.String())
+	return content.String()
 }
 
-// renderConditionPopupOverlay renders the condition popup as an overlay
+// renderConditionPopupOverlay is deprecated - TView handles overlays
 func renderConditionPopupOverlay(m Model, baseView string) string {
-	if !m.ShowConditionPopup {
-		return baseView
-	}
-
-	popup := RenderConditionPopup(m)
-	return lipgloss.Place(
-		m.Width,
-		m.Height,
-		lipgloss.Center,
-		lipgloss.Center,
-		popup,
-		lipgloss.WithWhitespaceChars(""),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color("0")),
-	)
+	return baseView
 }

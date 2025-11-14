@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"lazydnd/encounters"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // GetEncounterBuilderContent generates the encounter builder panel content
@@ -20,7 +18,7 @@ func GetEncounterBuilderContent(
 	selectedSaved int,
 	crFilter string,
 	width, height int,
-	activeStyle, inactiveStyle, titleStyle lipgloss.Style,
+	activeStyle, inactiveStyle, titleStyle interface{}, // Deprecated - kept for compatibility
 ) string {
 	content := ""
 

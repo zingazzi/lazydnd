@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // SearchContentConfig holds configuration for rendering search panel content
@@ -19,9 +17,6 @@ type SearchContentConfig struct {
 	SuggestionIndex int
 	SearchMode      bool
 	IsActive        bool
-	InputStyle      lipgloss.Style
-	SuggestionStyle lipgloss.Style
-	SelectedStyle   lipgloss.Style
 	FormatFunc      func(interface{}) string
 	ShowAddPrompt   bool // Whether to show "Press 'a' to add to initiative"
 }
@@ -52,8 +47,8 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 			label = "Level"
 		}
 
-		contentLines = append(contentLines, cfg.InputStyle.Render(label+": "+prompt))
-		contentLines = append(contentLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("↑↓ Enter Esc"))
+		contentLines = append(contentLines, label+": "+prompt)
+		contentLines = append(contentLines, "↑↓ Enter Esc")
 
 		// Show suggestions with scrolling window
 		if len(cfg.Suggestions) > 0 {
@@ -93,16 +88,16 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 			// Show scroll indicator at top if there are more items above
 			if totalSuggestions > maxVisible && startIdx > 0 {
 				scrollText := fmt.Sprintf("  ⬆ %s (%s more above)", strings.Repeat("─", 8), formatSuggestionCount(startIdx))
-				contentLines = append(contentLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render(scrollText))
+				contentLines = append(contentLines, scrollText)
 			}
 
 			// Show the visible window of suggestions
 			for i := startIdx; i < endIdx; i++ {
 				suggestion := cfg.Suggestions[i]
 				if i == cfg.SuggestionIndex {
-					contentLines = append(contentLines, cfg.SelectedStyle.Render("► "+suggestion))
+					contentLines = append(contentLines, "► "+suggestion)
 				} else {
-					contentLines = append(contentLines, cfg.SuggestionStyle.Render("  "+suggestion))
+					contentLines = append(contentLines, "  "+suggestion)
 				}
 			}
 
@@ -110,7 +105,7 @@ func RenderSearchContent(cfg SearchContentConfig) string {
 			if totalSuggestions > maxVisible && endIdx < totalSuggestions {
 				remaining := totalSuggestions - endIdx
 				scrollText := fmt.Sprintf("  ⬇ %s (%s more below)", strings.Repeat("─", 8), formatSuggestionCount(remaining))
-				contentLines = append(contentLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render(scrollText))
+				contentLines = append(contentLines, scrollText)
 			}
 
 			contentLines = append(contentLines, "")

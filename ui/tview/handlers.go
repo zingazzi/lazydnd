@@ -10,12 +10,20 @@ import (
 // HandleInput routes input events to the appropriate handler
 func HandleInput(model *ui.Model, key tcell.Key, rune rune) bool {
 	// Convert TCell key to handler chain format
-	_ = convertKeyToString(key, rune)
+	keyStr := convertKeyToString(key, rune)
+	if keyStr == "" {
+		return false
+	}
+
+	// Create a KeyMsg adapter
+	keyMsg := ui.NewTViewKeyMsg(keyStr)
 
 	// Use the existing handler chain
-	// For now, we'll need to adapt the handler chain to work with TView
-	// This is a placeholder - will be fully implemented in Phase 4
-	return false
+	updatedModel, _ := ui.HandleNavigation(*model, keyMsg)
+	*model = updatedModel
+
+	// Return true to indicate the event was handled
+	return true
 }
 
 // convertKeyToString converts TCell key events to string format used by handlers

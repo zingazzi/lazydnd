@@ -4,11 +4,9 @@ package ui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
-// RenderQuickHPPopup renders the quick HP adjustment popup
+// RenderQuickHPPopup renders the quick HP adjustment popup (plain text for TView)
 func RenderQuickHPPopup(m Model) string {
 	if !m.ShowQuickHPPopup {
 		return ""
@@ -62,75 +60,41 @@ func RenderQuickHPPopup(m Model) string {
 	var content strings.Builder
 
 	// Title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#5555FF")).
-		Padding(0, 1).
-		Width(42).
-		Align(lipgloss.Center)
-
-	content.WriteString(titleStyle.Render(title))
+	content.WriteString(title)
 	content.WriteString("\n\n")
 
-	// Target info (compact)
-	infoStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#AAAAAA")).
-		Italic(true)
-
+	// Target info
 	if selectedCount == 1 {
 		entry := m.InitiativeList[m.SelectedEntry]
 		targetInfo := fmt.Sprintf("%s • HP: %d/%d", entry.Name, entry.HP, entry.MaxHP)
 		if entry.TempHP > 0 {
 			targetInfo += fmt.Sprintf(" +%d", entry.TempHP)
 		}
-		content.WriteString(infoStyle.Render(targetInfo))
+		content.WriteString(targetInfo)
 	} else {
-		content.WriteString(infoStyle.Render(strings.Join(targetNames, ", ")))
+		content.WriteString(strings.Join(targetNames, ", "))
 	}
 	content.WriteString("\n\n")
 
 	// Prompt
-	promptStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Bold(true)
-	content.WriteString(promptStyle.Render(prompt))
+	content.WriteString(prompt)
 	content.WriteString("\n\n")
 
-	// Input field - PROMINENT and VISIBLE
-	inputBoxStyle := lipgloss.NewStyle().
-		Border(lipgloss.ThickBorder()).
-		BorderForeground(lipgloss.Color("#00FF00")).
-		Background(lipgloss.Color("#1a1a1a")).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Bold(true).
-		Padding(1, 2).
-		Width(36).
-		Align(lipgloss.Center)
-
-	// Show the input with a visible cursor
+	// Input field
 	displayText := m.QuickHPInput
 	if displayText == "" {
 		displayText = "0"
 	}
 	displayText += " █" // Cursor
-
-	content.WriteString(inputBoxStyle.Render(displayText))
-	content.WriteString("\n\n")
+	content.WriteString(fmt.Sprintf("[%s]\n\n", displayText))
 
 	// Instructions
-	instructStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666")).
-		Italic(true)
+	content.WriteString("↵ Enter: Apply • Esc: Cancel")
 
-	content.WriteString(instructStyle.Render("↵ Enter: Apply • Esc: Cancel"))
+	return content.String()
+}
 
-	// Create popup box
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#5555FF")).
-		Padding(1, 2).
-		Width(46)
-
-	return popupStyle.Render(content.String())
+// renderQuickHPPopupOverlay is deprecated - TView handles overlays
+func (m Model) renderQuickHPPopupOverlay(mainView string) string {
+	return mainView
 }

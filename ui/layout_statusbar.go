@@ -2,9 +2,8 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // getPanelCommands returns key shortcuts for the active panel
@@ -83,13 +82,7 @@ func (m Model) RenderStatusBar() string {
 
 	// Render error banner if there's an error
 	if m.ErrorVisible && m.ErrorMessage != "" {
-		errorBanner := m.Styles.ErrorStyle.
-			Width(m.Width).
-			Background(lipgloss.Color("#8B0000")).
-			Foreground(lipgloss.Color("#FFFFFF")).
-			Bold(true).
-			Padding(0, 1).
-			Render("❌ " + m.ErrorMessage)
+		errorBanner := fmt.Sprintf("❌ %s", m.ErrorMessage)
 		result = errorBanner + "\n"
 	}
 
@@ -99,10 +92,10 @@ func (m Model) RenderStatusBar() string {
 	if m.CurrentCampaignName != "" {
 		leftParts = append(leftParts, "│", m.CurrentCampaignName)
 	}
-	leftSection := m.Styles.StatusBarTextStyle.Render(strings.Join(leftParts, " "))
+	leftSection := strings.Join(leftParts, " ")
 
 	// Check if help hints are enabled in config
-	showHelp := m.Config.Display.ShowHelpHints
+	showHelp := m.Config != nil && m.Config.Display.ShowHelpHints
 
 	// MIDDLE SECTION: Panel-specific commands (if help enabled)
 	var middleSection string
@@ -113,22 +106,22 @@ func (m Model) RenderStatusBar() string {
 		if panelCommands != "" {
 			middleParts = append(middleParts, "│", panelCommands)
 		}
-		middleSection = m.Styles.StatusBarKeyStyle.Render(strings.Join(middleParts, " "))
+		middleSection = strings.Join(middleParts, " ")
 	} else {
 		// Just show panel name without commands
-		middleSection = m.Styles.StatusBarTextStyle.Render(PanelNames[m.ActivePanel])
+		middleSection = PanelNames[m.ActivePanel]
 	}
 
 	// RIGHT SECTION: Shared commands (if help enabled)
 	var rightSection string
 	if showHelp {
-		rightSection = m.Styles.StatusBarTextStyle.Render("Tab:switch │ ?:help │ Ctrl+S:save │ q:quit")
+		rightSection = "Tab:switch │ ?:help │ Ctrl+S:save │ q:quit"
 	}
 
-	// Calculate spacing for sections
-	leftWidth := lipgloss.Width(leftSection)
-	middleWidth := lipgloss.Width(middleSection)
-	rightWidth := lipgloss.Width(rightSection)
+	// Calculate spacing for sections (using simple string width calculation)
+	leftWidth := len(leftSection)
+	middleWidth := len(middleSection)
+	rightWidth := len(rightSection)
 
 	var statusBarContent string
 	if showHelp && rightWidth > 0 {
@@ -143,14 +136,11 @@ func (m Model) RenderStatusBar() string {
 			spacing2 = 2
 		}
 
-		statusBarContent = lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			leftSection,
-			strings.Repeat(" ", spacing1),
-			middleSection,
-			strings.Repeat(" ", spacing2),
-			rightSection,
-		)
+		statusBarContent = leftSection +
+			strings.Repeat(" ", spacing1) +
+			middleSection +
+			strings.Repeat(" ", spacing2) +
+			rightSection
 	} else {
 		// Two sections without help
 		totalContentWidth := leftWidth + middleWidth
@@ -160,19 +150,18 @@ func (m Model) RenderStatusBar() string {
 			spacing = 2
 		}
 
-		statusBarContent = lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			leftSection,
-			strings.Repeat(" ", spacing),
-			middleSection,
-		)
+		statusBarContent = leftSection +
+			strings.Repeat(" ", spacing) +
+			middleSection
 	}
 
-	// Apply full-width background style
-	statusBar := m.Styles.StatusBarStyle.
-		Width(m.Width).
-		Render(statusBarContent)
+	// Pad to full width
+	if len(statusBarContent) < m.Width {
+		statusBarContent += strings.Repeat(" ", m.Width-len(statusBarContent))
+	} else if len(statusBarContent) > m.Width {
+		statusBarContent = statusBarContent[:m.Width]
+	}
 
-	result += statusBar
+	result += statusBarContent
 	return result
 }

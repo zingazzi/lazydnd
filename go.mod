@@ -4,11 +4,13 @@ module lazydnd
 go 1.19
 
 require (
-	github.com/charmbracelet/bubbletea v0.25.0
-	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/gdamore/tcell/v2 v2.7.1
 	github.com/rivo/tview v0.0.0-20230928085139-517d97d9d4f6
 )
+
+// Removed dependencies:
+// - github.com/charmbracelet/bubbletea (replaced by TView)
+// - github.com/charmbracelet/lipgloss (replaced by TView styling)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

@@ -3,29 +3,9 @@ package panels
 
 import (
 	"fmt"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	monsterInputStyle = lipgloss.NewStyle().
-				Border(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("#7D56F4")).
-				Padding(0, 1)
-
-	monsterSuggestionStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#888888"))
-
-	selectedMonsterSuggestionStyle = lipgloss.NewStyle().
-					Background(lipgloss.Color("#7D56F4")).
-					Foreground(lipgloss.Color("#FAFAFA"))
-
-	monsterDetailStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FAFAFA")).
-				Background(lipgloss.Color("#444444")).
-				Padding(1, 2).
-				Margin(1, 0)
-)
+// Note: Styling is now handled by TView widgets - these functions return plain text
 
 // GetMonstersContent returns the content for the monsters panel
 func GetMonstersContent(searchInput string, selectedMonster interface{}, suggestions []string, suggestionIndex int, searchMode bool, isActive bool, crFilter string, crFilterMode bool) string {
@@ -40,9 +20,6 @@ func GetMonstersContent(searchInput string, selectedMonster interface{}, suggest
 			SuggestionIndex: suggestionIndex,
 			SearchMode:      true, // Show as search mode
 			IsActive:        isActive,
-			InputStyle:      monsterInputStyle,
-			SuggestionStyle: monsterSuggestionStyle,
-			SelectedStyle:   selectedMonsterSuggestionStyle,
 			FormatFunc:      FormatSelectedMonster,
 			ShowAddPrompt:   false, // No "add to initiative" in CR mode
 		})

@@ -4,138 +4,44 @@ package ui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
-// RenderSavePopup renders the save campaign popup
+// RenderSavePopup renders the save campaign popup (plain text for TView)
 func RenderSavePopup(m Model) string {
-	// Popup dimensions
-	popupWidth := 60
-	popupHeight := 10
+	var content strings.Builder
 
-	// Title
-	title := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#5555FF")).
-		Padding(0, 1).
-		Width(popupWidth - 2).
-		Align(lipgloss.Center).
-		Render("💾 Save Campaign")
+	content.WriteString("💾 Save Campaign\n\n")
+	content.WriteString("Enter campaign name:\n\n")
 
-	// Instructions
-	instructions := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Padding(1, 2).
-		Render("Enter campaign name:")
-
-	// Input field
 	inputValue := m.SaveInput
 	if inputValue == "" {
 		inputValue = "my_campaign"
 	}
+	content.WriteString(fmt.Sprintf("[%s█]\n\n", inputValue))
+	content.WriteString("Enter: Save  |  Esc: Cancel")
 
-	inputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#5555FF")).
-		Padding(0, 1).
-		Width(popupWidth - 8)
-
-	inputField := inputStyle.Render(inputValue + "█")
-
-	// Help text
-	helpText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666")).
-		Padding(1, 2).
-		Render("Enter: Save  |  Esc: Cancel")
-
-	// Combine elements
-	content := lipgloss.JoinVertical(
-		lipgloss.Left,
-		instructions,
-		inputField,
-		helpText,
-	)
-
-	// Create popup box
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#5555FF")).
-		Width(popupWidth).
-		Height(popupHeight).
-		Padding(0)
-
-	popup := lipgloss.JoinVertical(
-		lipgloss.Left,
-		title,
-		content,
-	)
-
-	return popupStyle.Render(popup)
+	return content.String()
 }
 
-// RenderLoadPopup renders the load campaign popup
+// RenderLoadPopup renders the load campaign popup (plain text for TView)
 func RenderLoadPopup(m Model) string {
-	// Popup dimensions
-	popupWidth := 60
-	maxPopupHeight := 20
+	var content strings.Builder
 
-	// Title
-	title := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#55AA55")).
-		Padding(0, 1).
-		Width(popupWidth - 2).
-		Align(lipgloss.Center).
-		Render("📂 Load Campaign")
+	content.WriteString("📂 Load Campaign\n\n")
 
 	// Check if there are campaigns
 	if len(m.CampaignList) == 0 {
-		instructions := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#888888")).
-			Padding(2, 2).
-			Align(lipgloss.Center).
-			Render("No saved campaigns found.\n\nPress Ctrl+S to save your first campaign!")
-
-		helpText := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")).
-			Padding(1, 2).
-			Render("Esc: Cancel")
-
-		content := lipgloss.JoinVertical(
-			lipgloss.Left,
-			instructions,
-			helpText,
-		)
-
-		popupStyle := lipgloss.NewStyle().
-			Border(lipgloss.DoubleBorder()).
-			BorderForeground(lipgloss.Color("#55AA55")).
-			Width(popupWidth).
-			Padding(0)
-
-		popup := lipgloss.JoinVertical(
-			lipgloss.Left,
-			title,
-			content,
-		)
-
-		return popupStyle.Render(popup)
+		content.WriteString("No saved campaigns found.\n\n")
+		content.WriteString("Press Ctrl+S to save your first campaign!")
+		return content.String()
 	}
 
-	// Instructions
-	instructions := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Padding(1, 2).
-		Render("Select a campaign to load:")
+	content.WriteString("Select a campaign to load:\n\n")
 
 	// Campaign list
-	var campaignLines []string
+	maxVisible := 8
 	visibleStart := 0
 	visibleEnd := len(m.CampaignList)
-	maxVisible := 8
 
 	// Calculate visible range if list is too long
 	if len(m.CampaignList) > maxVisible {
@@ -157,176 +63,73 @@ func RenderLoadPopup(m Model) string {
 		displayName := GetCampaignDisplayName(campaign)
 
 		if i == m.CampaignListIndex {
-			// Selected campaign
-			line := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FFFFFF")).
-				Background(lipgloss.Color("#55AA55")).
-				Padding(0, 1).
-				Width(popupWidth - 6).
-				Render("▶ " + displayName)
-			campaignLines = append(campaignLines, line)
+			content.WriteString(fmt.Sprintf("▶ %s\n", displayName))
 		} else {
-			// Unselected campaign
-			line := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#CCCCCC")).
-				Padding(0, 1).
-				Width(popupWidth - 6).
-				Render("  " + displayName)
-			campaignLines = append(campaignLines, line)
+			content.WriteString(fmt.Sprintf("  %s\n", displayName))
 		}
 	}
 
 	// Add scroll indicators if needed
 	if len(m.CampaignList) > maxVisible {
-		scrollInfo := fmt.Sprintf("(%d/%d)", m.CampaignListIndex+1, len(m.CampaignList))
-		scrollLine := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")).
-			Padding(0, 2).
-			Render(scrollInfo)
-		campaignLines = append(campaignLines, scrollLine)
+		scrollInfo := fmt.Sprintf("\n(%d/%d)", m.CampaignListIndex+1, len(m.CampaignList))
+		content.WriteString(scrollInfo)
 	}
 
-	campaignListContent := lipgloss.NewStyle().
-		Padding(0, 2).
-		Render(strings.Join(campaignLines, "\n"))
+	content.WriteString("\n\n↑/↓: Navigate  |  Enter: Load  |  Esc: Cancel")
 
-	// Help text
-	helpText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666")).
-		Padding(1, 2).
-		Render("↑/↓: Navigate  |  Enter: Load  |  Esc: Cancel")
-
-	// Combine elements
-	content := lipgloss.JoinVertical(
-		lipgloss.Left,
-		instructions,
-		campaignListContent,
-		helpText,
-	)
-
-	// Create popup box
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#55AA55")).
-		Width(popupWidth).
-		MaxHeight(maxPopupHeight).
-		Padding(0)
-
-	popup := lipgloss.JoinVertical(
-		lipgloss.Left,
-		title,
-		content,
-	)
-
-	return popupStyle.Render(popup)
+	return content.String()
 }
 
-// renderStatusMessage renders a styled message with icon and color
-func renderStatusMessage(message, icon, bgColor string) string {
-	fullMessage := fmt.Sprintf("%s %s", icon, message)
-
-	style := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color(bgColor)).
-		Padding(0, 2).
-		Bold(true)
-
-	return style.Render(fullMessage)
-}
-
-// RenderSaveSuccessMessage renders a temporary success message
+// RenderSaveSuccessMessage renders a temporary success message (plain text)
 func RenderSaveSuccessMessage(campaignName string) string {
-	message := fmt.Sprintf("Campaign '%s' saved successfully!", campaignName)
-	return renderStatusMessage(message, "✓", "#55AA55")
+	return fmt.Sprintf("✓ Campaign '%s' saved successfully!", campaignName)
 }
 
-// RenderLoadSuccessMessage renders a temporary success message
+// RenderLoadSuccessMessage renders a temporary success message (plain text)
 func RenderLoadSuccessMessage(campaignName string) string {
-	message := fmt.Sprintf("Campaign '%s' loaded successfully!", campaignName)
-	return renderStatusMessage(message, "✓", "#55AA55")
+	return fmt.Sprintf("✓ Campaign '%s' loaded successfully!", campaignName)
 }
 
-// RenderErrorMessage renders an error message
+// RenderErrorMessage renders an error message (plain text)
 func RenderErrorMessage(errorMsg string) string {
-	message := fmt.Sprintf("Error: %s", errorMsg)
-	return renderStatusMessage(message, "✗", "#AA5555")
+	return fmt.Sprintf("✗ Error: %s", errorMsg)
 }
 
-// RenderRenamePopup renders the rename campaign popup
+// RenderRenamePopup renders the rename campaign popup (plain text for TView)
 func RenderRenamePopup(m Model) string {
-	// Popup dimensions
-	popupWidth := 60
-	popupHeight := 12
+	var content strings.Builder
 
-	// Title
-	title := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#FF9500")).
-		Padding(0, 1).
-		Width(popupWidth - 2).
-		Align(lipgloss.Center).
-		Render("✏️  Rename Campaign")
+	content.WriteString("✏️  Rename Campaign\n\n")
 
 	// Current name display
 	currentName := m.CurrentCampaignName
 	if currentName == "" {
 		currentName = "No campaign loaded"
 	}
+	content.WriteString(fmt.Sprintf("Current name: %s\n\n", currentName))
+	content.WriteString("Enter new name:\n\n")
 
-	currentNameText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Padding(1, 2).
-		Render(fmt.Sprintf("Current: %s", currentName))
-
-	// Instructions
-	instructions := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Padding(0, 2).
-		Render("Enter new campaign name:")
-
-	// Input field
 	inputValue := m.SaveInput
 	if inputValue == "" {
 		inputValue = currentName
 	}
+	content.WriteString(fmt.Sprintf("[%s█]\n\n", inputValue))
+	content.WriteString("Enter: Rename  |  Esc: Cancel")
 
-	inputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#FF9500")).
-		Padding(0, 1).
-		Width(popupWidth - 8)
+	return content.String()
+}
 
-	inputField := inputStyle.Render(inputValue + "█")
+// renderSavePopupOverlay is deprecated - TView handles overlays
+func (m Model) renderSavePopupOverlay(mainView string) string {
+	return mainView
+}
 
-	// Help text
-	helpText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666666")).
-		Padding(1, 2).
-		Render("Enter: Rename  |  Esc: Cancel")
+// renderLoadPopupOverlay is deprecated - TView handles overlays
+func (m Model) renderLoadPopupOverlay(mainView string) string {
+	return mainView
+}
 
-	// Combine elements
-	content := lipgloss.JoinVertical(
-		lipgloss.Left,
-		currentNameText,
-		instructions,
-		inputField,
-		helpText,
-	)
-
-	// Create popup box
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#FF9500")).
-		Width(popupWidth).
-		Height(popupHeight).
-		Padding(0)
-
-	popup := lipgloss.JoinVertical(
-		lipgloss.Left,
-		title,
-		content,
-	)
-
-	return popupStyle.Render(popup)
+// renderRenamePopupOverlay is deprecated - TView handles overlays
+func (m Model) renderRenamePopupOverlay(mainView string) string {
+	return mainView
 }

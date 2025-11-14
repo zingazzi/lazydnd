@@ -1,12 +1,8 @@
 // ui/handlers/core.go
 package ui
 
-import (
-	tea "github.com/charmbracelet/bubbletea"
-)
-
 // KeyHandler defines a function type for handling key presses
-type KeyHandler func(Model, tea.KeyMsg) (Model, tea.Cmd)
+type KeyHandler func(Model, KeyMsg) (Model, Cmd)
 
 // keyHandlers maps key strings to their handler functions
 var keyHandlers = map[string]KeyHandler{
@@ -83,7 +79,7 @@ var keyHandlers = map[string]KeyHandler{
 
 // HandleNavigation processes navigation-related key presses
 // Uses a prioritized handler chain to route input to appropriate handlers
-func HandleNavigation(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func HandleNavigation(m Model, msg KeyMsg) (Model, Cmd) {
 	chain := NewHandlerChain()
 	return chain.Process(m, msg)
 }

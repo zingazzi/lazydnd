@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Constants for dice rolling validation
@@ -31,39 +30,11 @@ var (
 // Zocchi's dice: d3, d5, d7, d14, d16, d24, d30
 var ValidDiceTypes = []int{3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 30, 100}
 
-var (
-	inputStyle = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("#7D56F4")).
-			Padding(0, 1).
-			Margin(0)
-
-	// Bright color for total result
-	totalStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#00FF00"))
-
-	// Red color for critical hit total
-	critTotalStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#FF0000"))
-
-	// Light color for dice results
-	diceResultStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#AAAAAA"))
-
-	// Gray for formula
-	formulaStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666"))
-
-	critStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#FF0000")) // Red color
-)
+// Note: Styling is now handled by TView widgets - these functions return plain text
 
 // getCriticalHitBanner returns a simple critical hit indicator
 func getCriticalHitBanner() string {
-	return critStyle.Render("★ CRIT")
+	return "★ CRIT"
 }
 
 // handleCriticalDamageRoll handles rolling critical damage based on the configured mode
@@ -149,14 +120,14 @@ func handleCriticalDamageRoll(command string) string {
 		rollsStr[i] = strconv.Itoa(roll)
 	}
 
-	result := totalStyle.Render(fmt.Sprintf("%d", finalTotal)) + "  "
-	result += diceResultStyle.Render(strings.Join(rollsStr, ", ")) + " "
+	result := fmt.Sprintf("%d", finalTotal) + "  "
+	result += strings.Join(rollsStr, ", ") + " "
 
 	formula := fmt.Sprintf("(%dd%d × 2)", numDice, sides)
 	if modifier != 0 {
 		formula += fmt.Sprintf(" %+d", modifier)
 	}
-	result += formulaStyle.Render(formula)
+	result += formula
 	result += " " + getCriticalHitBanner()
 
 	return result
@@ -216,7 +187,7 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, di
 	} else {
 		inputPrompt += diceInput
 	}
-	content += inputStyle.Render(inputPrompt)
+	content += inputPrompt
 
 	// Last result - already has styling applied from RollDice
 	if diceResult != "" {
@@ -225,15 +196,9 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, di
 
 	// History (most recent first) - show only totals
 	if len(diceHistory) > 0 {
-		historyStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666"))
-
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#444444"))
-
-		// Add separator line and extra spacing
-		content += "\n\n" + separatorStyle.Render("─────────────────────────────────")
-		content += "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("Recent:")
+		// Add separator line and extra spacing (styling handled by TView)
+		content += "\n\n─────────────────────────────────"
+		content += "\nRecent:"
 
 		// Show max 3 most recent results
 		maxHistory := 3
@@ -323,23 +288,23 @@ func RollDice(command string, cfg *config.Config) string {
 	// Handle simple dice notation with standard format
 	if command == "d4" || command == "1d4" {
 		roll := rand.Intn(4) + 1
-		return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d4)")
+		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d4)"
 	}
 	if command == "d6" || command == "1d6" {
 		roll := rand.Intn(6) + 1
-		return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d6)")
+		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d6)"
 	}
 	if command == "d8" || command == "1d8" {
 		roll := rand.Intn(8) + 1
-		return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d8)")
+		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d8)"
 	}
 	if command == "d10" || command == "1d10" {
 		roll := rand.Intn(10) + 1
-		return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d10)")
+		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d10)"
 	}
 	if command == "d12" || command == "1d12" {
 		roll := rand.Intn(12) + 1
-		return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d12)")
+		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d12)"
 	}
 	if command == "d20" || command == "1d20" {
 		if advantage || disadvantage {
@@ -378,17 +343,17 @@ func RollDice(command string, cfg *config.Config) string {
 			// Use standard format
 			if isCrit {
 				// Critical hit format: "20  (d20) ★ CRIT" - in red
-				return critTotalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + formulaStyle.Render("(d20)") + " " + getCriticalHitBanner()
+				return fmt.Sprintf("%d", roll) + "  " + "(d20)" + " " + getCriticalHitBanner()
 			} else {
 				// Normal format: "15  15 (d20)"
-				return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d20)")
+				return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d20)"
 			}
 		}
 	}
 	if command == "d100" || command == "1d100" {
 		roll := rand.Intn(100) + 1
 		// Use standard format: "75  75 (d100)"
-		return totalStyle.Render(fmt.Sprintf("%d", roll)) + "  " + diceResultStyle.Render(fmt.Sprintf("%d", roll)) + " " + formulaStyle.Render("(d100)")
+		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d100)"
 	}
 
 	// Handle complex dice notation like "2d6", "3d8+2"
@@ -630,14 +595,14 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 		}
 
 		// Format: "TOTAL  diceRolls (formula) +mod TYPE"
-		result := totalStyle.Render(fmt.Sprintf("%d", finalResult)) + "  "
-		result += diceResultStyle.Render(fmt.Sprintf("%s vs %s", strings.Join(rollsStr1, ", "), strings.Join(rollsStr2, ", "))) + " "
+		result := fmt.Sprintf("%d", finalResult) + "  "
+		result += fmt.Sprintf("%s vs %s", strings.Join(rollsStr1, ", "), strings.Join(rollsStr2, ", ")) + " "
 
 		formula := fmt.Sprintf("(%s)", diceExpr)
 		if modifier != 0 {
 			formula += fmt.Sprintf(" %+d", modifier)
 		}
-		result += formulaStyle.Render(formula) + " " + resultType
+		result += formula) + " " + resultType
 
 		return result
 	} else {
@@ -671,21 +636,21 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 
 		if isCrit {
 			// Critical hit format: "20  (1d20) CRIT" - both 20 and CRIT in red
-			result = critTotalStyle.Render(fmt.Sprintf("%d", finalTotal)) + "  "
+			result = fmt.Sprintf("%d", finalTotal) + "  "
 			formula := fmt.Sprintf("(%s)", diceExpr)
 			if modifier != 0 {
 				formula += fmt.Sprintf(" %+d", modifier)
 			}
-			result += formulaStyle.Render(formula) + " " + getCriticalHitBanner()
+			result += formula + " " + getCriticalHitBanner()
 		} else {
-			result = totalStyle.Render(fmt.Sprintf("%d", finalTotal)) + "  "
-			result += diceResultStyle.Render(strings.Join(rollsStr, ", ")) + " "
+			result = fmt.Sprintf("%d", finalTotal) + "  "
+			result += strings.Join(rollsStr, ", ") + " "
 
 			formula := fmt.Sprintf("(%s)", diceExpr)
 			if modifier != 0 {
 				formula += fmt.Sprintf(" %+d", modifier)
 			}
-			result += formulaStyle.Render(formula)
+			result += formula
 		}
 
 		return result
@@ -757,7 +722,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 	}
 
 	// Single line with total
-	resultStr += totalStyle.Render(fmt.Sprintf("%d", total)) + "  "
+	resultStr += fmt.Sprintf("%d", total) + "  "
 
 	// Show individual results
 	breakdown := resultStrings[0]
@@ -766,8 +731,8 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 			breakdown += " " + operators[i-1] + " " + resultStrings[i]
 		}
 	}
-	resultStr += diceResultStyle.Render(breakdown) + " "
-	resultStr += formulaStyle.Render("(" + formula + ")")
+	resultStr += breakdown + " "
+	resultStr += "(" + formula + ")")
 
 	if hasCrit {
 		resultStr += " " + getCriticalHitBanner()

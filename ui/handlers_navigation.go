@@ -1,14 +1,10 @@
 // ui/handlers/navigation.go
 package ui
 
-import (
-	tea "github.com/charmbracelet/bubbletea"
-)
-
 // ========== NAVIGATION HANDLERS ==========
 
 // handleTab handles tab key navigation (forward)
-func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleTab(m Model, msg KeyMsg) (Model, Cmd) {
 	if !m.InputMode {
 		m.ActivePanel = (m.ActivePanel + 1) % 6
 	}
@@ -16,7 +12,7 @@ func handleTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleShiftTab handles shift+tab key navigation (backward)
-func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleShiftTab(m Model, msg KeyMsg) (Model, Cmd) {
 	if !m.InputMode {
 		m.ActivePanel = (m.ActivePanel - 1 + 6) % 6
 	}
@@ -24,7 +20,7 @@ func handleShiftTab(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleUp handles up arrow key
-func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleUp(m Model, msg KeyMsg) (Model, Cmd) {
 	// Disable navigation when saving throw popup is open
 	if m.ShowSavingThrowPopup {
 		return m, nil
@@ -76,7 +72,7 @@ func handleUp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleDown handles down arrow key
-func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleDown(m Model, msg KeyMsg) (Model, Cmd) {
 	// Disable navigation when saving throw popup is open
 	if m.ShowSavingThrowPopup {
 		return m, nil
@@ -130,28 +126,28 @@ func handleDown(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // ========== FUNCTION KEY HANDLERS ==========
 
 // handleF1 switches to dice roller panel
-func handleF1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleF1(m Model, msg KeyMsg) (Model, Cmd) {
 	m.InputMode = false
 	m.ActivePanel = DiceRoller
 	return m, nil
 }
 
 // handleF2 switches to initiative tracker panel
-func handleF2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleF2(m Model, msg KeyMsg) (Model, Cmd) {
 	m.InputMode = false
 	m.ActivePanel = InitiativeTracker
 	return m, nil
 }
 
 // handleF3 switches to spells panel
-func handleF3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleF3(m Model, msg KeyMsg) (Model, Cmd) {
 	m.InputMode = false
 	m.ActivePanel = Spells
 	return m, nil
 }
 
 // handleF4 switches to monsters panel
-func handleF4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleF4(m Model, msg KeyMsg) (Model, Cmd) {
 	m.InputMode = false
 	m.ActivePanel = Monsters
 	return m, nil
@@ -160,7 +156,7 @@ func handleF4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // ========== NUMBER KEY HANDLERS ==========
 
 // handleNumber1 handles the '1' key
-func handleNumber1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNumber1(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.InputMode {
 		m.DiceInput += "1"
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
@@ -172,7 +168,7 @@ func handleNumber1(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleNumber2 handles the '2' key
-func handleNumber2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNumber2(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.InputMode {
 		m.DiceInput += "2"
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
@@ -184,7 +180,7 @@ func handleNumber2(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleNumber3 handles the '3' key
-func handleNumber3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNumber3(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.InputMode {
 		m.DiceInput += "3"
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
@@ -196,7 +192,7 @@ func handleNumber3(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleNumber4 handles the '4' key
-func handleNumber4(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNumber4(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.InputMode {
 		m.DiceInput += "4"
 	} else if m.InitiativeInputMode || m.InitiativeEditMode {
@@ -252,7 +248,7 @@ func adjustScrollForSelection(m Model) Model {
 // ========== TURN TRACKING HANDLERS ==========
 
 // handleResetCombat resets the combat turn and round counter
-func handleResetCombat(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleResetCombat(m Model, msg KeyMsg) (Model, Cmd) {
 	// If in any input mode, pass through to default input handler
 	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
 		return handleDefaultInput(m, msg)
@@ -271,7 +267,7 @@ func handleResetCombat(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleNextTurn advances to the next turn in initiative order
-func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNextTurn(m Model, msg KeyMsg) (Model, Cmd) {
 	// If in any input mode, pass through to default input handler
 	if m.InputMode || m.InitiativeInputMode || m.InitiativeEditMode || m.SpellSearchMode || m.MonsterSearchMode {
 		return handleDefaultInput(m, msg)
@@ -322,7 +318,7 @@ func handleNextTurn(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // ========== UNDO/REDO HANDLERS ==========
 
 // handleCtrlZ handles Ctrl+Z for undoing HP changes
-func handleCtrlZ(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleCtrlZ(m Model, msg KeyMsg) (Model, Cmd) {
 	// Only works in initiative tracker panel
 	if m.ActivePanel != InitiativeTracker {
 		return m, nil
@@ -340,7 +336,7 @@ func handleCtrlZ(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleCtrlY handles Ctrl+Y for redoing HP changes
-func handleCtrlY(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleCtrlY(m Model, msg KeyMsg) (Model, Cmd) {
 	// Only works in initiative tracker panel
 	if m.ActivePanel != InitiativeTracker {
 		return m, nil

@@ -4,8 +4,6 @@ package ui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // renderAllPanels renders all six panels with dynamic dimensions
@@ -87,32 +85,20 @@ func (m Model) truncateContent(content string, maxWidth int) string {
 	return strings.Join(lines, "\n")
 }
 
-// createTitleBar creates a constrained title bar
+// createTitleBar creates a constrained title bar (deprecated - TView handles this)
 func (m Model) createTitleBar(panelNumber int, metrics LayoutMetrics) string {
 	title := fmt.Sprintf(" %d. %s ", panelNumber, PanelNames[panelNumber-1])
-
 	// Constrain title width
-	constrainedTitle := truncateText(title, metrics.MaxTitleWidth)
-
-	return m.Styles.PanelTitleStyle.Render(constrainedTitle)
+	return truncateText(title, metrics.MaxTitleWidth)
 }
 
-// assemblePanel combines title and content with proper styling
+// assemblePanel combines title and content (deprecated - TView handles this)
 func (m Model) assemblePanel(titleBar, content string, panelType PanelType, dimensions PanelDimensions) string {
-	panelStyle := m.getPanelStyle(panelType, dimensions)
-	panelContent := titleBar + "\n" + content
-	return panelStyle.Render(panelContent)
+	return titleBar + "\n" + content
 }
 
-// getPanelStyle returns the appropriate style for a panel based on whether it's active
-func (m Model) getPanelStyle(panelType PanelType, dimensions PanelDimensions) lipgloss.Style {
-	var baseStyle lipgloss.Style
-	if panelType == m.ActivePanel {
-		baseStyle = m.Styles.ActivePanelStyle
-	} else {
-		baseStyle = m.Styles.InactivePanelStyle
-	}
-
-	// Apply fixed dimensions to prevent resize
-	return baseStyle.Width(dimensions.Width).Height(dimensions.Height)
+// getPanelStyle is deprecated - TView handles panel styling
+func (m Model) getPanelStyle(panelType PanelType, dimensions PanelDimensions) interface{} {
+	// Return nil - TView handles styling
+	return nil
 }

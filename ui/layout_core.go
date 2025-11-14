@@ -3,8 +3,6 @@ package ui
 
 import (
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // InitialModel creates the initial application model
@@ -247,80 +245,10 @@ func InitialModel() Model {
 	}
 }
 
-// View renders the main application view with 2x2 panel layout and status bar
+// View is deprecated - TView handles rendering now
+// This function is kept for backward compatibility but should not be used
 func (m Model) View() string {
-	if m.Width == 0 || m.Height == 0 {
-		return "Loading..."
-	}
-
-	dimensions := m.calculatePanelDimensions()
-	panelViews := m.renderAllPanels(dimensions)
-	grid := m.arrangeInGrid(panelViews)
-	statusBar := m.renderStatusBar()
-
-	mainView := lipgloss.JoinVertical(lipgloss.Left, grid, statusBar)
-
-	// Show save popup if active (highest priority) - check both new and legacy
-	if m.Popup.ShowSave || m.ShowSavePopup {
-		return m.renderSavePopupOverlay(mainView)
-	}
-
-	// Show load popup if active (highest priority) - check both new and legacy
-	if m.Popup.ShowLoad || m.ShowLoadPopup {
-		return m.renderLoadPopupOverlay(mainView)
-	}
-
-	// Show quick HP popup - check both new and legacy
-	if m.Initiative.ShowQuickHPPopup || m.ShowQuickHPPopup {
-		return m.renderQuickHPPopupOverlay(mainView)
-	}
-
-	// Show encounter prompt (save) - check both new and legacy
-	if m.Popup.ShowEncounterPrompt || m.ShowEncounterPrompt {
-		return m.renderEncounterPromptOverlay(mainView)
-	}
-
-	// Show encounter generator popup - check both new and legacy
-	if m.Encounter.Generating || m.EncounterGenerating {
-		return m.renderGeneratorPopupOverlay(mainView)
-	}
-
-	// Show rename popup if active (highest priority) - check both new and legacy
-	if m.Popup.ShowRename || m.ShowRenamePopup {
-		return m.renderRenamePopupOverlay(mainView)
-	}
-
-	// Show cast spell popup if active (takes priority over other popups) - check both new and legacy
-	if m.Spells.ShowCastSpellPrompt || m.ShowCastSpellPrompt {
-		return renderCastSpellPopupOverlay(m, mainView)
-	}
-
-	// Show multi-target popup if active (takes priority over other popups) - check both new and legacy
-	if m.Initiative.ShowMultiTargetPopup || m.ShowMultiTargetPopup {
-		return renderMultiTargetPopupOverlay(m, mainView)
-	}
-
-	// Show condition popup if active (takes priority over other popups) - check both new and legacy
-	if m.Popup.ShowCondition || m.ShowConditionPopup {
-		return renderConditionPopupOverlay(m, mainView)
-	}
-
-	// Show saving throw popup if active (takes priority over action popup) - check both new and legacy
-	if m.Popup.ShowSavingThrow || m.ShowSavingThrowPopup {
-		return m.renderSavingThrowPopupOverlay(mainView)
-	}
-
-	// Show action popup if active (takes priority over help popup) - check both new and legacy
-	if m.Popup.ShowAction || m.ShowActionPopup {
-		return m.renderActionPopupOverlay(mainView)
-	}
-
-	// Show help popup if active - check both new and legacy
-	if m.Popup.ShowHelp || m.ShowHelpPopup {
-		return m.renderHelpPopupOverlay(mainView)
-	}
-
-	return mainView
+	return "TView rendering active - use TView app instead"
 }
 
 // Layout constants
@@ -558,14 +486,11 @@ func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 
 // arrangeInGrid arranges the six panels in custom layout
 func (m Model) arrangeInGrid(panelViews []string) string {
-	// Top row: Dice (0) and Initiative (1)
-	topRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[0], panelViews[1])
-
-	// Bottom row: Spells (2), Monsters (3), Notes (4), Encounter Builder (5)
-	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3], panelViews[4], panelViews[5])
-
-	// Combine rows
-	grid := lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+	// TView handles layout - this function is deprecated
+	// Join panels with simple string concatenation for compatibility
+	topRow := panelViews[0] + panelViews[1]
+	bottomRow := panelViews[2] + panelViews[3] + panelViews[4] + panelViews[5]
+	grid := topRow + "\n" + bottomRow
 
 	// Add top margin
 	if TopMargin > 0 {
@@ -585,50 +510,32 @@ func (m Model) arrangeInGrid(panelViews []string) string {
 	return grid
 }
 
-// renderSavePopupOverlay renders the save popup over the main view
+// renderSavePopupOverlay is deprecated - TView handles modals now
 func (m Model) renderSavePopupOverlay(mainView string) string {
-	popup := RenderSavePopup(m)
-
-	// Place popup over main view with centered positioning
-	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+	return mainView
 }
 
-// renderLoadPopupOverlay renders the load popup over the main view
+// renderLoadPopupOverlay is deprecated - TView handles modals now
 func (m Model) renderLoadPopupOverlay(mainView string) string {
-	popup := RenderLoadPopup(m)
-
-	// Place popup over main view with centered positioning
-	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+	return mainView
 }
 
-// renderQuickHPPopupOverlay renders the quick HP popup over the main view
+// renderQuickHPPopupOverlay is deprecated - TView handles modals now
 func (m Model) renderQuickHPPopupOverlay(mainView string) string {
-	popup := RenderQuickHPPopup(m)
-
-	// Place popup over main view with centered positioning
-	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+	return mainView
 }
 
-// renderEncounterPromptOverlay renders the encounter save prompt popup over the main view
+// renderEncounterPromptOverlay is deprecated - TView handles modals now
 func (m Model) renderEncounterPromptOverlay(mainView string) string {
-	popup := RenderEncounterPromptPopup(m)
-
-	// Place popup over main view with centered positioning
-	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+	return mainView
 }
 
-// renderGeneratorPopupOverlay renders the encounter generator popup over the main view
+// renderGeneratorPopupOverlay is deprecated - TView handles modals now
 func (m Model) renderGeneratorPopupOverlay(mainView string) string {
-	popup := RenderGeneratorPopup(m)
-
-	// Place popup over main view with centered positioning
-	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+	return mainView
 }
 
-// renderRenamePopupOverlay renders the rename popup over the main view
+// renderRenamePopupOverlay is deprecated - TView handles modals now
 func (m Model) renderRenamePopupOverlay(mainView string) string {
-	popup := RenderRenamePopup(m)
-
-	// Place popup over main view with centered positioning
-	return lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, popup, lipgloss.WithWhitespaceChars("░"))
+	return mainView
 }

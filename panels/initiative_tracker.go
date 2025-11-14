@@ -8,45 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 )
 
 // InitiativeEntry represents a player or monster in the initiative tracker
 // (This type is defined in ui/types.go to avoid import cycles)
 
-var (
-	initiativeInputStyle = lipgloss.NewStyle().
-				Border(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("#7D56F4")).
-				Padding(0, 1).
-				Margin(1, 0)
-
-	playerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FF00")).
-			Bold(true)
-
-	monsterStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B6B")).
-			Bold(true)
-
-	selectedEntryStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color("#7D56F4")).
-				Foreground(lipgloss.Color("#FAFAFA")).
-				Bold(true)
-
-	// HP bar styles
-	healthyStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FF00")) // Green (> 50%)
-
-	bloodiedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFA500")) // Orange (25-50%)
-
-	criticalStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0000")) // Red (< 25%)
-
-	tempHPStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#00FFFF")) // Cyan for temp HP
-)
+// Note: Styling is now handled by TView widgets - these functions return plain text
 
 // getColoredHP returns HP text with color coding based on percentage
 // Returns a styled string like "HP: 7/10" with appropriate color
@@ -64,18 +31,8 @@ func getColoredHP(hp, maxHP int) string {
 		percentage = 100
 	}
 
-	// Choose color based on percentage
-	var style lipgloss.Style
-	if percentage > 50 {
-		style = healthyStyle // Green
-	} else if percentage > 25 {
-		style = bloodiedStyle // Orange
-	} else {
-		style = criticalStyle // Red
-	}
-
-	// Format HP text
-	return style.Render(fmt.Sprintf("HP: %d/%d", hp, maxHP))
+	// Format HP text (styling handled by TView)
+	return fmt.Sprintf("HP: %d/%d", hp, maxHP)
 }
 
 // getColoredHPWithTemp returns HP text with temp HP in cyan
@@ -90,7 +47,7 @@ func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
 
 	// Add temp HP if present
 	if tempHP > 0 {
-		tempPart := tempHPStyle.Render(fmt.Sprintf(" +%d", tempHP))
+		tempPart := fmt.Sprintf(" +%d", tempHP)
 		return hpPart + tempPart
 	}
 
@@ -171,7 +128,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 		} else {
 			prompt += input
 		}
-		contentLines = append(contentLines, initiativeInputStyle.Render(prompt))
+		contentLines = append(contentLines, prompt)
 		contentLines = append(contentLines, "")
 	}
 
@@ -426,10 +383,9 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 						} else {
 							line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
 						}
+						// Apply selection marker (styling handled by TView)
 						if listMode && selectedEntry == i {
-							line = selectedEntryStyle.Render("► " + line)
-						} else {
-							line = playerStyle.Render(line)
+							line = "► " + line
 						}
 					} else if entry.Type == "monster" {
 						// Convert HP strings to integers for color coding
@@ -479,12 +435,10 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
 							checkbox, turnMarker, i+1, displayName, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
 
-						// Apply style (selected or normal monster style)
-						if listMode && selectedEntry == i {
-							line = selectedEntryStyle.Render("► " + line)
-						} else {
-							line = monsterStyle.Render(line)
-						}
+					// Apply selection marker (styling handled by TView)
+					if listMode && selectedEntry == i {
+						line = "► " + line
+					}
 					} else {
 						// Get reaction indicator for players too
 						reactionIcon := ""
@@ -494,10 +448,10 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							reactionIcon = " [✓]" // Reaction available
 						}
 
-						line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, reactionIcon, conditionIcons)
-						if listMode && selectedEntry == i {
-							line = selectedEntryStyle.Render("► " + line)
-						}
+					line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, reactionIcon, conditionIcons)
+					if listMode && selectedEntry == i {
+						line = "► " + line
+					}
 					}
 
 					contentLines = append(contentLines, line)

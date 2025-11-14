@@ -4,29 +4,26 @@ package ui
 import (
 	"lazydnd/config"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/gdamore/tcell/v2"
 )
 
-// Styles returns all UI styles based on configuration
+// Styles returns all UI colors based on configuration (TView compatible)
 type Styles struct {
-	ActivePanelStyle      lipgloss.Style
-	InactivePanelStyle    lipgloss.Style
-	PanelTitleStyle       lipgloss.Style
-	InputStyle            lipgloss.Style
-	DiceResultStyle       lipgloss.Style
-	HelpStyle             lipgloss.Style
-	StatusBarStyle        lipgloss.Style
-	StatusBarKeyStyle     lipgloss.Style
-	StatusBarTextStyle    lipgloss.Style
-	HelpPopupStyle        lipgloss.Style
-	HelpPopupTitleStyle   lipgloss.Style
-	HelpPopupSectionStyle lipgloss.Style
-	HelpPopupKeyStyle     lipgloss.Style
-	HelpPopupDescStyle    lipgloss.Style
-	HelpPopupOverlayStyle lipgloss.Style
-	ErrorStyle            lipgloss.Style
-	SuccessStyle          lipgloss.Style
-	HighlightStyle        lipgloss.Style
+	PrimaryColor    tcell.Color
+	BorderColor     tcell.Color
+	HighlightColor  tcell.Color
+	ErrorColor      tcell.Color
+	SuccessColor    tcell.Color
+	BackgroundColor tcell.Color
+	TextColor       tcell.Color
+	StatusBarKeyBg  tcell.Color
+	CompactMode     bool
+	PanelPadding    int
+	TitlePadding    int
+	InputPadding    int
+	ResultPadding   int
+	HelpPadding     int
+	StatusPadding   int
 }
 
 // NewStyles creates styles from configuration
@@ -48,9 +45,6 @@ func NewStyles(cfg *config.Config) *Styles {
 		compactMode = cfg.Display.CompactMode
 	}
 
-	// Derive a darker shade for status bar key background
-	statusBarKeyBg := darkenColor(primaryColor)
-
 	// Adjust padding based on compact mode
 	panelPadding := 2
 	titlePadding := 1
@@ -68,101 +62,37 @@ func NewStyles(cfg *config.Config) *Styles {
 		statusPadding = 0
 	}
 
+	// Convert hex colors to tcell.Color
+	primaryColorTView := HexToColor(primaryColor)
+	borderColorTView := HexToColor(borderColor)
+	highlightColorTView := HexToColor(highlightColor)
+	errorColorTView := HexToColor(errorColor)
+	successColorTView := HexToColor(successColor)
+
+	// Derive a darker shade for status bar key background
+	statusBarKeyBg := HexToColor(DarkenColor(primaryColor))
+
 	return &Styles{
-		ActivePanelStyle: lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color(primaryColor)).
-			Padding(0, panelPadding),
-
-		InactivePanelStyle: lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color(borderColor)).
-			Padding(0, panelPadding),
-
-		PanelTitleStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Background(lipgloss.Color(primaryColor)).
-			Padding(0, titlePadding),
-
-		InputStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color(primaryColor)).
-			Padding(0, inputPadding),
-
-		DiceResultStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(highlightColor)).
-			Background(lipgloss.Color("#1A1A1A")).
-			Padding(0, resultPadding),
-
-		HelpStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")),
-
-		StatusBarStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color(primaryColor)).
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Padding(0, statusPadding).
-			Bold(true),
-
-		StatusBarKeyStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color(statusBarKeyBg)).
-			Foreground(lipgloss.Color("#FFFFFF")).
-			Padding(0, 1).
-			Bold(true).
-			Margin(0, 1),
-
-		StatusBarTextStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color(primaryColor)).
-			Foreground(lipgloss.Color("#FAFAFA")),
-
-		HelpPopupStyle: lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color(primaryColor)).
-			Background(lipgloss.Color("#1A1A1A")).
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Padding(1, helpPadding).
-			Width(100), // Wider to accommodate 2 columns
-
-		HelpPopupTitleStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(primaryColor)).
-			Underline(true).
-			Margin(0, 0, 1, 0),
-
-		HelpPopupSectionStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(highlightColor)).
-			Margin(1, 0, 0, 0),
-
-		HelpPopupKeyStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(primaryColor)).
-			Width(12), // Slightly narrower for 2-column layout
-
-		HelpPopupDescStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#CCCCCC")),
-
-		HelpPopupOverlayStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#000000")).
-			Foreground(lipgloss.Color("#000000")),
-
-		ErrorStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(errorColor)),
-
-		SuccessStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(successColor)),
-
-		HighlightStyle: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color(highlightColor)),
+		PrimaryColor:    primaryColorTView,
+		BorderColor:     borderColorTView,
+		HighlightColor:  highlightColorTView,
+		ErrorColor:      errorColorTView,
+		SuccessColor:    successColorTView,
+		BackgroundColor: HexToColor("#1A1A1A"),
+		TextColor:       ColorNames.White,
+		StatusBarKeyBg:  statusBarKeyBg,
+		CompactMode:     compactMode,
+		PanelPadding:    panelPadding,
+		TitlePadding:    titlePadding,
+		InputPadding:    inputPadding,
+		ResultPadding:   resultPadding,
+		HelpPadding:     helpPadding,
+		StatusPadding:   statusPadding,
 	}
 }
 
-// darkenColor returns a darker version of the hex color (simple approximation)
-func darkenColor(hex string) string {
+// DarkenColor returns a darker version of the hex color (simple approximation)
+func DarkenColor(hex string) string {
 	// Simple darkening by reducing hex values
 	// This is a basic implementation - for production you'd want proper color manipulation
 	if len(hex) == 7 && hex[0] == '#' {

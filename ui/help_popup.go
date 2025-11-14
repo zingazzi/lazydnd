@@ -5,29 +5,13 @@ import (
 	"fmt"
 	"math"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // ========== HELP POPUP RENDERING ==========
 
-// renderHelpPopupOverlay renders the help popup over the main view
+// renderHelpPopupOverlay is deprecated - TView handles overlays
 func (m Model) renderHelpPopupOverlay(mainView string) string {
-	helpContent := m.buildHelpContent()
-
-	// Create the popup
-	popup := m.Styles.HelpPopupStyle.Render(helpContent)
-
-	// Place popup centered over the main view
-	return lipgloss.Place(
-		m.Width,
-		m.Height,
-		lipgloss.Center,
-		lipgloss.Center,
-		popup,
-		lipgloss.WithWhitespaceChars("░"),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color("#333333")),
-	)
+	return mainView
 }
 
 // buildHelpContent builds the help popup content in 2 columns
@@ -35,8 +19,7 @@ func (m Model) buildHelpContent() string {
 	var content strings.Builder
 
 	// Title
-	title := m.Styles.HelpPopupTitleStyle.Render(HelpPopupTitle)
-	content.WriteString(title)
+	content.WriteString(HelpPopupTitle)
 	content.WriteString("\n\n")
 
 	// Get help keys for both sections
@@ -47,22 +30,31 @@ func (m Model) buildHelpContent() string {
 	leftColumn := m.buildColumnContent("Common Navigation:", commonKeys)
 	rightColumn := m.buildColumnContent(fmt.Sprintf("%s Panel Keys:", PanelNames[m.ActivePanel]), panelKeys)
 
-	// Calculate column width (half of available width minus spacing)
-	columnWidth := 45 // Fixed width for each column
+	// Join columns horizontally (simple text layout)
+	leftLines := strings.Split(leftColumn, "\n")
+	rightLines := strings.Split(rightColumn, "\n")
+	maxLines := len(leftLines)
+	if len(rightLines) > maxLines {
+		maxLines = len(rightLines)
+	}
 
-	// Style columns
-	columnStyle := lipgloss.NewStyle().Width(columnWidth)
-	leftStyled := columnStyle.Render(leftColumn)
-	rightStyled := columnStyle.Render(rightColumn)
-
-	// Join columns horizontally
-	columns := lipgloss.JoinHorizontal(lipgloss.Top, leftStyled, "  ", rightStyled)
-	content.WriteString(columns)
+	for i := 0; i < maxLines; i++ {
+		leftLine := ""
+		rightLine := ""
+		if i < len(leftLines) {
+			leftLine = leftLines[i]
+		}
+		if i < len(rightLines) {
+			rightLine = rightLines[i]
+		}
+		// Pad left column to fixed width
+		leftPadded := fmt.Sprintf("%-45s", leftLine)
+		content.WriteString(leftPadded + "  " + rightLine + "\n")
+	}
 
 	// Footer
 	content.WriteString("\n\n")
-	footer := m.Styles.HelpPopupDescStyle.Render(HelpPopupFooter)
-	content.WriteString(footer)
+	content.WriteString(HelpPopupFooter)
 
 	return content.String()
 }
@@ -72,8 +64,7 @@ func (m Model) buildColumnContent(sectionTitle string, keys []HelpKey) string {
 	var content strings.Builder
 
 	// Section title
-	title := m.Styles.HelpPopupSectionStyle.Render(sectionTitle)
-	content.WriteString(title)
+	content.WriteString(sectionTitle)
 	content.WriteString("\n")
 
 	// Keys
@@ -82,13 +73,12 @@ func (m Model) buildColumnContent(sectionTitle string, keys []HelpKey) string {
 			content.WriteString("\n")
 		} else if helpKey.Description == "" {
 			// Section header (like "In Edit Mode:")
-			content.WriteString(m.Styles.HelpPopupSectionStyle.Render(helpKey.Key))
+			content.WriteString(helpKey.Key)
 			content.WriteString("\n")
 		} else {
 			// Regular key binding
-			keyPart := m.Styles.HelpPopupKeyStyle.Render(helpKey.Key)
-			descPart := m.Styles.HelpPopupDescStyle.Render(helpKey.Description)
-			content.WriteString(keyPart + " " + descPart + "\n")
+			keyPart := fmt.Sprintf("%-12s", helpKey.Key)
+			content.WriteString(keyPart + " " + helpKey.Description + "\n")
 		}
 	}
 

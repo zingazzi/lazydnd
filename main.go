@@ -1,6 +1,4 @@
-// +build !tview
-
-// main.go
+// main.go - TView implementation
 package main
 
 import (
@@ -10,8 +8,7 @@ import (
 
 	"lazydnd/config"
 	"lazydnd/ui"
-
-	tea "github.com/charmbracelet/bubbletea"
+	tviewapp "lazydnd/ui/tview"
 )
 
 func main() {
@@ -63,11 +60,15 @@ func main() {
 	model.Config = cfg
 	model.Styles = ui.NewStyles(cfg)
 
-	// Create program with alt screen
-	p := tea.NewProgram(model, tea.WithAltScreen())
+	// Set initial dimensions (TView will handle resize)
+	model.Width = 120
+	model.Height = 40
 
-	// Run the program
-	if _, err := p.Run(); err != nil {
+	// Create TView application
+	app := tviewapp.NewApp(&model)
+
+	// Run the application
+	if err := app.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)
 	}

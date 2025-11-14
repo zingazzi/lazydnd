@@ -4,11 +4,9 @@ package ui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
-// RenderGeneratorPopup renders the encounter generator configuration popup
+// RenderGeneratorPopup renders the encounter generator configuration popup (plain text for TView)
 func RenderGeneratorPopup(m Model) string {
 	difficulties := []string{"easy", "medium", "hard", "deadly"}
 
@@ -91,12 +89,10 @@ func RenderGeneratorPopup(m Model) string {
 	content.WriteString("  [enter] Generate\n")
 	content.WriteString("  [esc]   Cancel\n")
 
-	// Style the popup
-	popupStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(m.Config.Theme.PrimaryColor)).
-		Padding(1, 2).
-		Width(50)
+	return content.String()
+}
 
-	return popupStyle.Render(content.String())
+// renderGeneratorPopupOverlay is deprecated - TView handles overlays
+func (m Model) renderGeneratorPopupOverlay(mainView string) string {
+	return mainView
 }
