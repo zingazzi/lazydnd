@@ -4,12 +4,10 @@ package ui
 import (
 	"fmt"
 	"strconv"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleO handles the 'o' key to open condition management (cOnditions)
-func handleO(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleO(m Model, msg KeyMsg) (Model, Cmd) {
 	LogKeyPress("o", "Open condition manager")
 
 	// Handle search mode input
@@ -51,7 +49,7 @@ func handleO(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleConditionPopupInput handles input in the condition popup
-func handleConditionPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleConditionPopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	if !m.ShowConditionPopup {
 		return m, nil
 	}

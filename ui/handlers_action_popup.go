@@ -1,10 +1,8 @@
 // ui/handlers_action_popup.go
 package ui
 
-import tea "github.com/charmbracelet/bubbletea"
-
 // handleActionPopupInput handles input specifically for the action popup
-func handleActionPopupInput(m Model, key string) (Model, tea.Cmd) {
+func handleActionPopupInput(m Model, key string) (Model, Cmd) {
 	// Close popup on Escape
 	if key == "esc" {
 		m.ShowActionPopup = false

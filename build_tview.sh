@@ -14,8 +14,8 @@ echo "2. Running go mod tidy..."
 go mod tidy
 
 echo ""
-echo "3. Building with standard command: go build -tags tview -o lazydnd"
-go build -tags tview -o lazydnd
+echo "3. Building with standard command: go build -o lazydnd"
+go build -o lazydnd
 
 echo ""
 echo "✅ Build successful!"

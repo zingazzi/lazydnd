@@ -3,8 +3,6 @@ package ui
 
 import (
 	"fmt"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // AppError represents an application-level error with context
@@ -73,10 +71,10 @@ const (
 )
 
 // HandleError is a helper to handle errors consistently
-// Returns a tea.Cmd that displays the error message
-func HandleError(err error, fallbackMsg string) tea.Cmd {
+// Sets error directly on the model (TView doesn't use commands)
+func HandleError(m *Model, err error, fallbackMsg string) {
 	if err == nil {
-		return nil
+		return
 	}
 
 	var userMsg string
@@ -86,9 +84,7 @@ func HandleError(err error, fallbackMsg string) tea.Cmd {
 		userMsg = fallbackMsg
 	}
 
-	return func() tea.Msg {
-		return SetErrorMsg{Message: userMsg}
-	}
+	SetError(m, userMsg)
 }
 
 // WrapError wraps an error with an operation name and user message

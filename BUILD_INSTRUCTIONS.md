@@ -2,24 +2,13 @@
 
 ## Quick Build
 
-To build the TView version, run:
+To build the application, run:
 
 ```bash
-go build -tags tview -o lazydnd
+go build -o lazydnd
 ```
 
-Or use the build script:
-
-```bash
-bash build_tview.sh
-```
-
-## Build Tags
-
-The project uses build tags to separate the two implementations:
-
-- **Bubble Tea (default)**: `go build -o lazydnd` or `go build -tags '!tview' -o lazydnd`
-- **TView**: `go build -tags tview -o lazydnd`
+The project now uses TView exclusively. No build tags needed.
 
 ## Setup Steps
 

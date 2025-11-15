@@ -8,12 +8,10 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleEncounterBuilderInput handles all input for the encounter builder panel
-func handleEncounterBuilderInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleEncounterBuilderInput(m Model, msg KeyMsg) (Model, Cmd) {
 	// Don't handle if we're in a search mode from another panel
 	if m.MonsterSearchMode || m.SpellSearchMode {
 		return m, nil
@@ -38,7 +36,7 @@ func handleEncounterBuilderInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 
 // handlePartySetupInput handles input in party setup mode
 // Returns (model, cmd, handled) - if not handled, let other handlers process it
-func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handlePartySetupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	switch msg.String() {
 	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 		// Set party size
@@ -121,7 +119,7 @@ func handlePartySetupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleBuildingInput handles input in encounter building mode
-func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleBuildingInput(m Model, msg KeyMsg) (Model, Cmd) {
 	switch msg.String() {
 	case "m", "M":
 		// Add monster from monster list - switch to monster panel
@@ -239,7 +237,7 @@ func handleBuildingInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleTemplatesInput handles input in templates viewing mode
-func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleTemplatesInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 	DebugLog("TEMPLATES LIST: Key=%s, Mode=%s", key, m.EncounterBuilderMode)
 
@@ -322,7 +320,7 @@ func handleTemplatesInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleTemplateDetailInput handles input when viewing a template's details
-func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleTemplateDetailInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 	DebugLog("TEMPLATE DETAIL: Key pressed: %s, Mode: %s", key, m.EncounterBuilderMode)
 
@@ -376,7 +374,7 @@ func handleTemplateDetailInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // deployEncounterToInitiative deploys all monsters from encounter to initiative tracker
-func deployEncounterToInitiative(m Model) (Model, tea.Cmd) {
+func deployEncounterToInitiative(m Model) (Model, Cmd) {
 	addedCount := 0
 
 	for _, monster := range m.EncounterMonsters {
@@ -573,7 +571,7 @@ func parseAC(acStr string) int {
 }
 
 // handleEncounterPromptInput handles input in the save encounter prompt
-func handleEncounterPromptInput(m Model, key string) (Model, tea.Cmd) {
+func handleEncounterPromptInput(m Model, key string) (Model, Cmd) {
 	if key == "esc" {
 		// Cancel save
 		m.ShowEncounterPrompt = false

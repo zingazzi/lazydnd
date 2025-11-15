@@ -3,8 +3,6 @@ package ui
 
 import (
 	"time"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // SetError sets an error message to display in the UI
@@ -30,11 +28,10 @@ func SetSuccess(m *Model, message string) {
 type ClearErrorMsg struct{}
 
 // ShowErrorWithTimeout shows an error and automatically clears it after a delay
-func ShowErrorWithTimeout(message string, duration time.Duration) tea.Cmd {
-	return func() tea.Msg {
-		// First, return a message to set the error
-		return SetErrorMsg{Message: message}
-	}
+// For TView, this just sets the error (timeout handled by TView app)
+func ShowErrorWithTimeout(m *Model, message string, duration time.Duration) {
+	SetError(m, message)
+	// TView app will handle timeout clearing
 }
 
 // SetErrorMsg is a message type for setting errors
@@ -43,8 +40,8 @@ type SetErrorMsg struct {
 }
 
 // ScheduleClearError schedules an error to be cleared after a delay
-func ScheduleClearError(duration time.Duration) tea.Cmd {
-	return tea.Tick(duration, func(t time.Time) tea.Msg {
-		return ClearErrorMsg{}
-	})
+// For TView, this is handled by the app's timer system
+func ScheduleClearError(m *Model, duration time.Duration) {
+	// TView app will handle timeout clearing via its timer
+	// This is a no-op for now - timeout handled in TView app
 }

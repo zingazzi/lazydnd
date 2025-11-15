@@ -3,12 +3,10 @@ package ui
 
 import (
 	"lazydnd/panels"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleSpellLevelFilter is called when 'f' is pressed in Spells panel
-func handleSpellLevelFilter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleSpellLevelFilter(m Model, msg KeyMsg) (Model, Cmd) {
 	// Only in Spells panel and not in other modes
 	if m.ActivePanel == Spells && !m.SpellSearchMode && !m.SpellLevelFilterMode && !m.ActiveSpellListMode {
 		// Clear any selected spell and enter level filter mode
@@ -23,7 +21,7 @@ func handleSpellLevelFilter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleSpellLevelFilterInput handles text input for spell level filter
-func handleSpellLevelFilterInput(m Model, key string) (Model, tea.Cmd) {
+func handleSpellLevelFilterInput(m Model, key string) (Model, Cmd) {
 	if !m.SpellLevelFilterMode {
 		return m, nil
 	}
@@ -112,4 +110,3 @@ func handleSpellLevelFilterInput(m Model, key string) (Model, tea.Cmd) {
 
 	return m, nil
 }
-

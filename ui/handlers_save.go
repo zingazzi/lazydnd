@@ -5,12 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleCtrlS handles Ctrl+S key press (save campaign)
-func handleCtrlS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleCtrlS(m Model, msg KeyMsg) (Model, Cmd) {
 	// Don't open save popup if already in another popup or input mode
 	if m.ShowHelpPopup || m.ShowActionPopup || m.ShowLoadPopup || m.ShowRenamePopup {
 		return m, nil
@@ -20,9 +18,7 @@ func handleCtrlS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 	if m.CurrentCampaignFile != "" && m.CurrentCampaignName != "" {
 		err := SaveCampaign(m, m.CurrentCampaignName)
 		if err != nil {
-			return m, func() tea.Msg {
-				return SetErrorMsg{Message: "Failed to save campaign: " + err.Error()}
-			}
+			SetError(&m, "Failed to save campaign: "+err.Error())
 		}
 		m.LastAutoSave = "Just now"
 		return m, nil
@@ -36,19 +32,18 @@ func handleCtrlS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleCtrlL handles Ctrl+L key press (load campaign)
-func handleCtrlL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleCtrlL(m Model, msg KeyMsg) (Model, Cmd) {
 	// Don't open load popup if already in another popup or input mode
 	if m.ShowHelpPopup || m.ShowActionPopup || m.ShowSavePopup || m.ShowRenamePopup {
 		return m, nil
 	}
 
-	// Load campaign list
-	campaigns, err := ListCampaigns()
-	if err != nil {
-		return m, func() tea.Msg {
-			return SetErrorMsg{Message: "Failed to load campaign list: " + err.Error()}
+		// Load campaign list
+		campaigns, err := ListCampaigns()
+		if err != nil {
+			SetError(&m, "Failed to load campaign list: "+err.Error())
+			return m, nil
 		}
-	}
 
 	// Open load popup
 	m.ShowLoadPopup = true
@@ -59,7 +54,7 @@ func handleCtrlL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleCtrlN handles Ctrl+N key press (rename campaign)
-func handleCtrlN(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleCtrlN(m Model, msg KeyMsg) (Model, Cmd) {
 	// Don't open rename popup if already in another popup or no campaign loaded
 	if m.ShowHelpPopup || m.ShowActionPopup || m.ShowSavePopup || m.ShowLoadPopup {
 		return m, nil
@@ -78,7 +73,7 @@ func handleCtrlN(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleSavePopupInput handles input when save popup is active
-func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleSavePopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	switch key {
@@ -93,9 +88,8 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		if len(campaignName) > 50 {
 			m.ShowSavePopup = false
 			m.SaveInput = ""
-			return m, func() tea.Msg {
-				return SetErrorMsg{Message: "Campaign name too long (max 50 characters)"}
-			}
+			SetError(&m, "Campaign name too long (max 50 characters)")
+			return m, nil
 		}
 
 		// Check for invalid characters
@@ -104,9 +98,8 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 				(char >= '0' && char <= '9') || char == ' ' || char == '-' || char == '_') {
 				m.ShowSavePopup = false
 				m.SaveInput = ""
-				return m, func() tea.Msg {
-					return SetErrorMsg{Message: "Campaign name contains invalid characters (use only letters, numbers, spaces, -, _)"}
-				}
+				SetError(&m, "Campaign name contains invalid characters (use only letters, numbers, spaces, -, _)")
+				return m, nil
 			}
 		}
 
@@ -114,9 +107,8 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		if err != nil {
 			m.ShowSavePopup = false
 			m.SaveInput = ""
-			return m, func() tea.Msg {
-				return SetErrorMsg{Message: "Failed to save campaign: " + err.Error()}
-			}
+			SetError(&m, "Failed to save campaign: "+err.Error())
+			return m, nil
 		}
 
 		// Update current campaign file and name
@@ -158,7 +150,7 @@ func handleSavePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleLoadPopupInput handles input when load popup is active
-func handleLoadPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleLoadPopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	switch key {
@@ -173,9 +165,8 @@ func handleLoadPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		saveState, initiativeList, err := LoadCampaign(selectedFile)
 		if err != nil {
 			m.ShowLoadPopup = false
-			return m, func() tea.Msg {
-				return SetErrorMsg{Message: "Failed to load campaign: " + err.Error()}
-			}
+			SetError(&m, "Failed to load campaign: "+err.Error())
+			return m, nil
 		}
 
 		// Update model with loaded data
@@ -233,7 +224,7 @@ func handleLoadPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleRenamePopupInput handles input when rename popup is active
-func handleRenamePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleRenamePopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	switch key {
@@ -261,9 +252,8 @@ func handleRenamePopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 		if err != nil {
 			m.ShowRenamePopup = false
 			m.SaveInput = ""
-			return m, func() tea.Msg {
-				return SetErrorMsg{Message: "Failed to rename campaign: " + err.Error()}
-			}
+			SetError(&m, "Failed to rename campaign: "+err.Error())
+			return m, nil
 		}
 
 		// Update current campaign file and name

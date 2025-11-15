@@ -3,12 +3,10 @@ package ui
 
 import (
 	"lazydnd/panels"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleQuickAddHP opens the quick add HP popup
-func handleQuickAddHP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleQuickAddHP(m Model, msg KeyMsg) (Model, Cmd) {
 	// Only in initiative tracker when not in edit mode
 	if m.ActivePanel == InitiativeTracker && !m.InitiativeEditMode && !m.InitiativeInputMode {
 		// Check if we have targets (either selected or in multi-target mode)
@@ -34,7 +32,7 @@ func handleQuickAddHP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleQuickRemoveHP opens the quick remove HP popup
-func handleQuickRemoveHP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleQuickRemoveHP(m Model, msg KeyMsg) (Model, Cmd) {
 	// Only in initiative tracker when not in edit mode
 	if m.ActivePanel == InitiativeTracker && !m.InitiativeEditMode && !m.InitiativeInputMode {
 		// Check if we have targets (either selected or in multi-target mode)
@@ -60,7 +58,7 @@ func handleQuickRemoveHP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleQuickHPInput handles input in the quick HP popup
-func handleQuickHPInput(m Model, key string) (Model, tea.Cmd) {
+func handleQuickHPInput(m Model, key string) (Model, Cmd) {
 	if key == "esc" {
 		// Cancel and close popup
 		m.ShowQuickHPPopup = false

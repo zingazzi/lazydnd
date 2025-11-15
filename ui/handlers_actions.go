@@ -6,14 +6,12 @@ import (
 	"lazydnd/panels"
 	"reflect"
 	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // ========== LETTER HANDLERS ==========
 
 // handleR handles the 'r' key
-func handleR(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleR(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "r"), nil
@@ -80,7 +78,7 @@ func rerollDiceCommand(m Model) Model {
 }
 
 // handleP handles the 'p' key
-func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleP(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "p"), nil
@@ -97,7 +95,7 @@ func handleP(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleM handles the 'm' key
-func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleM(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "m"), nil
@@ -114,7 +112,7 @@ func handleM(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleE handles the 'e' key
-func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleE(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "e"), nil
@@ -132,7 +130,7 @@ func handleE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleS handles the 's' key
-func handleS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleS(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "s"), nil
@@ -153,7 +151,7 @@ func handleS(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleI handles the 'i' key
-func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleI(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += "i"
@@ -176,7 +174,7 @@ func handleI(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleH handles the 'h' and 'H' keys
-func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleH(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += "h"
@@ -223,7 +221,7 @@ func handleH(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleK handles the 'k' key (AC editing)
-func handleK(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleK(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += "k"
@@ -255,7 +253,7 @@ func handleK(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleA handles the 'a' key
-func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleA(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += "a"
@@ -325,7 +323,7 @@ func handleA(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleD handles the 'd' key
-func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleD(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle dice input mode
 	if m.InputMode && m.ActivePanel == DiceRoller {
 		m.DiceInput += "d"
@@ -352,7 +350,7 @@ func handleD(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleL handles the 'l' key
-func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleL(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "l"), nil
@@ -402,7 +400,7 @@ func handleL(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleC handles the 'c' key
-func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleC(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "c"), nil
@@ -463,7 +461,7 @@ func handleC(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleV handles the 'v' key
-func handleV(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleV(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "v"), nil

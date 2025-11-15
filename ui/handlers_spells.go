@@ -1,12 +1,8 @@
 // ui/handlers_spells.go
 package ui
 
-import (
-	tea "github.com/charmbracelet/bubbletea"
-)
-
 // handleCastSpell handles the 'c' key to cast a spell
-func handleCastSpell(m Model) (Model, tea.Cmd) {
+func handleCastSpell(m Model) (Model, Cmd) {
 	// Only in Spells panel when spell is selected
 	if m.ActivePanel != Spells || m.SelectedSpell == nil || m.SpellSearchMode {
 		return m, nil
@@ -29,7 +25,7 @@ func handleCastSpell(m Model) (Model, tea.Cmd) {
 }
 
 // handleViewActiveSpells handles the 'v' key to view active spells
-func handleViewActiveSpells(m Model) (Model, tea.Cmd) {
+func handleViewActiveSpells(m Model) (Model, Cmd) {
 	// Only in Spells panel when not in search mode
 	if m.ActivePanel != Spells || m.SpellSearchMode || m.CastSpellInputMode {
 		return m, nil
@@ -45,7 +41,7 @@ func handleViewActiveSpells(m Model) (Model, tea.Cmd) {
 }
 
 // handleDeleteActiveSpell handles the 'd' key to delete active spell
-func handleDeleteActiveSpell(m Model) (Model, tea.Cmd) {
+func handleDeleteActiveSpell(m Model) (Model, Cmd) {
 	// Only in Spells panel in active spell list mode
 	if m.ActivePanel != Spells || !m.ActiveSpellListMode {
 		return m, nil
@@ -67,7 +63,7 @@ func handleDeleteActiveSpell(m Model) (Model, tea.Cmd) {
 }
 
 // handleCastSpellInput handles input in the cast spell popup
-func handleCastSpellInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleCastSpellInput(m Model, msg KeyMsg) (Model, Cmd) {
 	if !m.ShowCastSpellPrompt || !m.CastSpellInputMode {
 		return m, nil
 	}
@@ -107,7 +103,7 @@ func handleCastSpellInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleActiveSpellNavigation handles navigation in active spell list
-func handleActiveSpellNavigation(m Model, key string) (Model, tea.Cmd) {
+func handleActiveSpellNavigation(m Model, key string) (Model, Cmd) {
 	if !m.ActiveSpellListMode || len(m.ActiveSpells) == 0 {
 		return m, nil
 	}

@@ -8,11 +8,20 @@ import (
 )
 
 // HandleInput routes input events to the appropriate handler
-func HandleInput(model *ui.Model, key tcell.Key, rune rune) bool {
+// Returns true if handled, false if not handled, and a special "quit" signal
+func HandleInput(model *ui.Model, key tcell.Key, rune rune) (handled bool, shouldQuit bool) {
+	// Check for quit keys first
+	if key == tcell.KeyCtrlC || (key == tcell.KeyRune && rune == 'q') {
+		// Check if we're in input mode
+		if !model.InputMode && !model.InitiativeInputMode && !model.SpellSearchMode && !model.MonsterSearchMode {
+			return true, true // Handled, should quit
+		}
+	}
+
 	// Convert TCell key to handler chain format
 	keyStr := convertKeyToString(key, rune)
 	if keyStr == "" {
-		return false
+		return false, false
 	}
 
 	// Create a KeyMsg adapter
@@ -23,7 +32,7 @@ func HandleInput(model *ui.Model, key tcell.Key, rune rune) bool {
 	*model = updatedModel
 
 	// Return true to indicate the event was handled
-	return true
+	return true, false
 }
 
 // convertKeyToString converts TCell key events to string format used by handlers

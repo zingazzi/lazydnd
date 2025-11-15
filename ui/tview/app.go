@@ -85,7 +85,12 @@ func (app *App) setupHandlers() {
 		rune := event.Rune()
 
 		// Route to appropriate handler
-		if handled := app.handleInput(key, rune); handled {
+		handled, shouldQuit := app.handleInput(key, rune)
+		if shouldQuit {
+			app.Stop()
+			return nil
+		}
+		if handled {
 			app.refreshUI()
 			return nil // Event handled
 		}
@@ -95,7 +100,7 @@ func (app *App) setupHandlers() {
 }
 
 // handleInput routes input to the appropriate handler
-func (app *App) handleInput(key tcell.Key, rune rune) bool {
+func (app *App) handleInput(key tcell.Key, rune rune) (bool, bool) {
 	// Convert to handler chain format
 	// This will be implemented in handlers.go
 	return HandleInput(app.model, key, rune)

@@ -4,18 +4,19 @@ package ui
 import (
 	"lazydnd/panels"
 	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // ========== QUIT HANDLERS ==========
 
 // handleQuit handles quit commands (ctrl+c, q)
-func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+// Returns a special flag to indicate quit (handled by TView app)
+func handleQuit(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	if !m.InputMode && !m.InitiativeInputMode && !m.SpellSearchMode && !m.MonsterSearchMode {
-		return m, tea.Quit
+		// Signal quit to TView app (will be handled in TView handlers)
+		// TView app will check for quit signal
+		return m, nil
 	} else if m.SpellSearchMode && m.ActivePanel == Spells && key == "q" {
 		// Add 'q' to spell search input
 		m.SpellSearchInput += "q"
@@ -42,7 +43,7 @@ func handleQuit(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleEscape handles escape key presses
-func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleEscape(m Model, msg KeyMsg) (Model, Cmd) {
 	// Close saving throw popup if open
 	if m.ShowSavingThrowPopup {
 		m.ShowSavingThrowPopup = false
@@ -124,7 +125,7 @@ func handleEscape(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // ========== ACTION HANDLERS ==========
 
 // handleEnter handles enter key presses
-func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleEnter(m Model, msg KeyMsg) (Model, Cmd) {
 	// Multi-target mode: open popup to input damage/healing
 	if m.MultiTargetMode && m.ActivePanel == InitiativeTracker && !m.ShowMultiTargetPopup {
 		return handleMultiTargetApply(m)
@@ -348,7 +349,7 @@ func handleEnter(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleBackspace handles backspace and ctrl+h key presses
-func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleBackspace(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.InputMode && len(m.DiceInput) > 0 {
 		m.DiceInput = m.DiceInput[:len(m.DiceInput)-1]
 	} else if (m.InitiativeInputMode || m.InitiativeEditMode) && len(m.InitiativeInput) > 0 {
@@ -377,7 +378,7 @@ func handleBackspace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleSpace handles space key presses
-func handleSpace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleSpace(m Model, msg KeyMsg) (Model, Cmd) {
 	// Debug: log when space is pressed
 	_ = msg // Keep msg parameter even if unused
 
@@ -409,7 +410,7 @@ func handleSpace(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // ========== DEFAULT INPUT HANDLER ==========
 
 // handleDefaultInput handles default text input for various modes
-func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleDefaultInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	// Handle text input for dice commands
@@ -469,7 +470,7 @@ func handleDefaultInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 // ========== SPECIAL HANDLERS ==========
 
 // handleHelp toggles the help popup
-func handleHelp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleHelp(m Model, msg KeyMsg) (Model, Cmd) {
 	m.ShowHelpPopup = !m.ShowHelpPopup
 	// Reset scroll offset when opening
 	if m.ShowHelpPopup {
@@ -479,7 +480,7 @@ func handleHelp(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleHelpPopupInput handles input when help popup is shown
-func handleHelpPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleHelpPopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	switch key {

@@ -510,32 +510,4 @@ func (m Model) arrangeInGrid(panelViews []string) string {
 	return grid
 }
 
-// renderSavePopupOverlay is deprecated - TView handles modals now
-func (m Model) renderSavePopupOverlay(mainView string) string {
-	return mainView
-}
-
-// renderLoadPopupOverlay is deprecated - TView handles modals now
-func (m Model) renderLoadPopupOverlay(mainView string) string {
-	return mainView
-}
-
-// renderQuickHPPopupOverlay is deprecated - TView handles modals now
-func (m Model) renderQuickHPPopupOverlay(mainView string) string {
-	return mainView
-}
-
-// renderEncounterPromptOverlay is deprecated - TView handles modals now
-func (m Model) renderEncounterPromptOverlay(mainView string) string {
-	return mainView
-}
-
-// renderGeneratorPopupOverlay is deprecated - TView handles modals now
-func (m Model) renderGeneratorPopupOverlay(mainView string) string {
-	return mainView
-}
-
-// renderRenamePopupOverlay is deprecated - TView handles modals now
-func (m Model) renderRenamePopupOverlay(mainView string) string {
-	return mainView
-}
+// Deprecated overlay methods removed - see individual popup files

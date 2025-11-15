@@ -3,12 +3,10 @@ package ui
 
 import (
 	"strconv"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleT handles the 't' key to toggle multi-target mode
-func handleT(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleT(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input
 	if m.isInInputMode() {
 		return handleSearchModeInput(m, "t"), nil
@@ -70,7 +68,7 @@ func handleT(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleMultiTargetSpace handles space key in multi-target mode
-func handleMultiTargetSpace(m Model) (Model, tea.Cmd) {
+func handleMultiTargetSpace(m Model) (Model, Cmd) {
 	// Safety checks - return early if conditions not met
 	if !m.MultiTargetMode {
 		return m, nil
@@ -108,7 +106,7 @@ func handleMultiTargetSpace(m Model) (Model, tea.Cmd) {
 }
 
 // handleMultiTargetApply handles applying multi-target damage/healing
-func handleMultiTargetApply(m Model) (Model, tea.Cmd) {
+func handleMultiTargetApply(m Model) (Model, Cmd) {
 	// Only if in multi-target mode with targets selected
 	if !m.MultiTargetMode || len(m.SelectedTargets) == 0 {
 		return m, nil
@@ -123,7 +121,7 @@ func handleMultiTargetApply(m Model) (Model, tea.Cmd) {
 }
 
 // handleMultiTargetPopupInput handles input in the multi-target popup
-func handleMultiTargetPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleMultiTargetPopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	if !m.ShowMultiTargetPopup {
 		return m, nil
 	}

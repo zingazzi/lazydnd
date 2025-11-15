@@ -6,17 +6,16 @@ import (
 	"lazydnd/panels"
 	"strconv"
 	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleGeneratorPopupInput handles input in the generator popup
-func handleGeneratorPopupInput(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleGeneratorPopupInput(m Model, msg KeyMsg) (Model, Cmd) {
 	key := msg.String()
 
 	// Allow 'q' to quit the application (handled by global handler)
 	if key == "q" {
-		return m, tea.Quit
+		// Quit handled by TView app
+		return m, nil
 	}
 
 	switch key {

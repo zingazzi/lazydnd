@@ -3,12 +3,10 @@ package ui
 
 import (
 	"lazydnd/panels"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // handleE handles the 'e' key - for edit mode in Notes panel
-func handleNotesE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNotesE(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.ActivePanel != Notes {
 		return m, nil
 	}
@@ -23,7 +21,7 @@ func handleNotesE(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
 }
 
 // handleNotesF handles the 'f' key - for search mode in Notes panel
-func handleNotesF(m Model, msg tea.KeyMsg) (Model, tea.Cmd) {
+func handleNotesF(m Model, msg KeyMsg) (Model, Cmd) {
 	if m.ActivePanel != Notes {
 		return m, nil
 	}

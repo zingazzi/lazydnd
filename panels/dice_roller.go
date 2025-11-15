@@ -602,7 +602,7 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 		if modifier != 0 {
 			formula += fmt.Sprintf(" %+d", modifier)
 		}
-		result += formula) + " " + resultType
+		result += formula + " " + resultType
 
 		return result
 	} else {
@@ -732,7 +732,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 		}
 	}
 	resultStr += breakdown + " "
-	resultStr += "(" + formula + ")")
+	resultStr += "(" + formula + ")"
 
 	if hasCrit {
 		resultStr += " " + getCriticalHitBanner()
