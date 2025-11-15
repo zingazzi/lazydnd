@@ -163,7 +163,7 @@ var helpTextProviders = map[PanelType]HelpTextProvider{
 func (m Model) getHelpText(panelType PanelType) string {
 	provider, exists := helpTextProviders[panelType]
 	if !exists {
-		return "\n" + m.Styles.HelpStyle.Render(DefaultInlineHelp())
+		return "\n" + DefaultInlineHelp()
 	}
 
 	return provider(m)
@@ -172,31 +172,31 @@ func (m Model) getHelpText(panelType PanelType) string {
 // getDiceRollerHelpText gets help text for the dice roller panel
 func getDiceRollerHelpText(m Model) string {
 	text := DiceRollerInlineHelp(m.InputMode, m.LastDiceCommand != "", m.DiceHistoryMode)
-	return "\n" + m.Styles.HelpStyle.Render(text)
+	return "\n" + text
 }
 
 // getInitiativeTrackerHelpText gets help text for the initiative tracker panel
 func getInitiativeTrackerHelpText(m Model) string {
 	text := InitiativeTrackerInlineHelp(m.InitiativeEditMode, m.InitiativeInputMode, m.InitiativeListMode, m.MultiTargetMode)
-	return "\n" + m.Styles.HelpStyle.Render(text)
+	return "\n" + text
 }
 
 // getSpellsHelpText gets help text for the spells panel
 func getSpellsHelpText(m Model) string {
 	text := SpellsInlineHelp(m)
-	return "\n" + m.Styles.HelpStyle.Render(text)
+	return "\n" + text
 }
 
 // getMonstersHelpText gets help text for the monsters panel
 func getMonstersHelpText(m Model) string {
 	text := MonstersInlineHelp(m)
-	return "\n" + m.Styles.HelpStyle.Render(text)
+	return "\n" + text
 }
 
 // getNotesHelpText gets help text for the notes panel
 func getNotesHelpText(m Model) string {
 	text := NotesInlineHelp(m.NotesEditMode, m.NotesSearchMode)
-	return "\n" + m.Styles.HelpStyle.Render(text)
+	return "\n" + text
 }
 
 // getEncounterBuilderContent gets content for the encounter builder panel
@@ -248,8 +248,8 @@ func getEncounterBuilderContent(m Model) string {
 		m.EncounterCRFilter,
 		m.Width,
 		m.Height,
-		m.Styles.ActivePanelStyle,
-		m.Styles.InactivePanelStyle,
-		m.Styles.PanelTitleStyle,
+		nil, // activeStyle - deprecated
+		nil, // inactiveStyle - deprecated
+		nil, // titleStyle - deprecated
 	)
 }

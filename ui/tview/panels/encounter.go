@@ -13,6 +13,7 @@ func NewEncounterBuilderPanel(model *ui.Model) *tview.TextView {
 		SetDynamicColors(true).
 		SetWrap(true).
 		SetWordWrap(true)
+	panel.SetBorder(true)
 
 	// Set initial content
 	updateContent := func() {

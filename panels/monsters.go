@@ -35,9 +35,6 @@ func GetMonstersContent(searchInput string, selectedMonster interface{}, suggest
 		SuggestionIndex: suggestionIndex,
 		SearchMode:      searchMode,
 		IsActive:        isActive,
-		InputStyle:      monsterInputStyle,
-		SuggestionStyle: monsterSuggestionStyle,
-		SelectedStyle:   selectedMonsterSuggestionStyle,
 		FormatFunc:      FormatSelectedMonster,
 		ShowAddPrompt:   true,
 	})

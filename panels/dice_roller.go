@@ -204,7 +204,7 @@ func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, di
 		maxHistory := 3
 		count := 0
 		for i := len(diceHistory) - 1; i >= 0 && count < maxHistory; i-- {
-			content += "\n" + historyStyle.Render(diceHistory[i])
+			content += "\n" + diceHistory[i]
 			count++
 		}
 	}

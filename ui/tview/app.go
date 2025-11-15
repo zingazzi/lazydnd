@@ -32,8 +32,13 @@ func NewApp(model *ui.Model) *App {
 	app.setupStatusBar()
 	app.setupPanels()
 	app.setupLayout()
-	app.setupHandlers()
 	app.setupAutoSave()
+	app.setupHandlers() // Set handlers AFTER layout so SetRoot is called first
+
+	// Initialize panel borders and titles (but don't call Draw() yet)
+	app.updatePanelBorders()
+	app.updatePanelContent()
+	app.updateStatusBar()
 
 	return app
 }
@@ -62,6 +67,7 @@ func (app *App) setupLayout() {
 		SetRows(0, 0, 1). // Two panel rows + status bar
 		SetColumns(0, 0, 0, 0, 0). // Flexible columns
 		SetBorders(false)
+	// Note: Input capture is handled at application level, not grid level
 
 	// Top row: Dice Roller (60%) + Initiative Tracker (40%)
 	app.grid.AddItem(app.panels[ui.DiceRoller], 0, 0, 1, 3, 0, 0, false).
@@ -74,24 +80,38 @@ func (app *App) setupLayout() {
 		// Status bar
 		AddItem(app.statusBar, 2, 0, 1, 5, 0, 0, false)
 
-	app.application.SetRoot(app.grid, true)
+	app.application.SetRoot(app.grid, true).SetFocus(app.grid)
 }
 
 // setupHandlers configures input handlers
 func (app *App) setupHandlers() {
-	app.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	// Set input capture at application level to intercept all input before TView's focus system
+	app.application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// Debug: Log that we received an event
+		ui.DebugLog("INPUT CAPTURE: Received key event - Key: %d, Rune: %c", event.Key(), event.Rune())
+
 		// Convert TCell event to handler
 		key := event.Key()
 		rune := event.Rune()
 
 		// Route to appropriate handler
 		handled, shouldQuit := app.handleInput(key, rune)
+		ui.DebugLog("INPUT CAPTURE: handled=%v, shouldQuit=%v", handled, shouldQuit)
+
 		if shouldQuit {
 			app.Stop()
 			return nil
 		}
 		if handled {
-			app.refreshUI()
+			// Update UI directly - we're already on the main goroutine
+			ui.DebugLog("INPUT CAPTURE: Updating UI directly - ActivePanel=%d", app.model.ActivePanel)
+			app.updateStatusBar()
+			app.updatePanelBorders()
+			app.updatePanelContent()
+			// Force immediate redraw
+			ui.DebugLog("INPUT CAPTURE: Calling Draw()")
+			app.application.Draw()
+			ui.DebugLog("INPUT CAPTURE: Draw() returned")
 			return nil // Event handled
 		}
 
@@ -125,11 +145,15 @@ func (app *App) handleAutoSave() {
 }
 
 // refreshUI updates all UI elements
+// This can be called from any goroutine - it uses QueueUpdateDraw for thread safety
 func (app *App) refreshUI() {
-	app.updateStatusBar()
-	app.updatePanelBorders()
-	app.updatePanelContent()
-	app.application.Draw()
+	if app.application != nil {
+		app.application.QueueUpdateDraw(func() {
+			app.updateStatusBar()
+			app.updatePanelBorders()
+			app.updatePanelContent()
+		})
+	}
 }
 
 // updateStatusBar updates the status bar content
@@ -142,9 +166,11 @@ func (app *App) updateStatusBar() {
 
 // updatePanelBorders updates panel border styling based on active panel
 func (app *App) updatePanelBorders() {
+	ui.DebugLog("updatePanelBorders: ActivePanel=%d", app.model.ActivePanel)
 	for panelType, panel := range app.panels {
 		if textView, ok := panel.(*tview.TextView); ok {
 			isActive := app.model.ActivePanel == panelType
+			ui.DebugLog("updatePanelBorders: Panel %d, isActive=%v", panelType, isActive)
 			app.stylePanel(textView, panelType, isActive)
 		}
 	}
@@ -156,12 +182,17 @@ func (app *App) stylePanel(textView *tview.TextView, panelType ui.PanelType, isA
 
 	textView.SetTitle(" " + title + " ")
 
+	// Ensure border is enabled
+	textView.SetBorder(true)
+
 	if isActive {
 		textView.SetBorderColor(tcell.ColorYellow)
 		textView.SetTitleColor(tcell.ColorYellow)
+		ui.DebugLog("stylePanel: Panel %d set to ACTIVE (Yellow)", panelType)
 	} else {
 		textView.SetBorderColor(tcell.ColorWhite)
 		textView.SetTitleColor(tcell.ColorWhite)
+		ui.DebugLog("stylePanel: Panel %d set to INACTIVE (White)", panelType)
 	}
 }
 
@@ -177,6 +208,15 @@ func (app *App) updatePanelContent() {
 
 // Run starts the TView application
 func (app *App) Run() error {
+	// Ensure UI is up to date before starting
+	app.updatePanelBorders()
+	app.updatePanelContent()
+	app.updateStatusBar()
+
+	// Ensure grid has focus for input capture
+	app.application.SetFocus(app.grid)
+
+	// TView will automatically draw when Run() starts
 	return app.application.Run()
 }
 

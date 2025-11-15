@@ -35,9 +35,6 @@ func GetSpellsContent(searchInput string, selectedSpell interface{}, suggestions
 		SuggestionIndex: suggestionIndex,
 		SearchMode:      searchMode,
 		IsActive:        isActive,
-		InputStyle:      spellInputStyle,
-		SuggestionStyle: spellSuggestionStyle,
-		SelectedStyle:   selectedSpellSuggestionStyle,
 		FormatFunc:      FormatSelectedSpell,
 		ShowAddPrompt:   false,
 	})

@@ -69,7 +69,7 @@ func main() {
 
 	// Run the application
 	if err := app.Run(); err != nil {
-		fmt.Printf("Error: %v", err)
+		fmt.Fprintf(os.Stderr, "Error running application: %v\n", err)
 		os.Exit(1)
 	}
 }
