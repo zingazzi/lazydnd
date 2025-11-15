@@ -99,19 +99,26 @@ func (app *App) setupHandlers() {
 		ui.DebugLog("INPUT CAPTURE: handled=%v, shouldQuit=%v", handled, shouldQuit)
 
 		if shouldQuit {
-			app.Stop()
+			ui.DebugLog("INPUT CAPTURE: Quit requested, stopping application")
+			// Stop in a goroutine to avoid blocking
+			go func() {
+				app.Stop()
+			}()
 			return nil
 		}
 		if handled {
-			// Update UI directly - we're already on the main goroutine
-			ui.DebugLog("INPUT CAPTURE: Updating UI directly - ActivePanel=%d", app.model.ActivePanel)
-			app.updateStatusBar()
-			app.updatePanelBorders()
-			app.updatePanelContent()
-			// Force immediate redraw
-			ui.DebugLog("INPUT CAPTURE: Calling Draw()")
-			app.application.Draw()
-			ui.DebugLog("INPUT CAPTURE: Draw() returned")
+			// Move all updates INSIDE QueueUpdateDraw callback
+			// This ensures they happen on the main event loop
+			ui.DebugLog("INPUT CAPTURE: Queuing UI update - ActivePanel=%d", app.model.ActivePanel)
+			app.application.QueueUpdateDraw(func() {
+				ui.DebugLog("QUEUE UPDATE DRAW: Callback executing - ActivePanel=%d", app.model.ActivePanel)
+				app.updateStatusBar()
+				app.updatePanelBorders()
+				app.updatePanelContent()
+				ui.DebugLog("QUEUE UPDATE DRAW: Updates complete")
+			})
+			ui.DebugLog("INPUT CAPTURE: QueueUpdateDraw scheduled, returning nil")
+
 			return nil // Event handled
 		}
 
@@ -185,15 +192,21 @@ func (app *App) stylePanel(textView *tview.TextView, panelType ui.PanelType, isA
 	// Ensure border is enabled
 	textView.SetBorder(true)
 
+	var borderColor, titleColor tcell.Color
 	if isActive {
-		textView.SetBorderColor(tcell.ColorYellow)
-		textView.SetTitleColor(tcell.ColorYellow)
-		ui.DebugLog("stylePanel: Panel %d set to ACTIVE (Yellow)", panelType)
+		borderColor = tcell.ColorYellow
+		titleColor = tcell.ColorYellow
+		ui.DebugLog("stylePanel: Panel %d set to ACTIVE (Yellow) - borderColor=%d, titleColor=%d", panelType, borderColor, titleColor)
 	} else {
-		textView.SetBorderColor(tcell.ColorWhite)
-		textView.SetTitleColor(tcell.ColorWhite)
-		ui.DebugLog("stylePanel: Panel %d set to INACTIVE (White)", panelType)
+		borderColor = tcell.ColorWhite
+		titleColor = tcell.ColorWhite
+		ui.DebugLog("stylePanel: Panel %d set to INACTIVE (White) - borderColor=%d, titleColor=%d", panelType, borderColor, titleColor)
 	}
+
+	textView.SetBorderColor(borderColor)
+	textView.SetTitleColor(titleColor)
+
+	ui.DebugLog("stylePanel: Colors set for panel %d - borderColor=%d, titleColor=%d", panelType, borderColor, titleColor)
 }
 
 // updatePanelContent updates the content of all panels
