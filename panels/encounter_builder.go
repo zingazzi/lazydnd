@@ -95,23 +95,23 @@ func renderEncounterBuilder(
 		analysis := encounters.CalculateDifficulty(partyLevels, monsterCRs)
 		diffColor := encounters.GetDifficultyColor(analysis.Difficulty)
 
-		// Use ANSI color codes
+		// Use ANSI color codes (TView format: using \x1b)
 		colorCode := ""
 		switch diffColor {
 		case "#AAAAAA":
-			colorCode = "\033[90m" // Bright black (gray)
+			colorCode = "\x1b[90m" // Bright black (gray)
 		case "#00FF00":
-			colorCode = "\033[92m" // Bright green
+			colorCode = "\x1b[92m" // Bright green
 		case "#FFD700":
-			colorCode = "\033[93m" // Bright yellow
+			colorCode = "\x1b[93m" // Bright yellow
 		case "#FFA500":
-			colorCode = "\033[33m" // Yellow/orange
+			colorCode = "\x1b[33m" // Yellow/orange
 		case "#FF0000":
-			colorCode = "\033[91m" // Bright red
+			colorCode = "\x1b[91m" // Bright red
 		default:
-			colorCode = "\033[97m" // Bright white
+			colorCode = "\x1b[97m" // Bright white
 		}
-		resetCode := "\033[0m"
+		resetCode := "\x1b[0m"
 
 		b.WriteString(fmt.Sprintf("Difficulty: %s%s%s\n", colorCode, analysis.Difficulty, resetCode))
 		b.WriteString(fmt.Sprintf("XP: %d (×%.1f = %d adj.)\n\n",

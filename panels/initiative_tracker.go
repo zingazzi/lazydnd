@@ -31,8 +31,16 @@ func getColoredHP(hp, maxHP int) string {
 		percentage = 100
 	}
 
-	// Format HP text (styling handled by TView)
-	return fmt.Sprintf("HP: %d/%d", hp, maxHP)
+	// Color code based on percentage (TView ANSI format: using \x1b)
+	hpText := fmt.Sprintf("HP: %d/%d", hp, maxHP)
+	if percentage <= 25 {
+		return "\x1b[91m" + hpText + "\x1b[0m" // Red for critical (≤25%)
+	} else if percentage <= 50 {
+		return "\x1b[93m" + hpText + "\x1b[0m" // Yellow for low (26-50%)
+	} else if percentage <= 75 {
+		return "\x1b[33m" + hpText + "\x1b[0m" // Orange/yellow for medium (51-75%)
+	}
+	return "\x1b[92m" + hpText + "\x1b[0m" // Green for healthy (>75%)
 }
 
 // getColoredHPWithTemp returns HP text with temp HP in cyan
@@ -45,10 +53,9 @@ func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
 	// Get the colored HP part
 	hpPart := getColoredHP(hp, maxHP)
 
-	// Add temp HP if present
+	// Add temp HP in cyan if present
 	if tempHP > 0 {
-		tempPart := fmt.Sprintf(" +%d", tempHP)
-		return hpPart + tempPart
+		hpPart += " \x1b[96m+" + fmt.Sprintf("%d", tempHP) + "\x1b[0m" // Cyan for temp HP
 	}
 
 	return hpPart

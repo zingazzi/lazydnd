@@ -32,9 +32,10 @@ var ValidDiceTypes = []int{3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 30, 100}
 
 // Note: Styling is now handled by TView widgets - these functions return plain text
 
-// getCriticalHitBanner returns a simple critical hit indicator
+// getCriticalHitBanner returns a simple critical hit indicator with color
 func getCriticalHitBanner() string {
-	return "★ CRIT"
+	// TView uses [color:name] format for colors with SetDynamicColors(true)
+	return "[red]★ CRIT[white]" // Red
 }
 
 // handleCriticalDamageRoll handles rolling critical damage based on the configured mode
@@ -342,11 +343,17 @@ func RollDice(command string, cfg *config.Config) string {
 
 			// Use standard format
 			if isCrit {
-				// Critical hit format: "20  (d20) ★ CRIT" - in red
-				return fmt.Sprintf("%d", roll) + "  " + "(d20)" + " " + getCriticalHitBanner()
+				// Critical hit format: "20  (d20) ★ CRIT" - roll and crit in red
+				return "[red]" + fmt.Sprintf("%d", roll) + "[white]  " + "(d20)" + " " + getCriticalHitBanner()
 			} else {
-				// Normal format: "15  15 (d20)"
-				return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d20)"
+				// Normal format: "15  15 (d20)" - roll in green for good rolls (15+), yellow for medium (10-14), default for low
+				rollStr := fmt.Sprintf("%d", roll)
+				if roll >= 15 {
+					rollStr = "[green]" + rollStr + "[white]" // Green for good rolls
+				} else if roll >= 10 {
+					rollStr = "[yellow]" + rollStr + "[white]" // Yellow for medium rolls
+				}
+				return rollStr + "  " + rollStr + " " + "(d20)"
 			}
 		}
 	}
@@ -636,14 +643,23 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 
 		if isCrit {
 			// Critical hit format: "20  (1d20) CRIT" - both 20 and CRIT in red
-			result = fmt.Sprintf("%d", finalTotal) + "  "
+			result = "[red]" + fmt.Sprintf("%d", finalTotal) + "[white]  "
 			formula := fmt.Sprintf("(%s)", diceExpr)
 			if modifier != 0 {
 				formula += fmt.Sprintf(" %+d", modifier)
 			}
 			result += formula + " " + getCriticalHitBanner()
 		} else {
-			result = fmt.Sprintf("%d", finalTotal) + "  "
+			// Color code the total based on value (for d20 rolls)
+			totalStr := fmt.Sprintf("%d", finalTotal)
+			if strings.Contains(diceExpr, "20") && numDice == 1 {
+				if finalTotal >= 15 {
+					totalStr = "[green]" + totalStr + "[white]" // Green for good rolls
+				} else if finalTotal >= 10 {
+					totalStr = "[yellow]" + totalStr + "[white]" // Yellow for medium rolls
+				}
+			}
+			result = totalStr + "  "
 			result += strings.Join(rollsStr, ", ") + " "
 
 			formula := fmt.Sprintf("(%s)", diceExpr)
