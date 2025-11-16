@@ -22,8 +22,8 @@ func NewColorConverter(cfg *config.Config) *ColorConverter {
 	cc := &ColorConverter{}
 
 	// Default colors
-	primaryColor := "#7D56F4"
-	borderColor := "#444444"
+	primaryColor := "#7D56F4" // Violet
+	borderColor := "#CCCCCC"  // Light grey
 	highlightColor := "#00FF00"
 	errorColor := "#FF0000"
 	successColor := "#00FF00"

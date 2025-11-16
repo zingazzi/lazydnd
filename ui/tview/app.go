@@ -68,20 +68,13 @@ func (app *App) setupPanels() {
 func (app *App) setupLayout() {
 	app.grid = tview.NewGrid().
 		SetRows(0, 0, 1). // Two panel rows + status bar
-		SetColumns(0, 0, 0, 0, 0). // Flexible columns
+		SetColumns(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0). // 20 flexible columns for fine-grained control
 		SetBorders(false)
 	// Note: Input capture is handled at application level, not grid level
 
-	// Top row: Dice Roller (60%) + Initiative Tracker (40%)
-	app.grid.AddItem(app.panels[ui.DiceRoller], 0, 0, 1, 3, 0, 0, false).
-		AddItem(app.panels[ui.InitiativeTracker], 0, 3, 1, 2, 0, 0, false).
-		// Bottom row: Spells + Monsters + Notes + Encounter Builder
-		AddItem(app.panels[ui.Spells], 1, 0, 1, 1, 0, 0, false).
-		AddItem(app.panels[ui.Monsters], 1, 1, 1, 1, 0, 0, false).
-		AddItem(app.panels[ui.Notes], 1, 2, 1, 1, 0, 0, false).
-		AddItem(app.panels[ui.EncounterBuilder], 1, 3, 1, 2, 0, 0, false).
-		// Status bar
-		AddItem(app.statusBar, 2, 0, 1, 5, 0, 0, false)
+	// Initial layout will be set by updateGridLayout()
+	// This ensures dynamic sizing based on active panel
+	app.updateGridLayout()
 
 	app.application.SetRoot(app.grid, true).SetFocus(app.grid)
 }
@@ -173,6 +166,9 @@ func (app *App) updateStatusBar() {
 
 // updatePanelBorders updates panel border styling based on active panel
 func (app *App) updatePanelBorders() {
+	// Update grid layout when active panel changes
+	app.updateGridLayout()
+
 	for panelType, panel := range app.panels {
 		if textView, ok := panel.(*tview.TextView); ok {
 			isActive := app.model.ActivePanel == panelType
@@ -181,26 +177,166 @@ func (app *App) updatePanelBorders() {
 	}
 }
 
+// calculatePanelDimensionsForGrid calculates panel dimensions for grid layout
+// This is a simplified version that matches the logic in layout_core.go
+func (app *App) calculatePanelDimensionsForGrid() map[ui.PanelType]ui.PanelDimensions {
+	// Use the same calculation logic as Model.calculatePanelDimensions
+	// but we need to access it through a helper or duplicate the logic
+	// For now, we'll use a simplified version based on active panel
+
+	targetRowWidth := app.model.Width - 2 // Approximate margin
+	if targetRowWidth < 40 {
+		targetRowWidth = 40
+	}
+
+	dimensions := make(map[ui.PanelType]ui.PanelDimensions)
+	topHeight := 10 // Approximate
+	bottomHeight := 10 // Approximate
+
+	// Width allocation based on active panel (matching layout_core.go logic)
+	switch app.model.ActivePanel {
+	case ui.DiceRoller:
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 6 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	case ui.InitiativeTracker:
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 4 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth * 3 / 10, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	case ui.Spells:
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth * 4 / 10, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	case ui.Monsters:
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth * 4 / 10, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	case ui.Notes:
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth * 4 / 10, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	case ui.EncounterBuilder:
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth * 2 / 10, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	default:
+		// Default equal distribution
+		dimensions[ui.DiceRoller] = ui.PanelDimensions{Width: targetRowWidth * 5 / 10, Height: topHeight}
+		dimensions[ui.InitiativeTracker] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.DiceRoller].Width, Height: topHeight}
+		dimensions[ui.Spells] = ui.PanelDimensions{Width: targetRowWidth / 4, Height: bottomHeight}
+		dimensions[ui.Monsters] = ui.PanelDimensions{Width: targetRowWidth / 4, Height: bottomHeight}
+		dimensions[ui.Notes] = ui.PanelDimensions{Width: targetRowWidth / 4, Height: bottomHeight}
+		dimensions[ui.EncounterBuilder] = ui.PanelDimensions{Width: targetRowWidth - dimensions[ui.Spells].Width - dimensions[ui.Monsters].Width - dimensions[ui.Notes].Width, Height: bottomHeight}
+	}
+
+	return dimensions
+}
+
+// updateGridLayout updates the grid layout based on active panel dimensions
+func (app *App) updateGridLayout() {
+	// Get dynamic panel dimensions
+	dimensions := app.calculatePanelDimensionsForGrid()
+
+	// Grid uses 20 columns for fine-grained control
+	// Convert panel widths to column spans proportionally
+	totalCols := 20
+
+	// Calculate column spans for top row
+	diceWidth := dimensions[ui.DiceRoller].Width
+	initWidth := dimensions[ui.InitiativeTracker].Width
+	topRowTotal := diceWidth + initWidth
+
+	var diceCols, initCols int
+	if topRowTotal > 0 {
+		diceCols = (diceWidth * totalCols) / topRowTotal
+		initCols = totalCols - diceCols
+	} else {
+		diceCols = totalCols / 2
+		initCols = totalCols / 2
+	}
+
+	// Calculate column spans for bottom row
+	spellsWidth := dimensions[ui.Spells].Width
+	monstersWidth := dimensions[ui.Monsters].Width
+	notesWidth := dimensions[ui.Notes].Width
+	encounterWidth := dimensions[ui.EncounterBuilder].Width
+	bottomRowTotal := spellsWidth + monstersWidth + notesWidth + encounterWidth
+
+	var spellsCols, monstersCols, notesCols, encounterCols int
+	if bottomRowTotal > 0 {
+		spellsCols = (spellsWidth * totalCols) / bottomRowTotal
+		monstersCols = (monstersWidth * totalCols) / bottomRowTotal
+		notesCols = (notesWidth * totalCols) / bottomRowTotal
+		encounterCols = totalCols - spellsCols - monstersCols - notesCols
+	} else {
+		// Default equal distribution
+		spellsCols = totalCols / 4
+		monstersCols = totalCols / 4
+		notesCols = totalCols / 4
+		encounterCols = totalCols - spellsCols - monstersCols - notesCols
+	}
+
+	// Remove all items from grid
+	app.grid.Clear()
+
+	// Re-add items with new column spans
+	// Top row: Dice Roller + Initiative Tracker
+	app.grid.AddItem(app.panels[ui.DiceRoller], 0, 0, 1, diceCols, 0, 0, false).
+		AddItem(app.panels[ui.InitiativeTracker], 0, diceCols, 1, initCols, 0, 0, false).
+		// Bottom row: Spells + Monsters + Notes + Encounter Builder
+		AddItem(app.panels[ui.Spells], 1, 0, 1, spellsCols, 0, 0, false).
+		AddItem(app.panels[ui.Monsters], 1, spellsCols, 1, monstersCols, 0, 0, false).
+		AddItem(app.panels[ui.Notes], 1, spellsCols+monstersCols, 1, notesCols, 0, 0, false).
+		AddItem(app.panels[ui.EncounterBuilder], 1, spellsCols+monstersCols+notesCols, 1, encounterCols, 0, 0, false).
+		// Status bar spans all columns
+		AddItem(app.statusBar, 2, 0, 1, totalCols, 0, 0, false)
+}
+
 // stylePanel applies styling to a panel
 func (app *App) stylePanel(textView *tview.TextView, panelType ui.PanelType, isActive bool) {
-	title := ui.PanelNames[panelType]
+	title := ui.PanelNames[panelType] // Title already includes icon
 
 	textView.SetTitle(" " + title + " ")
 
 	// Ensure border is enabled
 	textView.SetBorder(true)
 
+	// Get colors from config
 	var borderColor, titleColor tcell.Color
+	colorConverter := NewColorConverter(app.model.Config)
+
 	if isActive {
-		borderColor = tcell.ColorYellow
-		titleColor = tcell.ColorYellow
+		// Active: use primary color (violet by default)
+		borderColor = colorConverter.PrimaryColor()
+		titleColor = colorConverter.PrimaryColor()
 	} else {
-		borderColor = tcell.ColorWhite
-		titleColor = tcell.ColorWhite
+		// Inactive: use border color (light grey by default)
+		borderColor = colorConverter.BorderColor()
+		titleColor = colorConverter.BorderColor()
 	}
 
 	textView.SetBorderColor(borderColor)
 	textView.SetTitleColor(titleColor)
+	// Note: TView doesn't support SetTitleBackgroundColor directly
+	// Title background is handled by the border color system
 }
 
 // updatePanelContent updates the content of all panels

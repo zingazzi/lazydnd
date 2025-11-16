@@ -26,6 +26,20 @@ type Theme struct {
 	HighlightColor string `json:"highlight_color"` // Selected item color
 	ErrorColor     string `json:"error_color"`     // Error message color
 	SuccessColor   string `json:"success_color"`   // Success message color
+	// Dice roller colors
+	CritColor      string `json:"crit_color"`      // Critical hit color (default: "#FF0000")
+	GoodRollColor  string `json:"good_roll_color"`  // Good roll color (15+ on d20, default: "#00FF00")
+	MediumRollColor string `json:"medium_roll_color"` // Medium roll color (10-14 on d20, default: "#FFFF00")
+	// Initiative tracker colors
+	HPHealthyColor string `json:"hp_healthy_color"` // HP >50% color (default: "#AAAAAA" - grey)
+	HPMediumColor  string `json:"hp_medium_color"`   // HP ≤50% and >20% color (default: "#FFA500" - orange)
+	HPCriticalColor string `json:"hp_critical_color"` // HP ≤20% color (default: "#FF0000" - red)
+	TempHPColor    string `json:"temp_hp_color"`    // Temporary HP color (default: "#00FFFF")
+	// Name colors
+	MonsterNameColor string `json:"monster_name_color"` // Monster name color (default: "#FF0000" - red)
+	PlayerNameColor  string `json:"player_name_color"`  // Player name color (default: "#00FF00" - green)
+	// Text color
+	TextColor string `json:"text_color"` // Regular text color (default: "#AAAAAA" - grey)
 }
 
 // AutoSaveConfig for campaign auto-save settings
@@ -73,11 +87,21 @@ type PathsConfig struct {
 func Default() *Config {
 	return &Config{
 		Theme: Theme{
-			PrimaryColor:   "#7D56F4",
-			BorderColor:    "#444444",
-			HighlightColor: "#00FF00",
-			ErrorColor:     "#FF0000",
-			SuccessColor:   "#00FF00",
+			PrimaryColor:     "#7D56F4", // Violet
+			BorderColor:      "#CCCCCC", // Light grey
+			HighlightColor:   "#00FF00",
+			ErrorColor:       "#FF0000",
+			SuccessColor:     "#00FF00",
+			CritColor:        "#FF0000",
+			GoodRollColor:    "#00FF00",
+			MediumRollColor:  "#FFFF00",
+			HPHealthyColor:   "#AAAAAA", // Grey for >50%
+			HPMediumColor:    "#FFA500", // Orange for ≤50% and >20%
+			HPCriticalColor:  "#FF0000", // Red for ≤20%
+			TempHPColor:      "#00FFFF",
+			MonsterNameColor: "#FF0000", // Red
+			PlayerNameColor:  "#00FF00", // Green
+			TextColor:        "#AAAAAA", // Grey
 		},
 		AutoSave: AutoSaveConfig{
 			Enabled:         true,

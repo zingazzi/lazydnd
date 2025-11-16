@@ -32,17 +32,74 @@ var ValidDiceTypes = []int{3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 30, 100}
 
 // Note: Styling is now handled by TView widgets - these functions return plain text
 
+// getCritColorFromConfig extracts crit color from config and converts to TView format
+func getCritColorFromConfig(cfg *config.Config) string {
+	if cfg == nil || cfg.Theme.CritColor == "" {
+		return "[red]"
+	}
+	return "[" + hexToTViewColorName(cfg.Theme.CritColor) + "]"
+}
+
+// getRollColorsFromConfig extracts roll colors from config and converts to TView format
+func getRollColorsFromConfig(cfg *config.Config) (critColor, goodRollColor, mediumRollColor string) {
+	if cfg == nil {
+		return "[red]", "[green]", "[yellow]"
+	}
+
+	critColor = "[" + hexToTViewColorName(cfg.Theme.CritColor) + "]"
+	goodRollColor = "[" + hexToTViewColorName(cfg.Theme.GoodRollColor) + "]"
+	mediumRollColor = "[" + hexToTViewColorName(cfg.Theme.MediumRollColor) + "]"
+
+	return critColor, goodRollColor, mediumRollColor
+}
+
+// hexToTViewColorName converts hex color to TView color name
+func hexToTViewColorName(hex string) string {
+	hex = strings.ToUpper(strings.TrimSpace(hex))
+
+	// Map common hex colors to TView named colors
+	colorMap := map[string]string{
+		"#FF0000": "red", "#FF4500": "red", "#DC143C": "red", "#8B0000": "red", "#F92672": "red",
+		"#00FF00": "green", "#00FF7F": "green", "#228B22": "green", "#32CD32": "green", "#A6E22E": "green",
+		"#FFFF00": "yellow", "#FFD700": "yellow", "#FFA500": "yellow", "#FF8C00": "yellow",
+		"#0000FF": "blue", "#00BFFF": "blue", "#4169E1": "blue", "#1E90FF": "blue", "#7AA2F7": "blue",
+		"#00FFFF": "cyan", "#66D9EF": "cyan",
+		"#FF00FF": "magenta", "#7D56F4": "magenta", "#5A3D9E": "magenta",
+		"#FFFFFF": "white", "#CCCCCC": "white", "#AAAAAA": "white", "#666666": "white", "#444444": "white", "#333333": "white",
+	}
+
+	if color, ok := colorMap[hex]; ok {
+		return color
+	}
+
+	// Default fallback
+	if strings.HasPrefix(hex, "#FF") || strings.HasPrefix(hex, "#DC") || strings.HasPrefix(hex, "#8B") {
+		return "red"
+	}
+	if strings.HasPrefix(hex, "#00") && strings.Contains(hex, "FF") {
+		return "green"
+	}
+	if strings.HasPrefix(hex, "#FF") && (strings.Contains(hex, "FF00") || strings.Contains(hex, "D700")) {
+		return "yellow"
+	}
+	if strings.HasPrefix(hex, "#00") && strings.Contains(hex, "FFFF") {
+		return "cyan"
+	}
+
+	return "white"
+}
+
 // getCriticalHitBanner returns a simple critical hit indicator with color
-func getCriticalHitBanner() string {
+func getCriticalHitBanner(critColor string) string {
 	// TView uses [color:name] format for colors with SetDynamicColors(true)
-	return "[red]★ CRIT[white]" // Red
+	return critColor + "★ CRIT[white]"
 }
 
 // handleCriticalDamageRoll handles rolling critical damage based on the configured mode
 // Supports two modes:
 //   - "double": Roll all damage dice twice (standard D&D 5e)
 //   - "max": Maximum damage + one roll (popular house rule)
-func handleCriticalDamageRoll(command string) string {
+func handleCriticalDamageRoll(command string, critColor string) string {
 	// Remove all spaces first
 	command = strings.ReplaceAll(command, " ", "")
 
@@ -129,7 +186,7 @@ func handleCriticalDamageRoll(command string) string {
 		formula += fmt.Sprintf(" %+d", modifier)
 	}
 	result += formula
-	result += " " + getCriticalHitBanner()
+	result += " " + getCriticalHitBanner(critColor)
 
 	return result
 }
@@ -148,7 +205,10 @@ func handleCriticalDamageRoll(command string) string {
 //   - isActive: Whether this panel is currently focused
 //   - historyMode: Whether the user is browsing history to re-roll
 //   - historyIndex: Selected history entry index (when historyMode is true)
-func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, diceCommands []string, lastCommand string, inputMode, isActive bool, historyMode bool, historyIndex int) string {
+//   - critColor: Color tag for critical hits (e.g., "[red]")
+//   - goodRollColor: Color tag for good rolls (e.g., "[green]")
+//   - mediumRollColor: Color tag for medium rolls (e.g., "[yellow]")
+func GetDiceRollerContent(diceInput, diceResult string, diceHistory []string, diceCommands []string, lastCommand string, inputMode, isActive bool, historyMode bool, historyIndex int, critColor, goodRollColor, mediumRollColor string) string {
 	// Show different instructions based on mode
 	if historyMode {
 		content := ""
@@ -261,7 +321,8 @@ func RollDice(command string, cfg *config.Config) string {
 
 	// Handle crit rolls for damage dice FIRST (before other parsing)
 	if critRoll && currentCritEnabled {
-		return handleCriticalDamageRoll(command)
+		critColor := getCritColorFromConfig(cfg)
+		return handleCriticalDamageRoll(command, critColor)
 	}
 
 	// Check for advantage/disadvantage
@@ -283,7 +344,8 @@ func RollDice(command string, cfg *config.Config) string {
 
 	// Check for multiple dice expressions with + (e.g., "2d8+3d6")
 	if hasMultipleDiceExpressions(command) {
-		return handleMultipleDiceExpressions(command, advantage, disadvantage)
+		critColor, goodRollColor, mediumRollColor := getRollColorsFromConfig(cfg)
+		return handleMultipleDiceExpressions(command, advantage, disadvantage, critColor, goodRollColor, mediumRollColor)
 	}
 
 	// Handle simple dice notation with standard format
@@ -307,6 +369,9 @@ func RollDice(command string, cfg *config.Config) string {
 		roll := rand.Intn(12) + 1
 		return fmt.Sprintf("%d", roll) + "  " + fmt.Sprintf("%d", roll) + " " + "(d12)"
 	}
+	// Get colors from config for d20 rolls
+	critColor, goodRollColor, mediumRollColor := getRollColorsFromConfig(cfg)
+
 	if command == "d20" || command == "1d20" {
 		if advantage || disadvantage {
 			roll1 := rand.Intn(20) + 1
@@ -334,7 +399,7 @@ func RollDice(command string, cfg *config.Config) string {
 			isCrit := currentCritEnabled && result == 20
 			resultStr := fmt.Sprintf("d20 %s: %d (%d, %d)", resultType, result, roll1, roll2)
 			if isCrit {
-				resultStr += " " + getCriticalHitBanner()
+				resultStr += " " + getCriticalHitBanner(critColor)
 			}
 			return resultStr
 		} else {
@@ -344,14 +409,14 @@ func RollDice(command string, cfg *config.Config) string {
 			// Use standard format
 			if isCrit {
 				// Critical hit format: "20  (d20) ★ CRIT" - roll and crit in red
-				return "[red]" + fmt.Sprintf("%d", roll) + "[white]  " + "(d20)" + " " + getCriticalHitBanner()
+				return critColor + fmt.Sprintf("%d", roll) + "[white]  " + "(d20)" + " " + getCriticalHitBanner(critColor)
 			} else {
 				// Normal format: "15  15 (d20)" - roll in green for good rolls (15+), yellow for medium (10-14), default for low
 				rollStr := fmt.Sprintf("%d", roll)
 				if roll >= 15 {
-					rollStr = "[green]" + rollStr + "[white]" // Green for good rolls
+					rollStr = goodRollColor + rollStr + "[white]" // Good rolls
 				} else if roll >= 10 {
-					rollStr = "[yellow]" + rollStr + "[white]" // Yellow for medium rolls
+					rollStr = mediumRollColor + rollStr + "[white]" // Medium rolls
 				}
 				return rollStr + "  " + rollStr + " " + "(d20)"
 			}
@@ -365,7 +430,8 @@ func RollDice(command string, cfg *config.Config) string {
 
 	// Handle complex dice notation like "2d6", "3d8+2"
 	if strings.Contains(command, "d") {
-		return parseComplexDice(command, advantage, disadvantage)
+		critColor, goodRollColor, mediumRollColor := getRollColorsFromConfig(cfg)
+		return parseComplexDice(command, advantage, disadvantage, critColor, goodRollColor, mediumRollColor)
 	}
 
 	return "Invalid dice command"
@@ -497,7 +563,7 @@ func calculateTotal(results []int, operators []string) int {
 // parseComplexDice handles complex dice notation with single modifier (e.g., "2d6+3").
 // Supports advantage/disadvantage modifiers for d20 rolls.
 // Returns a formatted string with the roll result or an error message.
-func parseComplexDice(command string, advantage, disadvantage bool) string {
+func parseComplexDice(command string, advantage, disadvantage bool, critColor, goodRollColor, mediumRollColor string) string {
 	// Remove spaces
 	command = strings.ReplaceAll(command, " ", "")
 
@@ -643,20 +709,20 @@ func parseComplexDice(command string, advantage, disadvantage bool) string {
 
 		if isCrit {
 			// Critical hit format: "20  (1d20) CRIT" - both 20 and CRIT in red
-			result = "[red]" + fmt.Sprintf("%d", finalTotal) + "[white]  "
+			result = critColor + fmt.Sprintf("%d", finalTotal) + "[white]  "
 			formula := fmt.Sprintf("(%s)", diceExpr)
 			if modifier != 0 {
 				formula += fmt.Sprintf(" %+d", modifier)
 			}
-			result += formula + " " + getCriticalHitBanner()
+			result += formula + " " + getCriticalHitBanner(critColor)
 		} else {
 			// Color code the total based on value (for d20 rolls)
 			totalStr := fmt.Sprintf("%d", finalTotal)
 			if strings.Contains(diceExpr, "20") && numDice == 1 {
 				if finalTotal >= 15 {
-					totalStr = "[green]" + totalStr + "[white]" // Green for good rolls
+					totalStr = goodRollColor + totalStr + "[white]" // Good rolls
 				} else if finalTotal >= 10 {
-					totalStr = "[yellow]" + totalStr + "[white]" // Yellow for medium rolls
+					totalStr = mediumRollColor + totalStr + "[white]" // Medium rolls
 				}
 			}
 			result = totalStr + "  "
@@ -695,7 +761,7 @@ func hasMultipleDiceExpressions(command string) bool {
 }
 
 // handleMultipleDiceExpressions handles expressions like "2d8+3d6" or "2d8+3+3d6"
-func handleMultipleDiceExpressions(command string, advantage, disadvantage bool) string {
+func handleMultipleDiceExpressions(command string, advantage, disadvantage bool, critColor, goodRollColor, mediumRollColor string) string {
 	// Remove spaces
 	command = strings.ReplaceAll(command, " ", "")
 
@@ -751,7 +817,7 @@ func handleMultipleDiceExpressions(command string, advantage, disadvantage bool)
 	resultStr += "(" + formula + ")"
 
 	if hasCrit {
-		resultStr += " " + getCriticalHitBanner()
+		resultStr += " " + getCriticalHitBanner(critColor)
 	}
 	if advantage {
 		resultStr += " ADV"

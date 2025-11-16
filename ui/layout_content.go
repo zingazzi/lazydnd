@@ -44,6 +44,7 @@ func (m Model) GetPanelContent(panelType PanelType) string {
 
 // getDiceRollerContent gets content for the dice roller panel
 func getDiceRollerContent(m Model) string {
+	critColor, goodRollColor, mediumRollColor := GetDiceColors(m.Config)
 	return panels.GetDiceRollerContent(
 		m.DiceInput,
 		m.DiceResult,
@@ -54,11 +55,17 @@ func getDiceRollerContent(m Model) string {
 		m.ActivePanel == DiceRoller,
 		m.DiceHistoryMode,
 		m.HistoryIndex,
+		critColor,
+		goodRollColor,
+		mediumRollColor,
 	)
 }
 
 // getInitiativeTrackerContent gets content for the initiative tracker panel
 func getInitiativeTrackerContent(m Model) string {
+	healthyColor, mediumColor, criticalColor, tempHPColor := GetHPColors(m.Config)
+	monsterNameColor, playerNameColor := GetInitiativeNameColors(m.Config)
+	textColor := GetTextColor(m.Config)
 	return panels.GetInitiativeTrackerContent(
 		m.InitiativeList,
 		m.InitiativeInput,
@@ -74,6 +81,13 @@ func getInitiativeTrackerContent(m Model) string {
 		m.MultiTargetMode,
 		m.SelectedTargets,
 		m.Config.InitiativeTracker.RoundCounter,
+		healthyColor,
+		mediumColor,
+		criticalColor,
+		tempHPColor,
+		monsterNameColor,
+		playerNameColor,
+		textColor,
 	)
 }
 

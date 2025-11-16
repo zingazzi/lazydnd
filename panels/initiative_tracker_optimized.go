@@ -40,6 +40,7 @@ func GetOptimizedInitiativeContent(
 	multiTargetMode bool,
 	selectedTargets map[int]bool,
 	config InitiativeRenderConfig,
+	healthyColor, mediumColor, lowColor, criticalColor, tempHPColor string,
 ) string {
 	var content strings.Builder
 	content.Grow(2048) // Pre-allocate reasonable buffer
@@ -67,8 +68,8 @@ func GetOptimizedInitiativeContent(
 	if initiativeList != nil {
 		listStr := fmt.Sprintf("%+v", initiativeList)
 		if listStr != "[]" && listStr != "<nil>" {
-			renderInitiativeList(&content, listStr, selectedEntry, listMode, currentTurn,
-				multiTargetMode, selectedTargets, config)
+		renderInitiativeList(&content, listStr, selectedEntry, listMode, currentTurn,
+			multiTargetMode, selectedTargets, config, healthyColor, mediumColor, lowColor, criticalColor, tempHPColor)
 		} else {
 			renderEmptyList(&content)
 		}
@@ -327,6 +328,7 @@ func renderInitiativeList(
 	multiTargetMode bool,
 	selectedTargets map[int]bool,
 	config InitiativeRenderConfig,
+	healthyColor, mediumColor, lowColor, criticalColor, tempHPColor string,
 ) {
 	content.WriteString("Initiative Order:\n\n")
 
@@ -384,7 +386,7 @@ func renderInitiativeList(
 
 	// Render visible entries
 	for i := startIdx; i < endIdx; i++ {
-		renderEntry(content, entries[i], i, selectedEntry, listMode, currentTurn, multiTargetMode, selectedTargets)
+		renderEntry(content, entries[i], i, selectedEntry, listMode, currentTurn, multiTargetMode, selectedTargets, healthyColor, mediumColor, lowColor, criticalColor, tempHPColor)
 	}
 
 	// Bottom scroll indicator
@@ -403,6 +405,7 @@ func renderEntry(
 	currentTurn int,
 	multiTargetMode bool,
 	selectedTargets map[int]bool,
+	healthyColor, mediumColor, lowColor, criticalColor, tempHPColor string,
 ) {
 	// Checkbox for multi-target mode
 	if multiTargetMode {
@@ -426,7 +429,7 @@ func renderEntry(
 	// Type-specific info
 	if entry.Type == "monster" && entry.MaxHP > 0 {
 		// Add colored HP
-		coloredHP := getColoredHP(entry.HP, entry.MaxHP)
+		coloredHP := getColoredHP(entry.HP, entry.MaxHP, healthyColor, mediumColor, criticalColor)
 		content.WriteString(", ")
 		content.WriteString(coloredHP)
 	}

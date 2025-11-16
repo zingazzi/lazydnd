@@ -17,7 +17,8 @@ import (
 
 // getColoredHP returns HP text with color coding based on percentage
 // Returns a styled string like "HP: 7/10" with appropriate color
-func getColoredHP(hp, maxHP int) string {
+// Thresholds: >50% = grey, ≤50% and >20% = orange, ≤20% = red
+func getColoredHP(hp, maxHP int, healthyColor, mediumColor, criticalColor string) string {
 	if maxHP <= 0 {
 		return ""
 	}
@@ -31,38 +32,36 @@ func getColoredHP(hp, maxHP int) string {
 		percentage = 100
 	}
 
-	// Color code based on percentage (TView ANSI format: using \x1b)
+	// Color code based on percentage (TView format: [color]text[white])
 	hpText := fmt.Sprintf("HP: %d/%d", hp, maxHP)
-	if percentage <= 25 {
-		return "\x1b[91m" + hpText + "\x1b[0m" // Red for critical (≤25%)
+	if percentage <= 20 {
+		return criticalColor + hpText + "[white]" // Critical (≤20%) - red
 	} else if percentage <= 50 {
-		return "\x1b[93m" + hpText + "\x1b[0m" // Yellow for low (26-50%)
-	} else if percentage <= 75 {
-		return "\x1b[33m" + hpText + "\x1b[0m" // Orange/yellow for medium (51-75%)
+		return mediumColor + hpText + "[white]" // Medium (≤50% and >20%) - orange
 	}
-	return "\x1b[92m" + hpText + "\x1b[0m" // Green for healthy (>75%)
+	return healthyColor + hpText + "[white]" // Healthy (>50%) - grey
 }
 
 // getColoredHPWithTemp returns HP text with temp HP in cyan
 // Returns a styled string like "HP: 7/10 +5" with appropriate colors
-func getColoredHPWithTemp(hp, maxHP, tempHP int) string {
+func getColoredHPWithTemp(hp, maxHP, tempHP int, healthyColor, mediumColor, criticalColor, tempHPColor string) string {
 	if maxHP <= 0 {
 		return ""
 	}
 
 	// Get the colored HP part
-	hpPart := getColoredHP(hp, maxHP)
+	hpPart := getColoredHP(hp, maxHP, healthyColor, mediumColor, criticalColor)
 
-	// Add temp HP in cyan if present
+	// Add temp HP in configured color if present
 	if tempHP > 0 {
-		hpPart += " \x1b[96m+" + fmt.Sprintf("%d", tempHP) + "\x1b[0m" // Cyan for temp HP
+		hpPart += " " + tempHPColor + "+" + fmt.Sprintf("%d", tempHP) + "[white]" // Temp HP color
 	}
 
 	return hpPart
 }
 
 // GetInitiativeTrackerContent returns the content for the initiative tracker panel
-func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool, showRoundCounter bool) string {
+func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool, showRoundCounter bool, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor, playerNameColor, textColor string) string {
 	var contentLines []string
 
 	// Removed instruction text for cleaner interface
@@ -86,7 +85,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 
 		roundInfo := fmt.Sprintf("⚔️  Round %d / %s", roundCounter, timeStr)
 		contentLines = append(contentLines, "")
-		contentLines = append(contentLines, roundInfo)
+		contentLines = append(contentLines, textColor+roundInfo+"[white]")
 	}
 
 
@@ -145,7 +144,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 		listStr := fmt.Sprintf("%+v", initiativeList)
 
 		if listStr != "[]" && listStr != "<nil>" {
-			contentLines = append(contentLines, "Initiative Order:")
+			contentLines = append(contentLines, textColor+"Initiative Order:[white]")
 			contentLines = append(contentLines, "")
 
 			// Better parsing approach - handle the slice format properly
@@ -384,11 +383,13 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 
 					if entry.Type == "player" {
+						// Color player names green
+						coloredName := playerNameColor + entry.Name + "[white]"
 						// Format player line with AC if available
 						if entry.AC != "" && entry.AC != "0" {
-							line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, entry.AC, conditionIcons)
+							line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, entry.AC, conditionIcons)
 						} else {
-							line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, conditionIcons)
+							line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, conditionIcons)
 						}
 						// Apply selection marker (styling handled by TView)
 						if listMode && selectedEntry == i {
@@ -410,7 +411,7 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					if entry.TempHP != "" {
 						tempHPInt, _ = strconv.Atoi(entry.TempHP)
 					}
-					coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt)
+					coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt, healthyColor, mediumColor, criticalColor, tempHPColor)
 
 					// Get reaction indicator
 					reactionIcon := ""
@@ -438,9 +439,10 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 					}
 
 					// Format line with colored HP and legendary counter
-					displayName := entry.Name + legendaryCounter
+					// Color monster names red
+					coloredName := monsterNameColor + entry.Name + "[white]" + legendaryCounter
 					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
-							checkbox, turnMarker, i+1, displayName, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
+							checkbox, turnMarker, i+1, coloredName, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
 
 					// Apply selection marker (styling handled by TView)
 					if listMode && selectedEntry == i {
@@ -455,7 +457,9 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 							reactionIcon = " [✓]" // Reaction available
 						}
 
-					line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, entry.Name, entry.Initiative, reactionIcon, conditionIcons)
+					// Color player names green
+					coloredName := playerNameColor + entry.Name + "[white]"
+					line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, reactionIcon, conditionIcons)
 					if listMode && selectedEntry == i {
 						line = "► " + line
 					}
