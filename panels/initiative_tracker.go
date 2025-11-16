@@ -383,11 +383,8 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 
 					if entry.Type == "player" {
 						// Color player names green
-						// Use config color if provided, otherwise default to green
-						if playerNameColor == "" {
-							playerNameColor = "[green]"
-						}
-						coloredName := playerNameColor + entry.Name + "[white]"
+						// Force green for testing - ensure it's always green
+						coloredName := "[green]" + entry.Name + "[white]"
 						// Format player line with AC if available
 						if entry.AC != "" && entry.AC != "0" {
 							line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, entry.AC, conditionIcons)
@@ -465,11 +462,8 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 						}
 
 					// Color player names green
-					// Use config color if provided, otherwise default to green
-					if playerNameColor == "" {
-						playerNameColor = "[green]"
-					}
-					coloredName := playerNameColor + entry.Name + "[white]"
+					// Force green for testing - ensure it's always green
+					coloredName := "[green]" + entry.Name + "[white]"
 					line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, reactionIcon, conditionIcons)
 					if listMode && selectedEntry == i {
 						line = "► " + line

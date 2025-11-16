@@ -92,17 +92,25 @@ func (app *App) setupHandlers() {
 	app.application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// Check if a modal is active
 		if app.currentModal != nil {
-			// Special handling for action popup (TextView) - needs handler chain access
-			if app.model.ShowActionPopup {
-				// For action popup, only intercept Esc to close
+			// Special handling for TextView-based popups (action, load, condition) - need handler chain access
+			if app.model.ShowActionPopup || app.model.ShowLoadPopup || app.model.ShowConditionPopup {
+				// For TextView-based popups, only intercept Esc to close
 				// Let handler chain process arrow keys, Enter, etc.
 				key := event.Key()
 				if key == tcell.KeyEscape {
-					app.model.ShowActionPopup = false
+					if app.model.ShowActionPopup {
+						app.model.ShowActionPopup = false
+					}
+					if app.model.ShowLoadPopup {
+						app.model.ShowLoadPopup = false
+					}
+					if app.model.ShowConditionPopup {
+						app.model.ShowConditionPopup = false
+					}
 					app.updateModals()
 					return nil
 				}
-				// Pass through to handler chain for action selection
+				// Pass through to handler chain for navigation/selection
 			} else {
 				// For other modals (with buttons), only intercept Esc to close
 				// Let the modal handle Tab (button navigation), Enter (button selection), etc.
@@ -123,7 +131,7 @@ func (app *App) setupHandlers() {
 		rune := event.Rune()
 
 		// Allow scrolling keys to pass through to TextViews for scrolling
-		// For action popup: arrow keys are used for navigation (via handler chain), but PageUp/Down can scroll
+		// For action/load popups: arrow keys are used for navigation (via handler chain), but PageUp/Down can scroll
 		// For panels: all scroll keys should pass through to the active panel's TextView
 		scrollKeys := []tcell.Key{
 			tcell.KeyPgUp, tcell.KeyPgDn,
@@ -133,11 +141,13 @@ func (app *App) setupHandlers() {
 
 		// Check if we should allow Up/Down for scrolling
 		// Don't allow Up/Down for scrolling if:
-		// - Action popup is active (arrow keys navigate actions)
+		// - Action/Load/Condition popups are active (arrow keys navigate lists)
 		// - Monster/Spell search mode is active (arrow keys navigate suggestions)
 		// - Initiative input/edit mode (arrow keys have other functions)
 		// - Initiative list mode is active (arrow keys navigate list)
 		allowUpDownForScrolling := !app.model.ShowActionPopup &&
+			!app.model.ShowLoadPopup &&
+			!app.model.ShowConditionPopup &&
 			!app.model.MonsterSearchMode &&
 			!app.model.SpellSearchMode &&
 			!app.model.MonsterCRFilterMode &&
@@ -152,7 +162,7 @@ func (app *App) setupHandlers() {
 		for _, scrollKey := range scrollKeys {
 			if key == scrollKey {
 				// For panels, set focus on the active panel's TextView and pass event through
-				if !app.model.ShowActionPopup {
+				if !app.model.ShowActionPopup && !app.model.ShowLoadPopup && !app.model.ShowConditionPopup {
 					if panel, ok := app.panels[app.model.ActivePanel]; ok {
 						if textView, ok := panel.(*tview.TextView); ok {
 							// Set focus on the TextView so it can handle scrolling
@@ -162,7 +172,7 @@ func (app *App) setupHandlers() {
 						}
 					}
 				} else {
-					// For action popup, pass through PageUp/Down for scrolling
+					// For action/load/condition popups, pass through PageUp/Down for scrolling
 					// Arrow keys will be handled by handler chain for navigation
 					return event
 				}
@@ -512,7 +522,7 @@ func (app *App) updateModals() {
 	var modalName string
 
 	if app.model.ShowLoadPopup {
-		modal = app.createLoadModal()
+		modal = app.createLoadTextView()
 		modalName = "load"
 	} else if app.model.ShowActionPopup {
 		modal = app.createActionTextView()
@@ -530,7 +540,7 @@ func (app *App) updateModals() {
 		modal = app.createMultiTargetModal()
 		modalName = "multitarget"
 	} else if app.model.ShowConditionPopup {
-		modal = app.createConditionModal()
+		modal = app.createConditionTextView()
 		modalName = "condition"
 	} else if app.model.ShowCastSpellPrompt {
 		modal = app.createCastSpellModal()
@@ -554,9 +564,9 @@ func (app *App) updateModals() {
 		if app.currentModal != modal {
 			// New modal to show
 			app.currentModal = modal
-			// For action popup, use fullScreen=false to allow custom sizing via Flex
+			// For action, load, and condition popups, use fullScreen=false to allow custom sizing via Flex
 			// For other modals, use fullScreen=true (default modal behavior)
-			fullScreen := modalName != "action"
+			fullScreen := modalName != "action" && modalName != "load" && modalName != "condition"
 			app.pages.AddPage(modalName, modal, true, fullScreen)
 			app.pages.SwitchToPage(modalName)
 			app.application.SetFocus(modal)
@@ -571,26 +581,43 @@ func (app *App) updateModals() {
 	}
 }
 
-// createLoadModal creates a modal for the load popup
-func (app *App) createLoadModal() *tview.Modal {
+// createLoadTextView creates a TextView widget for the load popup (allows keyboard navigation)
+func (app *App) createLoadTextView() tview.Primitive {
 	content := ui.RenderLoadPopup(*app.model)
 
 	// Wrap content with grey color tag for TView
 	coloredContent := "[grey]" + content + "[white]"
 
-	modal := tview.NewModal().
-		SetText(coloredContent).
-		SetBackgroundColor(tcell.ColorBlack).
-		AddButtons([]string{"Load", "Cancel"}).
-		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			if buttonLabel == "Load" {
-				// Handle load action - this will be handled by input handler
-			}
-			app.model.ShowLoadPopup = false
-			app.updateModals()
-		})
+	colorConverter := NewColorConverter(app.model.Config)
 
-	return modal
+	loadView := tview.NewTextView()
+	loadView.SetDynamicColors(true).
+		SetWrap(true).
+		SetScrollable(true). // Enable scrolling for long lists
+		SetTextAlign(tview.AlignLeft)
+	loadView.SetBorder(true).
+		SetTitle(" Load Campaign ").
+		SetBackgroundColor(tcell.ColorBlack).
+		SetBorderColor(colorConverter.PrimaryColor()).
+		SetTitleColor(colorConverter.PrimaryColor())
+	loadView.SetText(coloredContent)
+
+	// Don't set SetInputCapture on the TextView - let application-level handler process all input
+	// This allows the handler chain to process arrow keys, Enter, Esc, etc.
+
+	// Wrap in a Flex container to center it and size it appropriately
+	flex := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(nil, 0, 1, false). // Top spacer (flexible)
+		AddItem(
+			tview.NewFlex().
+				AddItem(nil, 0, 1, false). // Left spacer (flexible)
+				AddItem(loadView, 0, 1, false). // Load view (flexible, will size to content)
+				AddItem(nil, 0, 1, false), // Right spacer (flexible)
+			0, 1, false). // Center row (flexible height)
+		AddItem(nil, 0, 1, false) // Bottom spacer (flexible)
+
+	return flex
 }
 
 // createActionTextView creates a TextView widget for the action popup (allows keyboard navigation)
@@ -733,26 +760,44 @@ func (app *App) createMultiTargetModal() *tview.Modal {
 	return modal
 }
 
-// createConditionModal creates a modal for the condition popup
-func (app *App) createConditionModal() *tview.Modal {
+// createConditionTextView creates a TextView widget for the condition popup (allows keyboard navigation)
+func (app *App) createConditionTextView() tview.Primitive {
 	content := ui.RenderConditionPopup(*app.model)
 
 	// Wrap content with grey color tag for TView
 	coloredContent := "[grey]" + content + "[white]"
 
-	modal := tview.NewModal().
-		SetText(coloredContent).
-		SetBackgroundColor(tcell.ColorBlack).
-		AddButtons([]string{"Add", "Cancel"}).
-		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			if buttonLabel == "Add" {
-				// Handle condition addition - this will be handled by input handler
-			}
-			app.model.ShowConditionPopup = false
-			app.updateModals()
-		})
+	colorConverter := NewColorConverter(app.model.Config)
 
-	return modal
+	conditionView := tview.NewTextView()
+	conditionView.SetDynamicColors(true).
+		SetWrap(true).
+		SetScrollable(true). // Enable scrolling for long lists
+		SetTextAlign(tview.AlignLeft)
+	conditionView.SetBorder(true).
+		SetTitle(" Conditions ").
+		SetBackgroundColor(tcell.ColorBlack).
+		SetBorderColor(colorConverter.PrimaryColor()).
+		SetTitleColor(colorConverter.PrimaryColor())
+	conditionView.SetText(coloredContent)
+
+	// Don't set SetInputCapture on the TextView - let application-level handler process all input
+	// This allows the handler chain to process arrow keys, Enter, Esc, etc.
+
+	// Wrap in a Flex container to center it and make it larger
+	// Make it take up more of the screen (about 70% height, 60% width)
+	flex := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(nil, 0, 1, false). // Top spacer (flexible, smaller)
+		AddItem(
+			tview.NewFlex().
+				AddItem(nil, 0, 2, false). // Left spacer (flexible)
+				AddItem(conditionView, 0, 3, false). // Condition view (larger, 3x weight for width)
+				AddItem(nil, 0, 2, false), // Right spacer (flexible)
+			0, 4, false). // Center row (larger, 4x weight for more height)
+		AddItem(nil, 0, 1, false) // Bottom spacer (flexible, smaller)
+
+	return flex
 }
 
 // createCastSpellModal creates a modal for the cast spell popup
