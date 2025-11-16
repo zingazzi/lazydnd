@@ -90,20 +90,22 @@ func (app *App) setupLayout() {
 func (app *App) setupHandlers() {
 	// Set input capture on the application level so it works for both grid and modals
 	app.application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// Check if a modal is active - if so, let the modal handle input
-		// But we still need to process some keys (like Esc) to close modals
+		// Check if a modal is active - if so, let the modal handle its own input
 		if app.currentModal != nil {
-			// For modals, we need to handle Esc and Enter specially
+			// For modals, only intercept Esc to close
+			// Let the modal handle Tab (button navigation), Enter (button selection), etc.
 			key := event.Key()
 			if key == tcell.KeyEscape {
 				// Close current modal
 				app.closeCurrentModal()
 				return nil
 			}
-			// Let modal handle other input
-			// But also process through handler chain for popup-specific input
+			// Pass through all other input to the modal so it can handle button navigation
+			// Don't process through handler chain when modal is active
+			return event
 		}
 
+		// No modal active - process input normally
 		// Convert TCell event to handler
 		key := event.Key()
 		rune := event.Rune()
@@ -373,9 +375,17 @@ func (app *App) stylePanel(textView *tview.TextView, panelType ui.PanelType, isA
 	// Get colors from config
 	colorConverter := NewColorConverter(app.model.Config)
 
-	// All panels use primary color for border (from config)
-	borderColor := colorConverter.PrimaryColor()
-	titleColor := colorConverter.PrimaryColor()
+	// Set border colors based on active state
+	var borderColor, titleColor tcell.Color
+	if isActive {
+		// Active panel: use primary color (violet by default)
+		borderColor = colorConverter.PrimaryColor()
+		titleColor = colorConverter.PrimaryColor()
+	} else {
+		// Inactive panel: use border color (light grey by default)
+		borderColor = colorConverter.BorderColor()
+		titleColor = colorConverter.BorderColor()
+	}
 
 	// Set panel background to black
 	// Note: Text color is set via color tags in content, not via SetTextColor
@@ -508,6 +518,7 @@ func (app *App) createLoadModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Load", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Load" {
@@ -526,6 +537,7 @@ func (app *App) createActionModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(content).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Select", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Select" {
@@ -544,6 +556,7 @@ func (app *App) createSaveModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(content).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Save", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Save" {
@@ -599,6 +612,7 @@ func (app *App) createQuickHPModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(content).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Apply", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Apply" {
@@ -620,6 +634,7 @@ func (app *App) createMultiTargetModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Apply", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Apply" {
@@ -641,6 +656,7 @@ func (app *App) createConditionModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Add", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Add" {
@@ -662,6 +678,7 @@ func (app *App) createCastSpellModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Cast", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Cast" {
@@ -683,6 +700,7 @@ func (app *App) createSavingThrowModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Roll", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Roll" {
@@ -704,6 +722,7 @@ func (app *App) createEncounterPromptModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Save", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Save" {
@@ -725,6 +744,7 @@ func (app *App) createEncounterGeneratorModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Generate", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Generate" {
@@ -746,6 +766,7 @@ func (app *App) createRenameModal() *tview.Modal {
 
 	modal := tview.NewModal().
 		SetText(coloredContent).
+		SetBackgroundColor(tcell.ColorBlack).
 		AddButtons([]string{"Rename", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Rename" {
