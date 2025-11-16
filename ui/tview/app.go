@@ -90,25 +90,82 @@ func (app *App) setupLayout() {
 func (app *App) setupHandlers() {
 	// Set input capture on the application level so it works for both grid and modals
 	app.application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// Check if a modal is active - if so, let the modal handle its own input
+		// Check if a modal is active
 		if app.currentModal != nil {
-			// For modals, only intercept Esc to close
-			// Let the modal handle Tab (button navigation), Enter (button selection), etc.
-			key := event.Key()
-			if key == tcell.KeyEscape {
-				// Close current modal
-				app.closeCurrentModal()
-				return nil
+			// Special handling for action popup (TextView) - needs handler chain access
+			if app.model.ShowActionPopup {
+				// For action popup, only intercept Esc to close
+				// Let handler chain process arrow keys, Enter, etc.
+				key := event.Key()
+				if key == tcell.KeyEscape {
+					app.model.ShowActionPopup = false
+					app.updateModals()
+					return nil
+				}
+				// Pass through to handler chain for action selection
+			} else {
+				// For other modals (with buttons), only intercept Esc to close
+				// Let the modal handle Tab (button navigation), Enter (button selection), etc.
+				key := event.Key()
+				if key == tcell.KeyEscape {
+					// Close current modal
+					app.closeCurrentModal()
+					return nil
+				}
+				// Pass through all other input to the modal so it can handle button navigation
+				// Don't process through handler chain when modal is active
+				return event
 			}
-			// Pass through all other input to the modal so it can handle button navigation
-			// Don't process through handler chain when modal is active
-			return event
 		}
 
-		// No modal active - process input normally
-		// Convert TCell event to handler
+		// No modal active, or action popup (which needs handler chain) - process input normally
 		key := event.Key()
 		rune := event.Rune()
+
+		// Allow scrolling keys to pass through to TextViews for scrolling
+		// For action popup: arrow keys are used for navigation (via handler chain), but PageUp/Down can scroll
+		// For panels: all scroll keys should pass through to the active panel's TextView
+		scrollKeys := []tcell.Key{
+			tcell.KeyPgUp, tcell.KeyPgDn,
+			tcell.KeyHome, tcell.KeyEnd,
+			tcell.KeyCtrlF, tcell.KeyCtrlB,
+		}
+
+		// Check if we should allow Up/Down for scrolling
+		// Don't allow Up/Down for scrolling if:
+		// - Action popup is active (arrow keys navigate actions)
+		// - Monster/Spell search mode is active (arrow keys navigate suggestions)
+		// - Initiative input/edit mode (arrow keys have other functions)
+		allowUpDownForScrolling := !app.model.ShowActionPopup &&
+			!app.model.MonsterSearchMode &&
+			!app.model.SpellSearchMode &&
+			!app.model.MonsterCRFilterMode &&
+			!app.model.InitiativeInputMode &&
+			!app.model.InitiativeEditMode
+
+		if allowUpDownForScrolling {
+			scrollKeys = append(scrollKeys, tcell.KeyUp, tcell.KeyDown)
+		}
+
+		for _, scrollKey := range scrollKeys {
+			if key == scrollKey {
+				// For panels, set focus on the active panel's TextView and pass event through
+				if !app.model.ShowActionPopup {
+					if panel, ok := app.panels[app.model.ActivePanel]; ok {
+						if textView, ok := panel.(*tview.TextView); ok {
+							// Set focus on the TextView so it can handle scrolling
+							app.application.SetFocus(textView)
+							// Pass the event through to the TextView
+							return event
+						}
+					}
+				} else {
+					// For action popup, pass through PageUp/Down for scrolling
+					// Arrow keys will be handled by handler chain for navigation
+					return event
+				}
+			}
+		}
 
 		// Route to appropriate handler
 		handled, shouldQuit := app.handleInput(key, rune)
@@ -456,7 +513,7 @@ func (app *App) updateModals() {
 		modal = app.createLoadModal()
 		modalName = "load"
 	} else if app.model.ShowActionPopup {
-		modal = app.createActionModal()
+		modal = app.createActionTextView()
 		modalName = "action"
 	} else if app.model.ShowSavePopup {
 		modal = app.createSaveModal()
@@ -495,7 +552,10 @@ func (app *App) updateModals() {
 		if app.currentModal != modal {
 			// New modal to show
 			app.currentModal = modal
-			app.pages.AddPage(modalName, modal, true, true)
+			// For action popup, use fullScreen=false to allow custom sizing via Flex
+			// For other modals, use fullScreen=true (default modal behavior)
+			fullScreen := modalName != "action"
+			app.pages.AddPage(modalName, modal, true, fullScreen)
 			app.pages.SwitchToPage(modalName)
 			app.application.SetFocus(modal)
 		}
@@ -531,23 +591,47 @@ func (app *App) createLoadModal() *tview.Modal {
 	return modal
 }
 
-// createActionModal creates a modal for the action popup
-func (app *App) createActionModal() *tview.Modal {
+// createActionTextView creates a TextView widget for the action popup (allows keyboard navigation)
+// Wrapped in a Grid to center it and make it a reasonable size (not 100%)
+func (app *App) createActionTextView() tview.Primitive {
 	content := ui.RenderActionPopup(*app.model)
 
-	modal := tview.NewModal().
-		SetText(content).
-		SetBackgroundColor(tcell.ColorBlack).
-		AddButtons([]string{"Select", "Cancel"}).
-		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			if buttonLabel == "Select" {
-				// Handle action selection - this will be handled by input handler
-			}
-			app.model.ShowActionPopup = false
-			app.updateModals()
-		})
+	// Wrap content with grey color tag for TView
+	coloredContent := "[grey]" + content + "[white]"
 
-	return modal
+	colorConverter := NewColorConverter(app.model.Config)
+
+	actionView := tview.NewTextView()
+	actionView.SetDynamicColors(true).
+		SetWrap(true).
+		SetScrollable(true). // Enable scrolling for long action lists
+		SetTextAlign(tview.AlignLeft)
+	actionView.SetBorder(true).
+		SetTitle(" Monster Actions ").
+		SetBackgroundColor(tcell.ColorBlack).
+		SetBorderColor(colorConverter.PrimaryColor()).
+		SetTitleColor(colorConverter.PrimaryColor())
+
+	// Set the action content with grey color
+	actionView.SetText(coloredContent)
+
+	// Don't set SetInputCapture on the TextView - let application-level handler process all input
+	// This allows the handler chain to process arrow keys, Enter, etc.
+
+	// Wrap in a Flex container to center it and size it appropriately
+	// This creates a centered modal that's about 60% width and 70% height
+	flex := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(nil, 0, 1, false). // Top spacer (flexible)
+		AddItem(
+			tview.NewFlex().
+				AddItem(nil, 0, 1, false). // Left spacer (flexible)
+				AddItem(actionView, 0, 1, false). // Action view (flexible, will size to content)
+				AddItem(nil, 0, 1, false), // Right spacer (flexible)
+			0, 1, false). // Center row (flexible height)
+		AddItem(nil, 0, 1, false) // Bottom spacer (flexible)
+
+	return flex
 }
 
 // createSaveModal creates a modal for the save popup

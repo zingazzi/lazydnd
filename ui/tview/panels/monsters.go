@@ -12,7 +12,8 @@ func NewMonstersPanel(model *ui.Model) *tview.TextView {
 	panel := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWrap(true).
-		SetWordWrap(true)
+		SetWordWrap(true).
+		SetScrollable(true) // Enable scrolling for long content
 	panel.SetBorder(true)
 
 	// Set initial content
