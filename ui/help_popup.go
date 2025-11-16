@@ -14,6 +14,11 @@ func (m Model) renderHelpPopupOverlay(mainView string) string {
 	return mainView
 }
 
+// RenderHelpPopup renders the help popup content in 2 columns (exported for TView)
+func RenderHelpPopup(m Model) string {
+	return m.buildHelpContent()
+}
+
 // buildHelpContent builds the help popup content in 2 columns
 func (m Model) buildHelpContent() string {
 	var content strings.Builder
