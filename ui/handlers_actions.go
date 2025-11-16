@@ -13,12 +13,12 @@ import (
 // handleR handles the 'r' key
 func handleR(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "r"), nil
 	}
 
 	// Check if this is Shift+R (capital R) for reaction toggle
-	isShiftR := msg.String() == "R"
+	isShiftR := msg.String() == KeyShiftR
 
 	if isShiftR {
 		// Toggle reaction status in initiative tracker
@@ -80,7 +80,7 @@ func rerollDiceCommand(m Model) Model {
 // handleP handles the 'p' key
 func handleP(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "p"), nil
 	}
 
@@ -97,7 +97,7 @@ func handleP(m Model, msg KeyMsg) (Model, Cmd) {
 // handleM handles the 'm' key
 func handleM(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "m"), nil
 	}
 
@@ -114,7 +114,7 @@ func handleM(m Model, msg KeyMsg) (Model, Cmd) {
 // handleE handles the 'e' key
 func handleE(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "e"), nil
 	}
 
@@ -132,7 +132,7 @@ func handleE(m Model, msg KeyMsg) (Model, Cmd) {
 // handleS handles the 's' key
 func handleS(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "s"), nil
 	}
 
@@ -159,7 +159,7 @@ func handleI(m Model, msg KeyMsg) (Model, Cmd) {
 	}
 
 	// Handle search mode input
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "i"), nil
 	}
 
@@ -188,7 +188,7 @@ func handleH(m Model, msg KeyMsg) (Model, Cmd) {
 	}
 
 	// Handle search mode input
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "h"), nil
 	}
 
@@ -201,7 +201,7 @@ func handleH(m Model, msg KeyMsg) (Model, Cmd) {
 	}
 
 	// Check if this is Shift+H (capital H) for max HP editing
-	isShiftH := msg.String() == "H"
+	isShiftH := msg.String() == KeyShiftH
 
 	// Edit HP or Max HP in list mode (for both monsters and players)
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
@@ -362,7 +362,7 @@ func handleL(m Model, msg KeyMsg) (Model, Cmd) {
 	}
 
 	// Check if this is Shift+L (capital L) for restoring legendary action
-	isShiftL := msg.String() == "L"
+	isShiftL := msg.String() == KeyShiftL
 	originalIndex := findOriginalIndex(m, m.SelectedEntry)
 	if originalIndex < 0 {
 		return m, nil

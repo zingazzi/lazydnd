@@ -6,13 +6,20 @@ import (
 )
 
 // SetError sets an error message to display in the UI
+// Uses the Global state struct for error display
 func SetError(m *Model, message string) {
+	m.Global.ErrorMessage = message
+	m.Global.ErrorVisible = true
+	// Keep legacy fields in sync during migration
 	m.ErrorMessage = message
 	m.ErrorVisible = true
 }
 
 // ClearError clears the current error message
 func ClearError(m *Model) {
+	m.Global.ErrorMessage = ""
+	m.Global.ErrorVisible = false
+	// Keep legacy fields in sync during migration
 	m.ErrorMessage = ""
 	m.ErrorVisible = false
 }
@@ -20,7 +27,11 @@ func ClearError(m *Model) {
 // SetSuccess displays a success message (uses the error display system with green text)
 func SetSuccess(m *Model, message string) {
 	// We'll use the error message system but with a success prefix
-	m.ErrorMessage = "✓ " + message
+	successMsg := "✓ " + message
+	m.Global.ErrorMessage = successMsg
+	m.Global.ErrorVisible = true
+	// Keep legacy fields in sync during migration
+	m.ErrorMessage = successMsg
 	m.ErrorVisible = true
 }
 

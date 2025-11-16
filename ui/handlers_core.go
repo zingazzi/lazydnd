@@ -5,76 +5,77 @@ package ui
 type KeyHandler func(Model, KeyMsg) (Model, Cmd)
 
 // keyHandlers maps key strings to their handler functions
+// Uses key constants for type safety
 var keyHandlers = map[string]KeyHandler{
 	// Quit handlers
-	"ctrl+c": handleQuit,
-	"q":      handleQuit,
+	KeyCtrlC: handleQuit,
+	KeyQuit:  handleQuit,
 
 	// Navigation handlers
-	"tab":       handleTab,
-	"shift+tab": handleShiftTab,
-	"up":        handleUp,
-	"down":      handleDown,
+	KeyTab:      handleTab,
+	KeyShiftTab: handleShiftTab,
+	KeyUp:       handleUp,
+	KeyDown:     handleDown,
 
 	// Function key handlers
-	"f1": handleF1,
-	"f2": handleF2,
-	"f3": handleF3,
-	"f4": handleF4,
+	KeyF1: handleF1,
+	KeyF2: handleF2,
+	KeyF3: handleF3,
+	KeyF4: handleF4,
 
 	// Number key handlers
-	"1": handleNumber1,
-	"2": handleNumber2,
-	"3": handleNumber3,
-	"4": handleNumber4,
-	"5": handleNumber5,
+	Key1: handleNumber1,
+	Key2: handleNumber2,
+	Key3: handleNumber3,
+	Key4: handleNumber4,
+	Key5: handleNumber5,
 
 	// Action handlers
-	"enter":     handleEnter,
-	"esc":       handleEscape,
-	"backspace": handleBackspace,
-	"ctrl+h":    handleBackspace,
-	" ":         handleSpace, // Space key is represented as " " not "space"
+	KeyEnter:     handleEnter,
+	KeyEscape:    handleEscape,
+	KeyBackspace: handleBackspace,
+	KeyCtrlH:     handleBackspace,
+	KeySpace:     handleSpace, // Space key is represented as " " not "space"
 
 	// Letter handlers
-	"r": handleR,
-	"R": handleR, // Shift+R for reaction toggle
-	"p": handleP,
-	"m": handleM,
-	"e": handleE,
-	"i": handleI,
-	"h": handleH,
-	"H": handleH, // Shift+H for max HP editing
-	"k": handleK, // k for AC editing
-	"a": handleA,
-	"d": handleD,
-	"l": handleL,
-	"L": handleL, // Shift+L for restoring legendary actions
-	"c": handleC,
-	"s": handleS,
-	"n": handleNextTurn,
-	"x": handleResetCombat,
-	"v": handleV,
-	"t": handleT,
-	"T": handleT, // Shift+T for temp HP
-	"o": handleO,
-	"f": handleF,
+	KeyR:     handleR,
+	KeyShiftR: handleR, // Shift+R for reaction toggle
+	KeyP:     handleP,
+	KeyM:     handleM,
+	KeyE:     handleE,
+	KeyI:     handleI,
+	KeyH:     handleH,
+	KeyShiftH: handleH, // Shift+H for max HP editing
+	KeyK:     handleK, // k for AC editing
+	KeyA:     handleA,
+	KeyD:     handleD,
+	KeyL:     handleL,
+	KeyShiftL: handleL, // Shift+L for restoring legendary actions
+	KeyC:     handleC,
+	KeyS:     handleS,
+	KeyN:     handleNextTurn,
+	KeyX:     handleResetCombat,
+	KeyV:     handleV,
+	KeyT:     handleT,
+	KeyShiftT: handleT, // Shift+T for temp HP
+	KeyO:     handleO,
+	KeyF:     handleF,
 
 	// Special handlers
-	"?": handleHelp,
-	"+": handleQuickAddHP,
-	"=": handleQuickAddHP,    // = is + without shift
-	"-": handleQuickRemoveHP,
-	"_": handleQuickRemoveHP, // _ is - with shift
+	KeyHelp:       handleHelp,
+	KeyPlus:       handleQuickAddHP,
+	KeyEquals:     handleQuickAddHP,    // = is + without shift
+	KeyMinus:      handleQuickRemoveHP,
+	KeyUnderscore: handleQuickRemoveHP, // _ is - with shift
 
 	// Save/Load handlers
-	"ctrl+s": handleCtrlS,
-	"ctrl+l": handleCtrlL,
-	"ctrl+n": handleCtrlN,
+	KeyCtrlS: handleCtrlS,
+	KeyCtrlL: handleCtrlL,
+	KeyCtrlN: handleCtrlN,
 
 	// Undo/Redo handlers
-	"ctrl+z": handleCtrlZ,
-	"ctrl+y": handleCtrlY,
+	KeyCtrlZ: handleCtrlZ,
+	KeyCtrlY: handleCtrlY,
 }
 
 // HandleNavigation processes navigation-related key presses

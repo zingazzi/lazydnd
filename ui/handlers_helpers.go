@@ -11,8 +11,20 @@ import (
 // ========== INPUT MODE HELPERS ==========
 
 // isInInputMode returns true if any input mode is active
+// Deprecated: Use m.IsInputMode() instead
 func (m Model) isInInputMode() bool {
-	return m.InputMode || m.SpellSearchMode || m.MonsterSearchMode || m.InitiativeInputMode || m.InitiativeEditMode || m.NotesEditMode || m.NotesSearchMode
+	return m.IsInputMode()
+}
+
+// handleIfInputMode checks if the model is in input mode and handles it accordingly.
+// If in input mode, returns the result of handleSearchModeInput.
+// Otherwise, calls the provided handler function.
+// This helper eliminates the common pattern of checking input mode at the start of handlers.
+func handleIfInputMode(m Model, key string, handler func(Model, KeyMsg) (Model, Cmd), msg KeyMsg) (Model, Cmd) {
+	if m.IsInputMode() {
+		return handleSearchModeInput(m, key), nil
+	}
+	return handler(m, msg)
 }
 
 // ========== INITIATIVE PROCESSING ==========

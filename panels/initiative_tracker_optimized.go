@@ -50,7 +50,7 @@ func GetOptimizedInitiativeContent(
 
 	// Round counter section
 	if roundCounter > 0 {
-		renderRoundCounter(&content, roundCounter)
+		renderRoundCounterOptimized(&content, roundCounter)
 	}
 
 	// Separator
@@ -60,7 +60,7 @@ func GetOptimizedInitiativeContent(
 
 	// Input/edit field
 	if inputMode || editMode {
-		renderInputField(&content, inputType, editType, editMode, input, isActive)
+		renderInputFieldOptimized(&content, inputType, editType, editMode, input, isActive)
 		content.WriteString("\n")
 	}
 
@@ -68,7 +68,7 @@ func GetOptimizedInitiativeContent(
 	if initiativeList != nil {
 		listStr := fmt.Sprintf("%+v", initiativeList)
 		if listStr != "[]" && listStr != "<nil>" {
-		renderInitiativeList(&content, listStr, selectedEntry, listMode, currentTurn,
+		renderInitiativeListOptimized(&content, listStr, selectedEntry, listMode, currentTurn,
 			multiTargetMode, selectedTargets, config, healthyColor, mediumColor, lowColor, criticalColor, tempHPColor)
 		} else {
 			renderEmptyList(&content)
@@ -104,8 +104,8 @@ func renderHeader(content *strings.Builder, multiTargetMode bool, selectedTarget
 	}
 }
 
-// renderRoundCounter renders the round counter with time elapsed
-func renderRoundCounter(content *strings.Builder, roundCounter int) {
+// renderRoundCounterOptimized renders the round counter with time elapsed (optimized version)
+func renderRoundCounterOptimized(content *strings.Builder, roundCounter int) {
 	totalSeconds := roundCounter * 6
 	minutes := totalSeconds / 60
 	seconds := totalSeconds % 60
@@ -127,8 +127,8 @@ func renderRoundCounter(content *strings.Builder, roundCounter int) {
 	content.WriteString(timeStr)
 }
 
-// renderInputField renders the input/edit field
-func renderInputField(content *strings.Builder, inputType, editType string, editMode bool, input string, isActive bool) {
+// renderInputFieldOptimized renders the input/edit field (optimized version)
+func renderInputFieldOptimized(content *strings.Builder, inputType, editType string, editMode bool, input string, isActive bool) {
 	var prompt string
 	switch inputType {
 	case "player_name":
@@ -187,7 +187,7 @@ type ParsedInitiativeEntry struct {
 }
 
 // parseInitiativeEntries parses and sorts initiative entries efficiently
-func parseInitiativeEntries(listStr string) []ParsedInitiativeEntry {
+func parseInitiativeEntriesOptimized(listStr string) []ParsedInitiativeEntry {
 	// Remove outer brackets
 	listStr = strings.TrimPrefix(listStr, "[")
 	listStr = strings.TrimSuffix(listStr, "]")
@@ -319,7 +319,7 @@ func extractConditionIcons(entry string) string {
 }
 
 // renderInitiativeList renders the initiative list with optional windowing
-func renderInitiativeList(
+func renderInitiativeListOptimized(
 	content *strings.Builder,
 	listStr string,
 	selectedEntry int,
@@ -333,7 +333,7 @@ func renderInitiativeList(
 	content.WriteString("Initiative Order:\n\n")
 
 	// Parse entries
-	entries := parseInitiativeEntries(listStr)
+	entries := parseInitiativeEntriesOptimized(listStr)
 	if len(entries) == 0 {
 		content.WriteString("No valid entries found")
 		return

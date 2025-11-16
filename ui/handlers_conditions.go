@@ -11,7 +11,7 @@ func handleO(m Model, msg KeyMsg) (Model, Cmd) {
 	LogKeyPress("o", "Open condition manager")
 
 	// Handle search mode input
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "o"), nil
 	}
 

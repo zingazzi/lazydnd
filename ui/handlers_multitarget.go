@@ -8,7 +8,7 @@ import (
 // handleT handles the 't' key to toggle multi-target mode
 func handleT(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "t"), nil
 	}
 
@@ -18,7 +18,7 @@ func handleT(m Model, msg KeyMsg) (Model, Cmd) {
 	}
 
 	// Check if this is Shift+T (capital T) for temp HP
-	isShiftT := msg.String() == "T"
+	isShiftT := msg.String() == KeyShiftT
 	if isShiftT && m.InitiativeListMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 && m.InitiativeList[originalIndex].Type == "monster" {

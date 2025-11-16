@@ -8,7 +8,7 @@ import (
 // handleF toggles CR filter mode in monster panel OR level filter in spells panel
 func handleF(m Model, msg KeyMsg) (Model, Cmd) {
 	// Handle search mode input first
-	if m.isInInputMode() {
+	if m.IsInputMode() {
 		return handleSearchModeInput(m, "f"), nil
 	}
 

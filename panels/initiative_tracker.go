@@ -59,425 +59,26 @@ func getColoredHPWithTemp(hp, maxHP, tempHP int, healthyColor, mediumColor, crit
 	return hpPart
 }
 
-// GetInitiativeTrackerContent returns the content for the initiative tracker panel
+// GetInitiativeTrackerContent returns the formatted content for the initiative tracker panel.
+// It renders the round counter, input fields, and the sorted initiative list with all entries.
+// The function delegates to smaller helper functions for each rendering component.
 func GetInitiativeTrackerContent(initiativeList interface{}, input string, inputMode bool, inputType string, selectedEntry int, isActive bool, listMode bool, editMode bool, editType string, currentTurn int, roundCounter int, multiTargetMode bool, selectedTargets map[int]bool, showRoundCounter bool, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor, playerNameColor, textColor string) string {
 	var contentLines []string
 
-	// Removed instruction text for cleaner interface
-
-	// Show round counter and elapsed time if combat has started (if enabled in config)
+	// Render round counter if enabled
 	if showRoundCounter && roundCounter > 0 {
-		totalSeconds := roundCounter * 6
-		minutes := totalSeconds / 60
-		seconds := totalSeconds % 60
-
-		var timeStr string
-		if minutes > 0 {
-			if seconds > 0 {
-				timeStr = fmt.Sprintf("%d minute%s %d second%s", minutes, pluralize(minutes), seconds, pluralize(seconds))
-			} else {
-				timeStr = fmt.Sprintf("%d minute%s", minutes, pluralize(minutes))
-			}
-		} else {
-			timeStr = fmt.Sprintf("%d second%s", seconds, pluralize(seconds))
-		}
-
-		roundInfo := fmt.Sprintf("⚔️  Round %d / %s", roundCounter, timeStr)
-		contentLines = append(contentLines, "")
-		contentLines = append(contentLines, textColor+roundInfo+"[white]")
+		contentLines = append(contentLines, renderRoundCounter(roundCounter, textColor)...)
 	}
 
-
-	// Input field (when adding entries or editing)
+	// Render input field if in input or edit mode
 	if inputMode || editMode {
-		var prompt string
-		switch inputType {
-		case "player_name":
-			prompt = "Player Name: "
-		case "player_initiative":
-			prompt = "Player Initiative: "
-		case "player_ac":
-			prompt = "Player AC: "
-		case "monster_name":
-			prompt = "Monster Name: "
-		case "monster_hp":
-			prompt = "Monster HP: "
-		case "monster_ac":
-			prompt = "Monster AC: "
-		case "monster_initiative":
-			prompt = "Monster Initiative (or 'r' to roll): "
-		default:
-			prompt = "Input: "
-		}
-
-		// Override prompt for edit modes
-		if editMode {
-			switch editType {
-			case "initiative":
-				prompt = "New Initiative: "
-			case "hp":
-				prompt = "HP Change (+heal/-damage): "
-			case "maxhp":
-				prompt = "Max HP: "
-			case "ac":
-				prompt = "AC: "
-			case "temphp":
-				prompt = "Temporary HP: "
-			case "delete":
-				prompt = "Press Enter to confirm deletion"
-			}
-		}
-
-		if isActive {
-			prompt += input + "█"
-		} else {
-			prompt += input
-		}
-		contentLines = append(contentLines, prompt)
-		contentLines = append(contentLines, "")
+		contentLines = append(contentLines, renderInputField(input, inputMode, inputType, editMode, editType, isActive)...)
 	}
 
 	// Display initiative list
 	if initiativeList != nil {
-		// Try to convert interface{} to string and parse it
-		listStr := fmt.Sprintf("%+v", initiativeList)
-
-		if listStr != "[]" && listStr != "<nil>" {
-			contentLines = append(contentLines, textColor+"Initiative Order:[white]")
-			contentLines = append(contentLines, "")
-
-			// Better parsing approach - handle the slice format properly
-			// The format is like: [{Name:Player1 Type:player Initiative:15 HP:0 MaxHP:0 AC:0} {Name:Monster1 Type:monster Initiative:12 HP:25 MaxHP:25 AC:14}]
-
-			// Remove the outer brackets and split by individual entries
-			listStr = strings.TrimPrefix(listStr, "[")
-			listStr = strings.TrimSuffix(listStr, "]")
-
-			if listStr != "" {
-				// Split entries - each entry is wrapped in {}
-				// Count braces carefully to handle nested structures like Conditions:[{...}]
-				var entries []string
-				depth := 0
-				start := 0
-
-				for i, char := range listStr {
-					if char == '{' {
-						if depth == 0 {
-							start = i
-						}
-						depth++
-					} else if char == '}' {
-						depth--
-						if depth == 0 {
-							entries = append(entries, listStr[start:i+1])
-						}
-					}
-				}
-
-				// Import ui package type for Conditions
-				type Condition struct {
-					Name        string
-					RoundsLeft  int
-					TotalRounds int
-					Description string
-				}
-
-				// Parse entries into a sortable structure
-				type ParsedEntry struct {
-					Name                string
-					Type                string
-					Initiative          int
-					HP                  string
-					MaxHP               string
-					TempHP              string
-					AC                  string
-					ReactionUsed        string
-					LegendaryActionsMax string
-					LegendaryActionsUsed string
-					RawEntry            string
-					Conditions          []Condition
-				}
-
-				var parsedEntries []ParsedEntry
-
-				// Parse each entry
-				for entryIdx, entry := range entries {
-					if strings.Contains(entry, "Name:") {
-						name := extractField(entry, "Name:")
-						entryType := extractField(entry, "Type:")
-						initiativeStr := extractField(entry, "Initiative:")
-
-						// Convert initiative to int for sorting
-						initiative := 0
-						if initiativeStr != "" {
-							if val, err := strconv.Atoi(initiativeStr); err == nil {
-								initiative = val
-							}
-						}
-
-					hp := extractField(entry, "HP:")
-					maxHP := extractField(entry, "MaxHP:")
-					tempHP := extractField(entry, "TempHP:")
-					ac := extractField(entry, "AC:")
-					reactionUsed := extractField(entry, "ReactionUsed:")
-					legendaryMax := extractField(entry, "LegendaryActionsMax:")
-					legendaryUsed := extractField(entry, "LegendaryActionsUsed:")
-
-					// DEBUG: Print what we're about to parse
-					_ = entryIdx // Use the variable to avoid unused error
-
-					// Extract conditions if present
-						var conditions []Condition
-						if strings.Contains(entry, "Conditions:[") {
-							// Find the Conditions array in the string
-							condStart := strings.Index(entry, "Conditions:[")
-							if condStart != -1 {
-								// Find the matching closing bracket
-								condStr := entry[condStart+len("Conditions:"):]
-								depth := 0
-								endIdx := 0
-								for i, char := range condStr {
-									if char == '[' {
-										depth++
-									} else if char == ']' {
-										depth--
-										if depth == 0 {
-											endIdx = i
-											break
-										}
-									}
-								}
-
-								if endIdx > 0 {
-									// Extract the content between [ and ]
-									condArrayStr := condStr[1:endIdx]
-									if condArrayStr != "" {
-										// Split by condition entries {Name:... RoundsLeft:... TotalRounds:... Description:...}
-										condDepth := 0
-										condStart := 0
-										for i, char := range condArrayStr {
-											if char == '{' {
-												if condDepth == 0 {
-													condStart = i
-												}
-												condDepth++
-											} else if char == '}' {
-												condDepth--
-												if condDepth == 0 {
-													condEntryStr := condArrayStr[condStart : i+1]
-													// Parse individual condition
-													condName := extractField(condEntryStr, "Name:")
-													roundsLeftStr := extractField(condEntryStr, "RoundsLeft:")
-													totalRoundsStr := extractField(condEntryStr, "TotalRounds:")
-
-													roundsLeft := 0
-													totalRounds := 0
-													if roundsLeftStr != "" {
-														roundsLeft, _ = strconv.Atoi(roundsLeftStr)
-													}
-													if totalRoundsStr != "" {
-														totalRounds, _ = strconv.Atoi(totalRoundsStr)
-													}
-
-													conditions = append(conditions, Condition{
-														Name:        condName,
-														RoundsLeft:  roundsLeft,
-														TotalRounds: totalRounds,
-													})
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-
-					parsedEntries = append(parsedEntries, ParsedEntry{
-						Name:                name,
-						Type:                entryType,
-						Initiative:          initiative,
-						HP:                  hp,
-						MaxHP:               maxHP,
-						TempHP:              tempHP,
-						AC:                  ac,
-						ReactionUsed:        reactionUsed,
-						LegendaryActionsMax: legendaryMax,
-						LegendaryActionsUsed: legendaryUsed,
-						RawEntry:            entry,
-						Conditions:          conditions,
-					})
-					}
-				}
-
-				// Sort by initiative (highest first)
-				for i := 0; i < len(parsedEntries); i++ {
-					for j := i + 1; j < len(parsedEntries); j++ {
-						if parsedEntries[j].Initiative > parsedEntries[i].Initiative {
-							parsedEntries[i], parsedEntries[j] = parsedEntries[j], parsedEntries[i]
-						}
-					}
-				}
-
-				// Display sorted entries
-				for i, entry := range parsedEntries {
-					var line string
-					var turnMarker string
-					var checkbox string
-					var conditionIcons string
-
-					// Build condition icons string (compact display)
-					if len(entry.Conditions) > 0 {
-						var emojis []string
-						for _, cond := range entry.Conditions {
-							var emoji string
-							switch cond.Name {
-							case "Poisoned":
-								emoji = "🤢"
-							case "Stunned", "Paralyzed", "Incapacitated", "Unconscious":
-								emoji = "😵"
-							case "Frightened":
-								emoji = "😱"
-							case "Charmed":
-								emoji = "😍"
-							case "Invisible":
-								emoji = "👻"
-							case "Prone":
-								emoji = "🤕"
-							case "Grappled", "Restrained":
-								emoji = "🔗"
-							case "Blinded":
-								emoji = "🙈"
-							case "Deafened":
-								emoji = "🙉"
-							case "Petrified":
-								emoji = "🗿"
-							case "Exhausted":
-								emoji = "😫"
-							default:
-								emoji = "🔮"
-							}
-							emojis = append(emojis, emoji)
-						}
-						if len(emojis) > 0 {
-							conditionIcons = " " + strings.Join(emojis, "")
-						}
-					}
-
-					// Add checkbox for multi-target mode
-					if multiTargetMode {
-						if selectedTargets[i] {
-							checkbox = "[✓] "
-						} else {
-							checkbox = "[ ] "
-						}
-					} else {
-						checkbox = ""
-					}
-
-					// Add turn marker if this is the current turn
-					if currentTurn == i {
-						turnMarker = "★ "
-					} else {
-						turnMarker = "  "
-					}
-
-					if entry.Type == "player" {
-						// Color player names green
-						// Force green for testing - ensure it's always green
-						coloredName := "[green]" + entry.Name + "[white]"
-						// Format player line with AC if available
-						if entry.AC != "" && entry.AC != "0" {
-							line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, entry.AC, conditionIcons)
-						} else {
-							line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, conditionIcons)
-						}
-						// Apply selection marker (styling handled by TView)
-						if listMode && selectedEntry == i {
-							line = "► " + line
-						}
-					} else if entry.Type == "monster" {
-						// Convert HP strings to integers for color coding
-						hpInt := 0
-						maxHPInt := 0
-						if entry.HP != "" {
-							hpInt, _ = strconv.Atoi(entry.HP)
-						}
-						if entry.MaxHP != "" {
-							maxHPInt, _ = strconv.Atoi(entry.MaxHP)
-						}
-
-					// Get colored HP text with temp HP
-					tempHPInt := 0
-					if entry.TempHP != "" {
-						tempHPInt, _ = strconv.Atoi(entry.TempHP)
-					}
-					coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt, healthyColor, mediumColor, criticalColor, tempHPColor)
-
-					// Get reaction indicator
-					reactionIcon := ""
-					if entry.ReactionUsed == "true" {
-						reactionIcon = " [✗]" // Reaction used
-					} else if entry.ReactionUsed == "false" {
-						reactionIcon = " [✓]" // Reaction available
-					}
-
-					// Get legendary action counter
-					legendaryCounter := ""
-					legendaryMax := 0
-					legendaryUsed := 0
-					if entry.LegendaryActionsMax != "" {
-						if max, err := strconv.Atoi(entry.LegendaryActionsMax); err == nil && max > 0 {
-							legendaryMax = max
-							if entry.LegendaryActionsUsed != "" {
-								if used, err := strconv.Atoi(entry.LegendaryActionsUsed); err == nil {
-									legendaryUsed = used
-								}
-							}
-							// Show counter at end of name: "[3/3]" format
-							legendaryCounter = fmt.Sprintf(" [%d/%d]", legendaryMax-legendaryUsed, legendaryMax)
-						}
-					}
-
-					// Format line with colored HP and legendary counter
-					// Color monster names red
-					// Use config color if provided, otherwise default to red
-					if monsterNameColor == "" {
-						monsterNameColor = "[red]"
-					}
-					coloredName := monsterNameColor + entry.Name + "[white]" + legendaryCounter
-					line = fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
-							checkbox, turnMarker, i+1, coloredName, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
-
-					// Apply selection marker (styling handled by TView)
-					if listMode && selectedEntry == i {
-						line = "► " + line
-					}
-					} else {
-						// Get reaction indicator for players too
-						reactionIcon := ""
-						if entry.ReactionUsed == "true" {
-							reactionIcon = " [✗]" // Reaction used
-						} else if entry.ReactionUsed == "false" {
-							reactionIcon = " [✓]" // Reaction available
-						}
-
-					// Color player names green
-					// Force green for testing - ensure it's always green
-					coloredName := "[green]" + entry.Name + "[white]"
-					line = fmt.Sprintf("%s%s%2d. %s (Initiative: %d)%s%s", checkbox, turnMarker, i+1, coloredName, entry.Initiative, reactionIcon, conditionIcons)
-					if listMode && selectedEntry == i {
-						line = "► " + line
-					}
-					}
-
-					contentLines = append(contentLines, line)
-				}
-			}
-		} else {
-			contentLines = append(contentLines, "No entries in initiative order")
-			contentLines = append(contentLines, "")
-			contentLines = append(contentLines, "Add players and monsters to begin combat!")
-		}
+		listLines := renderInitiativeList(initiativeList, selectedEntry, isActive, listMode, currentTurn, multiTargetMode, selectedTargets, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor, playerNameColor, textColor)
+		contentLines = append(contentLines, listLines...)
 	} else {
 		contentLines = append(contentLines, "No entries in initiative order")
 		contentLines = append(contentLines, "")
@@ -485,6 +86,496 @@ func GetInitiativeTrackerContent(initiativeList interface{}, input string, input
 	}
 
 	return strings.Join(contentLines, "\n")
+}
+
+// renderRoundCounter renders the round counter and elapsed time display
+func renderRoundCounter(roundCounter int, textColor string) []string {
+	totalSeconds := roundCounter * 6
+	minutes := totalSeconds / 60
+	seconds := totalSeconds % 60
+
+	var timeStr string
+	if minutes > 0 {
+		if seconds > 0 {
+			timeStr = fmt.Sprintf("%d minute%s %d second%s", minutes, pluralize(minutes), seconds, pluralize(seconds))
+		} else {
+			timeStr = fmt.Sprintf("%d minute%s", minutes, pluralize(minutes))
+		}
+	} else {
+		timeStr = fmt.Sprintf("%d second%s", seconds, pluralize(seconds))
+	}
+
+	roundInfo := fmt.Sprintf("⚔️  Round %d / %s", roundCounter, timeStr)
+	return []string{"", textColor + roundInfo + "[white]"}
+}
+
+// renderInputField renders the input field prompt for adding or editing entries
+func renderInputField(input string, inputMode bool, inputType string, editMode bool, editType string, isActive bool) []string {
+	var prompt string
+
+	if editMode {
+		prompt = getEditPrompt(editType)
+	} else {
+		prompt = getInputPrompt(inputType)
+	}
+
+	if isActive {
+		prompt += input + "█"
+	} else {
+		prompt += input
+	}
+
+	return []string{prompt, ""}
+}
+
+// getInputPrompt returns the prompt string for input mode
+func getInputPrompt(inputType string) string {
+	switch inputType {
+	case "player_name":
+		return "Player Name: "
+	case "player_initiative":
+		return "Player Initiative: "
+	case "player_ac":
+		return "Player AC: "
+	case "monster_name":
+		return "Monster Name: "
+	case "monster_hp":
+		return "Monster HP: "
+	case "monster_ac":
+		return "Monster AC: "
+	case "monster_initiative":
+		return "Monster Initiative (or 'r' to roll): "
+	default:
+		return "Input: "
+	}
+}
+
+// getEditPrompt returns the prompt string for edit mode
+func getEditPrompt(editType string) string {
+	switch editType {
+	case "initiative":
+		return "New Initiative: "
+	case "hp":
+		return "HP Change (+heal/-damage): "
+	case "maxhp":
+		return "Max HP: "
+	case "ac":
+		return "AC: "
+	case "temphp":
+		return "Temporary HP: "
+	case "delete":
+		return "Press Enter to confirm deletion"
+	default:
+		return "Input: "
+	}
+}
+
+// renderInitiativeList renders the initiative list with all entries
+func renderInitiativeList(initiativeList interface{}, selectedEntry int, isActive bool, listMode bool, currentTurn int, multiTargetMode bool, selectedTargets map[int]bool, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor, playerNameColor, textColor string) []string {
+	var contentLines []string
+
+	// Try to convert interface{} to string and parse it
+	listStr := fmt.Sprintf("%+v", initiativeList)
+
+	if listStr == "[]" || listStr == "<nil>" {
+		contentLines = append(contentLines, "No entries in initiative order")
+		contentLines = append(contentLines, "")
+		contentLines = append(contentLines, "Add players and monsters to begin combat!")
+		return contentLines
+	}
+
+	contentLines = append(contentLines, textColor+"Initiative Order:[white]")
+	contentLines = append(contentLines, "")
+
+	// Parse entries from string representation
+	parsedEntries := parseInitiativeEntries(listStr)
+	if len(parsedEntries) == 0 {
+		contentLines = append(contentLines, "No entries in initiative order")
+		contentLines = append(contentLines, "")
+		contentLines = append(contentLines, "Add players and monsters to begin combat!")
+		return contentLines
+	}
+
+	// Sort entries by initiative
+	sortEntriesByInitiative(parsedEntries)
+
+	// Render each entry
+	for i, entry := range parsedEntries {
+		line := renderInitiativeEntry(entry, i, selectedEntry, listMode, currentTurn, multiTargetMode, selectedTargets, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor, playerNameColor)
+		contentLines = append(contentLines, line)
+	}
+
+	return contentLines
+}
+
+// ParsedEntry represents a parsed initiative entry
+type ParsedEntry struct {
+	Name                string
+	Type                string
+	Initiative          int
+	HP                  string
+	MaxHP               string
+	TempHP              string
+	AC                  string
+	ReactionUsed        string
+	LegendaryActionsMax string
+	LegendaryActionsUsed string
+	RawEntry            string
+	Conditions          []Condition
+}
+
+// Condition represents a parsed condition
+type Condition struct {
+	Name        string
+	RoundsLeft  int
+	TotalRounds int
+	Description string
+}
+
+// parseInitiativeEntries parses the string representation of initiative list into ParsedEntry structs
+func parseInitiativeEntries(listStr string) []ParsedEntry {
+	// Remove the outer brackets
+	listStr = strings.TrimPrefix(listStr, "[")
+	listStr = strings.TrimSuffix(listStr, "]")
+
+	if listStr == "" {
+		return nil
+	}
+
+	// Split entries - each entry is wrapped in {}
+	var entries []string
+	depth := 0
+	start := 0
+
+	for i, char := range listStr {
+		if char == '{' {
+			if depth == 0 {
+				start = i
+			}
+			depth++
+		} else if char == '}' {
+			depth--
+			if depth == 0 {
+				entries = append(entries, listStr[start:i+1])
+			}
+		}
+	}
+
+	// Parse each entry
+	var parsedEntries []ParsedEntry
+	for _, entry := range entries {
+		if strings.Contains(entry, "Name:") {
+			parsedEntry := parseInitiativeEntry(entry)
+			parsedEntries = append(parsedEntries, parsedEntry)
+		}
+	}
+
+	return parsedEntries
+}
+
+// parseInitiativeEntry parses a single initiative entry string into a ParsedEntry
+func parseInitiativeEntry(entry string) ParsedEntry {
+	name := extractField(entry, "Name:")
+	entryType := extractField(entry, "Type:")
+	initiativeStr := extractField(entry, "Initiative:")
+
+	// Convert initiative to int for sorting
+	initiative := 0
+	if initiativeStr != "" {
+		if val, err := strconv.Atoi(initiativeStr); err == nil {
+			initiative = val
+		}
+	}
+
+	hp := extractField(entry, "HP:")
+	maxHP := extractField(entry, "MaxHP:")
+	tempHP := extractField(entry, "TempHP:")
+	ac := extractField(entry, "AC:")
+	reactionUsed := extractField(entry, "ReactionUsed:")
+	legendaryMax := extractField(entry, "LegendaryActionsMax:")
+	legendaryUsed := extractField(entry, "LegendaryActionsUsed:")
+
+	// Extract conditions if present
+	conditions := parseConditions(entry)
+
+	return ParsedEntry{
+		Name:                name,
+		Type:                entryType,
+		Initiative:          initiative,
+		HP:                  hp,
+		MaxHP:               maxHP,
+		TempHP:              tempHP,
+		AC:                  ac,
+		ReactionUsed:        reactionUsed,
+		LegendaryActionsMax: legendaryMax,
+		LegendaryActionsUsed: legendaryUsed,
+		RawEntry:            entry,
+		Conditions:          conditions,
+	}
+}
+
+// parseConditions extracts conditions from an entry string
+func parseConditions(entry string) []Condition {
+	var conditions []Condition
+	if !strings.Contains(entry, "Conditions:[") {
+		return conditions
+	}
+
+	// Find the Conditions array in the string
+	condStart := strings.Index(entry, "Conditions:[")
+	if condStart == -1 {
+		return conditions
+	}
+
+	// Find the matching closing bracket
+	condStr := entry[condStart+len("Conditions:"):]
+	depth := 0
+	endIdx := 0
+	for i, char := range condStr {
+		if char == '[' {
+			depth++
+		} else if char == ']' {
+			depth--
+			if depth == 0 {
+				endIdx = i
+				break
+			}
+		}
+	}
+
+	if endIdx == 0 {
+		return conditions
+	}
+
+	// Extract the content between [ and ]
+	condArrayStr := condStr[1:endIdx]
+	if condArrayStr == "" {
+		return conditions
+	}
+
+	// Split by condition entries {Name:... RoundsLeft:... TotalRounds:... Description:...}
+	condDepth := 0
+	condStartIdx := 0
+	for i, char := range condArrayStr {
+		if char == '{' {
+			if condDepth == 0 {
+				condStartIdx = i
+			}
+			condDepth++
+		} else if char == '}' {
+			condDepth--
+			if condDepth == 0 {
+				condEntryStr := condArrayStr[condStartIdx : i+1]
+				// Parse individual condition
+				condName := extractField(condEntryStr, "Name:")
+				roundsLeftStr := extractField(condEntryStr, "RoundsLeft:")
+				totalRoundsStr := extractField(condEntryStr, "TotalRounds:")
+
+				roundsLeft := 0
+				totalRounds := 0
+				if roundsLeftStr != "" {
+					roundsLeft, _ = strconv.Atoi(roundsLeftStr)
+				}
+				if totalRoundsStr != "" {
+					totalRounds, _ = strconv.Atoi(totalRoundsStr)
+				}
+
+				conditions = append(conditions, Condition{
+					Name:        condName,
+					RoundsLeft:  roundsLeft,
+					TotalRounds: totalRounds,
+				})
+			}
+		}
+	}
+
+	return conditions
+}
+
+// sortEntriesByInitiative sorts parsed entries by initiative (highest first)
+func sortEntriesByInitiative(entries []ParsedEntry) {
+	for i := 0; i < len(entries); i++ {
+		for j := i + 1; j < len(entries); j++ {
+			if entries[j].Initiative > entries[i].Initiative {
+				entries[i], entries[j] = entries[j], entries[i]
+			}
+		}
+	}
+}
+
+// renderInitiativeEntry renders a single initiative entry as a formatted line
+func renderInitiativeEntry(entry ParsedEntry, index int, selectedEntry int, listMode bool, currentTurn int, multiTargetMode bool, selectedTargets map[int]bool, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor, playerNameColor string) string {
+	checkbox := getCheckbox(multiTargetMode, selectedTargets, index)
+	turnMarker := getTurnMarker(currentTurn, index)
+	conditionIcons := getConditionIcons(entry.Conditions)
+
+	if entry.Type == "player" {
+		return renderPlayerEntry(entry, index, selectedEntry, listMode, checkbox, turnMarker, conditionIcons, playerNameColor)
+	} else if entry.Type == "monster" {
+		return renderMonsterEntry(entry, index, selectedEntry, listMode, checkbox, turnMarker, conditionIcons, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor)
+	}
+
+	// Fallback for unknown types
+	return renderPlayerEntry(entry, index, selectedEntry, listMode, checkbox, turnMarker, conditionIcons, playerNameColor)
+}
+
+// getCheckbox returns the checkbox string for multi-target mode
+func getCheckbox(multiTargetMode bool, selectedTargets map[int]bool, index int) string {
+	if multiTargetMode {
+		if selectedTargets[index] {
+			return "[✓] "
+		}
+		return "[ ] "
+	}
+	return ""
+}
+
+// getTurnMarker returns the turn marker string
+func getTurnMarker(currentTurn int, index int) string {
+	if currentTurn == index {
+		return "★ "
+	}
+	return "  "
+}
+
+// getConditionIcons returns the condition icons string
+func getConditionIcons(conditions []Condition) string {
+	if len(conditions) == 0 {
+		return ""
+	}
+
+	var emojis []string
+	for _, cond := range conditions {
+		emoji := getConditionEmoji(cond.Name)
+		emojis = append(emojis, emoji)
+	}
+
+	if len(emojis) > 0 {
+		return " " + strings.Join(emojis, "")
+	}
+	return ""
+}
+
+// getConditionEmoji returns the emoji for a condition name
+func getConditionEmoji(condName string) string {
+	switch condName {
+	case "Poisoned":
+		return "🤢"
+	case "Stunned", "Paralyzed", "Incapacitated", "Unconscious":
+		return "😵"
+	case "Frightened":
+		return "😱"
+	case "Charmed":
+		return "😍"
+	case "Invisible":
+		return "👻"
+	case "Prone":
+		return "🤕"
+	case "Grappled", "Restrained":
+		return "🔗"
+	case "Blinded":
+		return "🙈"
+	case "Deafened":
+		return "🙉"
+	case "Petrified":
+		return "🗿"
+	case "Exhausted":
+		return "😫"
+	default:
+		return "🔮"
+	}
+}
+
+// renderPlayerEntry renders a player entry line
+func renderPlayerEntry(entry ParsedEntry, index int, selectedEntry int, listMode bool, checkbox, turnMarker, conditionIcons, playerNameColor string) string {
+	coloredName := "[green]" + entry.Name + "[white]"
+	var line string
+
+	if entry.AC != "" && entry.AC != "0" {
+		line = fmt.Sprintf("%s%s%2d. %s (Init: %d, AC: %s)%s", checkbox, turnMarker, index+1, coloredName, entry.Initiative, entry.AC, conditionIcons)
+	} else {
+		line = fmt.Sprintf("%s%s%2d. %s (Init: %d)%s", checkbox, turnMarker, index+1, coloredName, entry.Initiative, conditionIcons)
+	}
+
+	// Apply selection marker
+	if listMode && selectedEntry == index {
+		line = "► " + line
+	}
+
+	return line
+}
+
+// renderMonsterEntry renders a monster entry line
+func renderMonsterEntry(entry ParsedEntry, index int, selectedEntry int, listMode bool, checkbox, turnMarker, conditionIcons, healthyColor, mediumColor, criticalColor, tempHPColor, monsterNameColor string) string {
+	// Convert HP strings to integers for color coding
+	hpInt := 0
+	maxHPInt := 0
+	if entry.HP != "" {
+		hpInt, _ = strconv.Atoi(entry.HP)
+	}
+	if entry.MaxHP != "" {
+		maxHPInt, _ = strconv.Atoi(entry.MaxHP)
+	}
+
+	// Get colored HP text with temp HP
+	tempHPInt := 0
+	if entry.TempHP != "" {
+		tempHPInt, _ = strconv.Atoi(entry.TempHP)
+	}
+	coloredHP := getColoredHPWithTemp(hpInt, maxHPInt, tempHPInt, healthyColor, mediumColor, criticalColor, tempHPColor)
+
+	// Get reaction indicator
+	reactionIcon := getReactionIcon(entry.ReactionUsed)
+
+	// Get legendary action counter
+	legendaryCounter := getLegendaryCounter(entry.LegendaryActionsMax, entry.LegendaryActionsUsed)
+
+	// Format line with colored HP and legendary counter
+	if monsterNameColor == "" {
+		monsterNameColor = "[red]"
+	}
+	coloredName := monsterNameColor + entry.Name + "[white]" + legendaryCounter
+	line := fmt.Sprintf("%s%s%2d. %s (Init: %d, %s, AC: %s)%s%s",
+		checkbox, turnMarker, index+1, coloredName, entry.Initiative, coloredHP, entry.AC, reactionIcon, conditionIcons)
+
+	// Apply selection marker
+	if listMode && selectedEntry == index {
+		line = "► " + line
+	}
+
+	return line
+}
+
+// getReactionIcon returns the reaction indicator string
+func getReactionIcon(reactionUsed string) string {
+	if reactionUsed == "true" {
+		return " [✗]" // Reaction used
+	} else if reactionUsed == "false" {
+		return " [✓]" // Reaction available
+	}
+	return ""
+}
+
+// getLegendaryCounter returns the legendary action counter string
+func getLegendaryCounter(legendaryMaxStr, legendaryUsedStr string) string {
+	if legendaryMaxStr == "" {
+		return ""
+	}
+
+	max, err := strconv.Atoi(legendaryMaxStr)
+	if err != nil || max <= 0 {
+		return ""
+	}
+
+	used := 0
+	if legendaryUsedStr != "" {
+		if u, err := strconv.Atoi(legendaryUsedStr); err == nil {
+			used = u
+		}
+	}
+
+	// Show counter at end of name: "[3/3]" format
+	return fmt.Sprintf(" [%d/%d]", max-used, max)
 }
 
 // extractField extracts a field value from a struct string representation
