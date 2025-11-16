@@ -136,12 +136,14 @@ func (app *App) setupHandlers() {
 		// - Action popup is active (arrow keys navigate actions)
 		// - Monster/Spell search mode is active (arrow keys navigate suggestions)
 		// - Initiative input/edit mode (arrow keys have other functions)
+		// - Initiative list mode is active (arrow keys navigate list)
 		allowUpDownForScrolling := !app.model.ShowActionPopup &&
 			!app.model.MonsterSearchMode &&
 			!app.model.SpellSearchMode &&
 			!app.model.MonsterCRFilterMode &&
 			!app.model.InitiativeInputMode &&
-			!app.model.InitiativeEditMode
+			!app.model.InitiativeEditMode &&
+			!app.model.InitiativeListMode
 
 		if allowUpDownForScrolling {
 			scrollKeys = append(scrollKeys, tcell.KeyUp, tcell.KeyDown)

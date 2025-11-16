@@ -119,8 +119,18 @@ func GetInitiativeNameColors(cfg *config.Config) (monsterNameColor, playerNameCo
 		return "[red]", "[green]"
 	}
 
-	monsterNameColor = "[" + HexToTViewColor(cfg.Theme.MonsterNameColor) + "]"
-	playerNameColor = "[" + HexToTViewColor(cfg.Theme.PlayerNameColor) + "]"
+	// Use defaults if config colors are empty
+	if cfg.Theme.MonsterNameColor == "" {
+		monsterNameColor = "[red]"
+	} else {
+		monsterNameColor = "[" + HexToTViewColor(cfg.Theme.MonsterNameColor) + "]"
+	}
+
+	if cfg.Theme.PlayerNameColor == "" {
+		playerNameColor = "[green]"
+	} else {
+		playerNameColor = "[" + HexToTViewColor(cfg.Theme.PlayerNameColor) + "]"
+	}
 
 	return monsterNameColor, playerNameColor
 }
