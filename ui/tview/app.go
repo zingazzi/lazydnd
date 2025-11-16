@@ -19,6 +19,7 @@ type App struct {
 	panels      map[ui.PanelType]tview.Primitive
 	statusBar   *tview.TextView
 	updateTimer *time.Timer
+	updateChan  chan bool // Channel to signal UI updates
 }
 
 // NewApp creates a new TView application instance
@@ -27,6 +28,7 @@ func NewApp(model *ui.Model) *App {
 		application: tview.NewApplication(),
 		model:       model,
 		panels:      make(map[ui.PanelType]tview.Primitive),
+		updateChan:  make(chan bool, 10), // Buffered channel for update signals
 	}
 
 	app.setupStatusBar()
@@ -34,6 +36,7 @@ func NewApp(model *ui.Model) *App {
 	app.setupLayout()
 	app.setupAutoSave()
 	app.setupHandlers() // Set handlers AFTER layout so SetRoot is called first
+	app.startUpdateLoop() // Start the update loop
 
 	// Initialize panel borders and titles (but don't call Draw() yet)
 	app.updatePanelBorders()
@@ -85,21 +88,17 @@ func (app *App) setupLayout() {
 
 // setupHandlers configures input handlers
 func (app *App) setupHandlers() {
-	// Set input capture at application level to intercept all input before TView's focus system
-	app.application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// Debug: Log that we received an event
-		ui.DebugLog("INPUT CAPTURE: Received key event - Key: %d, Rune: %c", event.Key(), event.Rune())
-
+	// Set input capture on the grid instead of application level
+	// This allows QueueUpdateDraw to work properly
+	app.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// Convert TCell event to handler
 		key := event.Key()
 		rune := event.Rune()
 
 		// Route to appropriate handler
 		handled, shouldQuit := app.handleInput(key, rune)
-		ui.DebugLog("INPUT CAPTURE: handled=%v, shouldQuit=%v", handled, shouldQuit)
 
 		if shouldQuit {
-			ui.DebugLog("INPUT CAPTURE: Quit requested, stopping application")
 			// Stop in a goroutine to avoid blocking
 			go func() {
 				app.Stop()
@@ -107,17 +106,18 @@ func (app *App) setupHandlers() {
 			return nil
 		}
 		if handled {
-			// Move all updates INSIDE QueueUpdateDraw callback
-			// This ensures they happen on the main event loop
-			ui.DebugLog("INPUT CAPTURE: Queuing UI update - ActivePanel=%d", app.model.ActivePanel)
-			app.application.QueueUpdateDraw(func() {
-				ui.DebugLog("QUEUE UPDATE DRAW: Callback executing - ActivePanel=%d", app.model.ActivePanel)
-				app.updateStatusBar()
-				app.updatePanelBorders()
-				app.updatePanelContent()
-				ui.DebugLog("QUEUE UPDATE DRAW: Updates complete")
-			})
-			ui.DebugLog("INPUT CAPTURE: QueueUpdateDraw scheduled, returning nil")
+			// Update UI immediately in the input handler
+			// Then signal for a redraw via channel (non-blocking)
+			app.updateStatusBar()
+			app.updatePanelBorders()
+			app.updatePanelContent()
+
+			// Signal for redraw (non-blocking, don't wait)
+			select {
+			case app.updateChan <- true:
+			default:
+				// Channel full, skip - UI already updated
+			}
 
 			return nil // Event handled
 		}
@@ -173,11 +173,9 @@ func (app *App) updateStatusBar() {
 
 // updatePanelBorders updates panel border styling based on active panel
 func (app *App) updatePanelBorders() {
-	ui.DebugLog("updatePanelBorders: ActivePanel=%d", app.model.ActivePanel)
 	for panelType, panel := range app.panels {
 		if textView, ok := panel.(*tview.TextView); ok {
 			isActive := app.model.ActivePanel == panelType
-			ui.DebugLog("updatePanelBorders: Panel %d, isActive=%v", panelType, isActive)
 			app.stylePanel(textView, panelType, isActive)
 		}
 	}
@@ -196,17 +194,13 @@ func (app *App) stylePanel(textView *tview.TextView, panelType ui.PanelType, isA
 	if isActive {
 		borderColor = tcell.ColorYellow
 		titleColor = tcell.ColorYellow
-		ui.DebugLog("stylePanel: Panel %d set to ACTIVE (Yellow) - borderColor=%d, titleColor=%d", panelType, borderColor, titleColor)
 	} else {
 		borderColor = tcell.ColorWhite
 		titleColor = tcell.ColorWhite
-		ui.DebugLog("stylePanel: Panel %d set to INACTIVE (White) - borderColor=%d, titleColor=%d", panelType, borderColor, titleColor)
 	}
 
 	textView.SetBorderColor(borderColor)
 	textView.SetTitleColor(titleColor)
-
-	ui.DebugLog("stylePanel: Colors set for panel %d - borderColor=%d, titleColor=%d", panelType, borderColor, titleColor)
 }
 
 // updatePanelContent updates the content of all panels
@@ -233,10 +227,27 @@ func (app *App) Run() error {
 	return app.application.Run()
 }
 
+// startUpdateLoop starts a goroutine that processes UI redraw signals
+func (app *App) startUpdateLoop() {
+	go func() {
+		for {
+			select {
+			case <-app.updateChan:
+				// Call Draw() directly from goroutine - this is safe and faster than QueueUpdateDraw
+				// UI is already updated in the input handler, we just need to redraw
+				app.application.Draw()
+			}
+		}
+	}()
+}
+
 // Stop stops the TView application
 func (app *App) Stop() {
 	app.application.Stop()
 	if app.updateTimer != nil {
 		app.updateTimer.Stop()
+	}
+	if app.updateChan != nil {
+		close(app.updateChan)
 	}
 }

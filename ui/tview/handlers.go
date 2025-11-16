@@ -10,33 +10,23 @@ import (
 // HandleInput routes input events to the appropriate handler
 // Returns true if handled, false if not handled, and a special "quit" signal
 func HandleInput(model *ui.Model, key tcell.Key, rune rune) (handled bool, shouldQuit bool) {
-	ui.DebugLog("HandleInput: key=%d, rune=%c (rune value=%d)", key, rune, rune)
-
 	// Check for quit keys first
 	if key == tcell.KeyCtrlC {
-		ui.DebugLog("HandleInput: Ctrl+C detected")
 		// Check if we're in input mode
 		if !model.InputMode && !model.InitiativeInputMode && !model.SpellSearchMode && !model.MonsterSearchMode {
-			ui.DebugLog("HandleInput: Quit requested (Ctrl+C)")
 			return true, true // Handled, should quit
 		}
 	}
 	if key == tcell.KeyRune && rune == 'q' {
-		ui.DebugLog("HandleInput: 'q' key detected, InputMode=%v, InitiativeInputMode=%v, SpellSearchMode=%v, MonsterSearchMode=%v",
-			model.InputMode, model.InitiativeInputMode, model.SpellSearchMode, model.MonsterSearchMode)
 		// Check if we're in input mode
 		if !model.InputMode && !model.InitiativeInputMode && !model.SpellSearchMode && !model.MonsterSearchMode {
-			ui.DebugLog("HandleInput: Quit requested ('q')")
 			return true, true // Handled, should quit
 		}
 	}
 
 	// Convert TCell key to handler chain format
 	keyStr := convertKeyToString(key, rune)
-	ui.DebugLog("HandleInput: converted keyStr='%s'", keyStr)
-
 	if keyStr == "" {
-		ui.DebugLog("HandleInput: keyStr is empty, returning false")
 		return false, false
 	}
 
@@ -47,7 +37,6 @@ func HandleInput(model *ui.Model, key tcell.Key, rune rune) (handled bool, shoul
 	updatedModel, _ := ui.HandleNavigation(*model, keyMsg)
 	*model = updatedModel
 
-	ui.DebugLog("HandleInput: processed key, returning handled=true")
 	// Always return handled=true since we processed the key
 	// The handler chain will determine if any action was taken
 	return true, false
