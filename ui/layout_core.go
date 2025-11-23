@@ -2,6 +2,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -253,13 +255,50 @@ func (m Model) calculatePanelDimensions() map[PanelType]PanelDimensions {
 
 // arrangeInGrid arranges the six panels in custom layout
 func (m Model) arrangeInGrid(panelViews []string) string {
+	// Normalize panel heights to ensure alignment
 	// Top row: Dice (0) and Initiative (1)
-	topRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[0], panelViews[1])
+	topRowPanels := m.normalizePanelHeights([]string{panelViews[0], panelViews[1]})
+	topRow := lipgloss.JoinHorizontal(lipgloss.Top, topRowPanels...)
 
 	// Bottom row: Spells (2), Monsters (3), Notes (4), Encounter Builder (5)
-	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, panelViews[2], panelViews[3], panelViews[4], panelViews[5])
+	bottomRowPanels := m.normalizePanelHeights([]string{panelViews[2], panelViews[3], panelViews[4], panelViews[5]})
+	bottomRow := lipgloss.JoinHorizontal(lipgloss.Top, bottomRowPanels...)
 
 	return lipgloss.JoinVertical(lipgloss.Left, topRow, bottomRow)
+}
+
+// normalizePanelHeights ensures all panels have the same height before joining
+func (m Model) normalizePanelHeights(panelViews []string) []string {
+	if len(panelViews) == 0 {
+		return panelViews
+	}
+
+	// Find the maximum height
+	maxHeight := 0
+	for _, panel := range panelViews {
+		height := lipgloss.Height(panel)
+		if height > maxHeight {
+			maxHeight = height
+		}
+	}
+
+	// Normalize all panels to the same height
+	normalized := make([]string, len(panelViews))
+	for i, panel := range panelViews {
+		height := lipgloss.Height(panel)
+		if height < maxHeight {
+			// Pad with empty lines to match height
+			lines := strings.Split(panel, "\n")
+			for len(lines) < maxHeight {
+				lines = append(lines, "")
+			}
+			normalized[i] = strings.Join(lines, "\n")
+		} else {
+			normalized[i] = panel
+		}
+	}
+
+	return normalized
 }
 
 // renderSavePopupOverlay renders the save popup over the main view
