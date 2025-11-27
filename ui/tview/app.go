@@ -13,15 +13,16 @@ import (
 
 // App wraps the TView application and manages the UI
 type App struct {
-	application *tview.Application
-	grid        *tview.Grid
-	pages       *tview.Pages // Pages widget for switching between main view and modals
-	model       *ui.Model
-	panels      map[ui.PanelType]tview.Primitive
-	statusBar   *tview.TextView
-	updateTimer *time.Timer
-	updateChan  chan bool // Channel to signal UI updates
-	currentModal tview.Primitive // Currently displayed modal
+	application        *tview.Application
+	grid               *tview.Grid
+	pages              *tview.Pages // Pages widget for switching between main view and modals
+	model              *ui.Model
+	panels             map[ui.PanelType]tview.Primitive
+	statusBar          *tview.TextView
+	updateTimer        *time.Timer
+	updateChan         chan bool // Channel to signal UI updates
+	currentModal       tview.Primitive // Currently displayed modal
+	previousActivePanel ui.PanelType   // Track previous active panel to avoid unnecessary layout recalculations
 }
 
 // NewApp creates a new TView application instance
@@ -39,6 +40,10 @@ func NewApp(model *ui.Model) *App {
 	app.setupAutoSave()
 	app.setupHandlers() // Set handlers AFTER layout so SetRoot is called first
 	app.startUpdateLoop() // Start the update loop
+
+	// Initialize previous active panel to an invalid value to force initial layout
+	// This ensures the grid layout is calculated at least once
+	app.previousActivePanel = ui.PanelType(-1)
 
 	// Initialize panel borders and titles (but don't call Draw() yet)
 	app.updatePanelBorders()
@@ -288,8 +293,12 @@ func (app *App) updateStatusBar() {
 
 // updatePanelBorders updates panel border styling based on active panel
 func (app *App) updatePanelBorders() {
-	// Update grid layout when active panel changes
-	app.updateGridLayout()
+	// Update grid layout only when active panel changes
+	// This prevents unnecessary recalculations that cause visual glitches
+	if app.model.ActivePanel != app.previousActivePanel {
+		app.updateGridLayout()
+		app.previousActivePanel = app.model.ActivePanel
+	}
 
 	for panelType, panel := range app.panels {
 		if textView, ok := panel.(*tview.TextView); ok {

@@ -307,6 +307,19 @@ func handleA(m Model, msg KeyMsg) (Model, Cmd) {
 
 				// Renumber instances if there are duplicates
 				m = renumberMonsterInstances(m)
+
+				// Sort initiative list by initiative value (descending)
+				sortInitiativeList(&m.InitiativeList)
+
+				// Set up initiative tracker state so 'h' key works
+				if len(m.InitiativeList) > 0 {
+					m.InitiativeListMode = true
+					// Set selected entry to 0 (first entry after sorting)
+					// This ensures the tracker is in the correct state for editing
+					m.SelectedEntry = 0
+					// Switch to initiative tracker panel so 'h' key works immediately
+					m.ActivePanel = InitiativeTracker
+				}
 			}
 		}
 		return m, nil
