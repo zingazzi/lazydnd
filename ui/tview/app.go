@@ -195,11 +195,32 @@ func (app *App) setupHandlers() {
 			return nil
 		}
 		if handled {
+			// Check if we're in search/filter mode (monster or spell search)
+			inSearchMode := app.model.MonsterSearchMode || app.model.SpellSearchMode ||
+				app.model.MonsterCRFilterMode || app.model.SpellLevelFilterMode
+
 			// Update UI immediately in the input handler
-			// Then signal for a redraw via channel (non-blocking)
 			app.updateStatusBar()
-			app.updatePanelBorders()
+
+			// Completely skip border updates when in search mode
+			// This prevents grid.Clear() from being called, which causes visual jumps
+			// We only update borders when NOT in search mode AND panel actually changed
+			if !inSearchMode {
+				app.updatePanelBorders()
+			} else {
+				// In search mode, still update panel styling (colors) but skip grid layout
+				for panelType, panel := range app.panels {
+					if textView, ok := panel.(*tview.TextView); ok {
+						isActive := app.model.ActivePanel == panelType
+						app.stylePanel(textView, panelType, isActive)
+					}
+				}
+			}
+
+			// Always update all panels' content to prevent stale/duplicate content
+			// The key is preventing grid layout updates, not content updates
 			app.updatePanelContent()
+
 			app.updateModals() // Update modals based on popup state
 
 			// Signal for redraw (non-blocking, don't wait)
@@ -293,9 +314,14 @@ func (app *App) updateStatusBar() {
 
 // updatePanelBorders updates panel border styling based on active panel
 func (app *App) updatePanelBorders() {
-	// Update grid layout only when active panel changes
+	// Check if we're in search/filter mode - never update grid layout in this case
+	// This prevents layout glitches when entering search mode or typing
+	inSearchMode := app.model.MonsterSearchMode || app.model.SpellSearchMode ||
+		app.model.MonsterCRFilterMode || app.model.SpellLevelFilterMode
+
+	// Update grid layout only when active panel changes AND not in search mode
 	// This prevents unnecessary recalculations that cause visual glitches
-	if app.model.ActivePanel != app.previousActivePanel {
+	if !inSearchMode && app.model.ActivePanel != app.previousActivePanel {
 		app.updateGridLayout()
 		app.previousActivePanel = app.model.ActivePanel
 	}
@@ -480,6 +506,22 @@ func (app *App) updatePanelContent() {
 	for panelType, panel := range app.panels {
 		if textView, ok := panel.(*tview.TextView); ok {
 			content := app.model.GetPanelContent(panelType)
+			// Clear text first to prevent duplicate content, then set new content
+			// This ensures clean rendering without leftover text
+			textView.Clear()
+			textView.SetText(content)
+		}
+	}
+}
+
+// updateActivePanelContent updates only the active panel's content
+// This is more efficient during search mode to prevent visual glitches
+func (app *App) updateActivePanelContent() {
+	if panel, ok := app.panels[app.model.ActivePanel]; ok {
+		if textView, ok := panel.(*tview.TextView); ok {
+			content := app.model.GetPanelContent(app.model.ActivePanel)
+			// Clear text first to prevent duplicate content, then set new content
+			textView.Clear()
 			textView.SetText(content)
 		}
 	}
