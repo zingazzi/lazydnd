@@ -204,6 +204,7 @@ func handleH(m Model, msg KeyMsg) (Model, Cmd) {
 	isShiftH := msg.String() == KeyShiftH
 
 	// Edit HP or Max HP in list mode (for both monsters and players)
+	// This works when in list mode, whether or not already in edit mode
 	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 {
@@ -215,6 +216,13 @@ func handleH(m Model, msg KeyMsg) (Model, Cmd) {
 			}
 			m.InitiativeInput = ""
 		}
+		return m, nil
+	}
+
+	// When NOT in list mode, 'h' opens quick HP popup (damage/remove by default)
+	// This allows quick HP adjustments without entering edit mode
+	if m.ActivePanel == InitiativeTracker && !m.InitiativeListMode && !m.InitiativeEditMode && !m.InitiativeInputMode {
+		return handleQuickRemoveHP(m, msg)
 	}
 
 	return m, nil
@@ -260,12 +268,8 @@ func handleA(m Model, msg KeyMsg) (Model, Cmd) {
 		return m, nil
 	}
 
-	// Handle search mode input
-	if m.isInInputMode() {
-		return handleSearchModeInput(m, "a"), nil
-	}
-
 	// Add monster to initiative from Monster panel
+	// Check this BEFORE search mode so 'a' works even if search mode is still active
 	if m.ActivePanel == Monsters && m.SelectedMonster != nil {
 		// Add selected monster to initiative tracker
 		monsterName := getMonsterFieldString(reflect.ValueOf(m.SelectedMonster).Elem(), "Name")
@@ -305,7 +309,16 @@ func handleA(m Model, msg KeyMsg) (Model, Cmd) {
 				m = renumberMonsterInstances(m)
 			}
 		}
-	} else if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
+		return m, nil
+	}
+
+	// Handle search mode input (only if not adding monster to initiative)
+	if m.isInInputMode() {
+		return handleSearchModeInput(m, "a"), nil
+	}
+
+	// Show action popup in initiative tracker
+	if m.ActivePanel == InitiativeTracker && m.InitiativeListMode && !m.InitiativeInputMode && !m.InitiativeEditMode && m.SelectedEntry >= 0 && m.SelectedEntry < len(m.InitiativeList) {
 		// Show action popup for selected monster (if it has actions)
 		originalIndex := findOriginalIndex(m, m.SelectedEntry)
 		if originalIndex >= 0 && m.InitiativeList[originalIndex].MonsterData != nil {
