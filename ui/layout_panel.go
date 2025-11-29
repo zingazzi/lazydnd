@@ -3,6 +3,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,11 +23,54 @@ func (m Model) renderAllPanels(dimensionsMap map[PanelType]PanelDimensions) []st
 
 // renderSinglePanel renders a single panel with all its content and styling
 func (m Model) renderSinglePanel(panelType PanelType, dimensions PanelDimensions, panelNumber int) string {
+	// Validate dimensions before rendering
+	dimensions = m.validateDimensions(dimensions)
+
 	content := m.getPanelContent(panelType)
+	// Sanitize content to remove trailing newlines and handle empty content
+	content = m.sanitizeContent(content)
+
 	scrolledContent := m.applyScrolling(content, panelType, dimensions)
 	styledContent := m.stylePanel(scrolledContent, panelType, dimensions, panelNumber)
 
 	return styledContent
+}
+
+// validateDimensions ensures dimensions are within reasonable bounds
+func (m Model) validateDimensions(dimensions PanelDimensions) PanelDimensions {
+	// Minimum dimensions to ensure panels are visible
+	const minWidth = 10
+	const minHeight = 5
+
+	if dimensions.Width < minWidth {
+		dimensions.Width = minWidth
+	}
+	if dimensions.Height < minHeight {
+		dimensions.Height = minHeight
+	}
+
+	// Maximum dimensions to prevent overflow
+	if dimensions.Width > m.Width {
+		dimensions.Width = m.Width
+	}
+	if dimensions.Height > m.Height {
+		dimensions.Height = m.Height
+	}
+
+	return dimensions
+}
+
+// sanitizeContent removes trailing newlines and ensures content is properly formatted
+func (m Model) sanitizeContent(content string) string {
+	// Remove trailing newlines
+	content = strings.TrimRight(content, "\n")
+
+	// If content is completely empty, return a single space to maintain layout
+	if content == "" {
+		return " "
+	}
+
+	return content
 }
 
 // stylePanel applies styling to a panel
