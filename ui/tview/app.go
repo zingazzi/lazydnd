@@ -23,6 +23,7 @@ type App struct {
 	updateChan         chan bool // Channel to signal UI updates
 	currentModal       tview.Primitive // Currently displayed modal
 	previousActivePanel ui.PanelType   // Track previous active panel to avoid unnecessary layout recalculations
+	previousSearchMode  bool            // Track previous search mode to detect transitions
 }
 
 // NewApp creates a new TView application instance
@@ -44,6 +45,7 @@ func NewApp(model *ui.Model) *App {
 	// Initialize previous active panel to an invalid value to force initial layout
 	// This ensures the grid layout is calculated at least once
 	app.previousActivePanel = ui.PanelType(-1)
+	app.previousSearchMode = false
 
 	// Initialize panel borders and titles (but don't call Draw() yet)
 	app.updatePanelBorders()
@@ -199,6 +201,10 @@ func (app *App) setupHandlers() {
 			inSearchMode := app.model.MonsterSearchMode || app.model.SpellSearchMode ||
 				app.model.MonsterCRFilterMode || app.model.SpellLevelFilterMode
 
+			// Detect if we're transitioning into or out of search mode
+			enteringSearchMode := inSearchMode && !app.previousSearchMode
+			exitingSearchMode := !inSearchMode && app.previousSearchMode
+
 			// Update UI immediately in the input handler
 			app.updateStatusBar()
 
@@ -217,9 +223,19 @@ func (app *App) setupHandlers() {
 				}
 			}
 
-			// Always update all panels' content to prevent stale/duplicate content
-			// The key is preventing grid layout updates, not content updates
-			app.updatePanelContent()
+			// During search mode transitions, only update the active panel to prevent duplicate lines
+			// Once stable in search mode, continue updating only active panel
+			// When NOT in search mode, update all panels normally
+			if inSearchMode || enteringSearchMode || exitingSearchMode {
+				// Only update active panel during search mode or transitions
+				app.updateActivePanelContent()
+			} else {
+				// Normal mode - update all panels
+				app.updatePanelContent()
+			}
+
+			// Update previous search mode state for next check
+			app.previousSearchMode = inSearchMode
 
 			app.updateModals() // Update modals based on popup state
 
@@ -506,8 +522,8 @@ func (app *App) updatePanelContent() {
 	for panelType, panel := range app.panels {
 		if textView, ok := panel.(*tview.TextView); ok {
 			content := app.model.GetPanelContent(panelType)
-			// Clear text first to prevent duplicate content, then set new content
-			// This ensures clean rendering without leftover text
+			// Clear and set in one atomic operation to prevent duplicate lines
+			// This ensures old content is completely removed before new content is set
 			textView.Clear()
 			textView.SetText(content)
 		}
@@ -520,7 +536,7 @@ func (app *App) updateActivePanelContent() {
 	if panel, ok := app.panels[app.model.ActivePanel]; ok {
 		if textView, ok := panel.(*tview.TextView); ok {
 			content := app.model.GetPanelContent(app.model.ActivePanel)
-			// Clear text first to prevent duplicate content, then set new content
+			// Clear and set in one atomic operation to prevent duplicate lines
 			textView.Clear()
 			textView.SetText(content)
 		}
