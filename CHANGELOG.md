@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v2.15.0
+- **Graphic fix**
+	- Improved display and visibility for legendary action icons
+- **Improve stability**
+	- Improve general stability
+	- Minor fix
+
 ## v2.14.0
 - **Add legendary action counter**
 	- use l and shift+L to consume/restore legendary action
