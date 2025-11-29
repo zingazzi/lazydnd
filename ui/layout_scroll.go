@@ -15,7 +15,23 @@ func (m Model) applyScrolling(content string, panelType PanelType, dimensions Pa
 		return content // Search content already has its own scroll handling
 	}
 
+	// Handle empty content
+	if strings.TrimSpace(content) == "" {
+		heights := m.calculateContentHeights(dimensions, panelType)
+		// Return empty lines to fill the available space
+		emptyLines := make([]string, heights.Available)
+		for i := range emptyLines {
+			emptyLines[i] = ""
+		}
+		return strings.Join(emptyLines, "\n")
+	}
+
 	contentLines := strings.Split(content, "\n")
+	// Remove empty trailing lines to avoid unnecessary scrolling
+	for len(contentLines) > 0 && strings.TrimSpace(contentLines[len(contentLines)-1]) == "" {
+		contentLines = contentLines[:len(contentLines)-1]
+	}
+
 	scrollOffset := m.ScrollOffset[panelType]
 
 	heights := m.calculateContentHeights(dimensions, panelType)
@@ -35,6 +51,15 @@ type ContentHeights struct {
 
 // calculateContentHeights calculates available and content heights for a panel
 func (m Model) calculateContentHeights(dimensions PanelDimensions, panelType PanelType) ContentHeights {
+	// Defensive check: ensure dimensions are valid
+	if dimensions.Height < 3 {
+		// Return minimum valid heights
+		return ContentHeights{
+			Available: 1,
+			Content:   1,
+		}
+	}
+
 	// Account for: title (1) + borders (2) = 3 lines
 	// Note: padding is horizontal only (Padding(0, panelPadding)), not vertical
 	availableHeight := dimensions.Height - 3
@@ -46,7 +71,13 @@ func (m Model) calculateContentHeights(dimensions PanelDimensions, panelType Pan
 
 	// Reserve space for scroll indicators on active panels
 	if panelType == m.ActivePanel {
-		contentHeight = availableHeight - 2
+		// Need space for top and bottom indicators (2 lines)
+		if availableHeight >= 3 {
+			contentHeight = availableHeight - 2
+		} else {
+			// Very small panel - can't show indicators
+			contentHeight = availableHeight
+		}
 		if contentHeight < 1 {
 			contentHeight = 1
 		}
@@ -54,10 +85,17 @@ func (m Model) calculateContentHeights(dimensions PanelDimensions, panelType Pan
 
 	// Extra buffer for spell panel to prevent resizing
 	if panelType == Spells {
-		contentHeight = contentHeight - 2
+		if contentHeight > 2 {
+			contentHeight = contentHeight - 2
+		}
 		if contentHeight < 1 {
 			contentHeight = 1
 		}
+	}
+
+	// Final validation
+	if contentHeight > availableHeight {
+		contentHeight = availableHeight
 	}
 
 	return ContentHeights{
@@ -184,12 +222,30 @@ func (m Model) addScrollIndicators(visibleLines []string, scrollOffset int, cont
 
 // truncateLongLines truncates lines that are too long to prevent wrapping
 func (m Model) truncateLongLines(content string, panelWidth int) string {
+	// Defensive check: ensure panel width is valid
+	if panelWidth < 10 {
+		panelWidth = 10
+	}
+
 	finalLines := strings.Split(content, "\n")
-	maxLineWidth := panelWidth - 6 // Account for padding and borders
+	// Account for padding (2 on each side) and borders (1 on each side) = 6 characters
+	maxLineWidth := panelWidth - 6
+	if maxLineWidth < 4 {
+		maxLineWidth = 4 // Minimum width for "..."
+	}
 
 	for i, line := range finalLines {
+		// Handle lines that exceed the maximum width
 		if len(line) > maxLineWidth {
-			finalLines[i] = line[:maxLineWidth-3] + "..."
+			// Truncate and add ellipsis, ensuring we don't go negative
+			truncatePos := maxLineWidth - 3
+			if truncatePos < 0 {
+				truncatePos = 0
+			}
+			if truncatePos > len(line) {
+				truncatePos = len(line)
+			}
+			finalLines[i] = line[:truncatePos] + "..."
 		}
 	}
 

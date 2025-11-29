@@ -273,22 +273,46 @@ func (m Model) normalizePanelHeights(panelViews []string) []string {
 		return panelViews
 	}
 
-	// Find the maximum height
+	// Find the maximum height in a single pass
 	maxHeight := 0
-	for _, panel := range panelViews {
+	heights := make([]int, len(panelViews))
+	for i, panel := range panelViews {
 		height := lipgloss.Height(panel)
+		heights[i] = height
 		if height > maxHeight {
 			maxHeight = height
 		}
 	}
 
+	// If all panels already have the same height, return early
+	if maxHeight == 0 {
+		return panelViews
+	}
+
+	allSameHeight := true
+	for _, h := range heights {
+		if h != maxHeight {
+			allSameHeight = false
+			break
+		}
+	}
+	if allSameHeight {
+		return panelViews
+	}
+
 	// Normalize all panels to the same height
 	normalized := make([]string, len(panelViews))
 	for i, panel := range panelViews {
-		height := lipgloss.Height(panel)
-		if height < maxHeight {
+		if heights[i] < maxHeight {
 			// Pad with empty lines to match height
 			lines := strings.Split(panel, "\n")
+			// Pre-allocate to avoid multiple reallocations
+			if cap(lines) < maxHeight {
+				newLines := make([]string, len(lines), maxHeight)
+				copy(newLines, lines)
+				lines = newLines
+			}
+			// Extend to maxHeight
 			for len(lines) < maxHeight {
 				lines = append(lines, "")
 			}
